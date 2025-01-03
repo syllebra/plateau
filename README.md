@@ -1,7 +1,9 @@
 # plateau
+
 A virtual tabletop (VTT) playground based on Babylon.js
 
 # Features
+
 - [x] Table top Physics (Havok)
 - [x] Parametrizable color dice (D6)
 - [ ] Other dices (D4, D8, D10, D20, ...)
@@ -17,5 +19,5 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Fixed object
 
 # Todo
-- [ ] Refactoring animations
 
+- [ ] Refactoring animations
