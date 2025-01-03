@@ -1,0 +1,26 @@
+{
+    "animate": false,
+    "refreshrate": 0,
+    "uniforms": [
+     {
+         "type": "color3",
+         "name": "colorA",
+         "r": "1.0",
+         "g": "1.0",
+         "b": "1.0"
+     },
+     {
+        "type": "color3",
+        "name": "colorB",
+        "r": "0.0",
+        "g": "0.0",
+        "b": "0.0"
+    }     
+ ],
+    "sampler2Ds": [
+     {
+         "sample2Dname": "diceBase",
+         "textureRelativeUrl": "D6.jpg"
+     }
+    ]
+   }

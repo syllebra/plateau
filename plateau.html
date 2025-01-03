@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+</html>
+
+<head>
+	<title>Babylon Tabletop Test Area</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+
+	<style>
+		html,
+		body {
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#renderCanvas {
+			width: 100%;
+			height: 100%;
+			touch-action: none;
+		}
+	</style>
+
+</head>
+
+<body>
+
+	<canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
+
+	<div id="container"> </div>
+	
+	<div id="info" style="position:fixed; top:5px; width:100%; text-align:center; font-family:monospace; font-size:medium; color:rgb(255,255,255);">
+		"Plateau" Tabletop - Test Area
+	</div>
+
+	<div id="cameraInfo" style="position:fixed; left:1%; bottom:2%; font-family:monospace; font-size:large; color:rgb(200,200,200);">
+	</div>
+
+	<!-- <script src="js/babylon.max.js"></script> -->
+	<script src="https://cdn.babylonjs.com/havok/HavokPhysics_umd.js"></script>
+    <script src="js/babylon.js"></script>
+    <script src="js/babylon.gui.min.js"></script>
+	<script src="js/stats.min.js"> </script>
+	<script src="js/babylonjs.loaders.min.js"></script>
+	<script src="js/anime.min.js"></script>
+	<script src="js/Babylon_vanilla.js"> </script>
+
+</body>
+
+</html>
