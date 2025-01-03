@@ -33,6 +33,7 @@ class FastUI {
     this.panel.paddingLeftInPixels = 10;
     this.panel.paddingTopInPixels = 10;
     this.panel.width = "30%";
+    this.panel.fontSize = "10";
   }
 
   addBtn(text, clickFn) {
@@ -42,7 +43,7 @@ class FastUI {
     );
     this.panel.addControl(addBtn);
     addBtn.width = "100%";
-    addBtn.height = "40px";
+    addBtn.height = "30px";
     addBtn.background = "green";
     addBtn.color = "white";
     addBtn.onPointerClickObservable.add(clickFn);
@@ -78,7 +79,7 @@ class FastUI {
     var bodiesCounter = new BABYLON.GUI.TextBlock("bodiesCounter", initialText);
     bodiesCounter.color = "white";
     bodiesCounter.resizeToFit = true;
-    bodiesCounter.fontSize = "20px";
+    //bodiesCounter.fontSize = "20px";
     this.panel.addControl(bodiesCounter);
     if (updateFn) {
       scene.onAfterRenderObservable.add(() => updateFn(bodiesCounter));
