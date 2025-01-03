@@ -210,7 +210,7 @@ var createScene = async function () {
   var scene = new BABYLON.Scene(engine);
   scene.useRightHandedSystem = true;
 
-  // This creates and positions a free camera (non-mesh)
+  //This creates and positions a free camera (non-mesh)
   camera = new BABYLON.UniversalCamera(
     "camera1",
     new BABYLON.Vector3(0, 1, -3),
@@ -222,7 +222,23 @@ var createScene = async function () {
 
   // This attaches the camera to the canvas
   camera.attachControl(canvas, true);
+  camera.inertia = 0.5;
+  camera.minZ = 0.01;
   camera.inputs.attached.mouse.buttons = [2];
+  console.log(camera.inputs.attached.mouse);
+
+  //camera.inputs.removeMouse();
+  camera.inputs.addMouseWheel();
+
+  camera.inputs.attached.mousewheel.wheelPrecisionX =
+    camera.inputs.attached.mousewheel.wheelPrecisionY =
+    camera.inputs.attached.mousewheel.wheelPrecisionZ =
+      0.2;
+
+  camera.checkCollisions = true;
+  camera.lowerRadiusLimit = 0.001;
+
+  console.log(camera.inputs.attached.keyboard);
 
   // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
   var light = new BABYLON.HemisphericLight(
@@ -239,22 +255,10 @@ var createScene = async function () {
     new BABYLON.Vector3(0, -1, 1)
   );
   dirLight.autoCalcShadowZBounds = true;
-  dirLight.intensity = 0.2;
+  dirLight.intensity = 0.4;
   var shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
   shadowGen.bias = 0.01;
   shadowGen.usePercentageCloserFiltering = true;
-
-  var advancedTexture =
-    BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-
-  var panel = new BABYLON.GUI.StackPanel();
-  panel.spacing = 5;
-  advancedTexture.addControl(panel);
-  panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-  panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-  panel.paddingLeftInPixels = 10;
-  panel.paddingTopInPixels = 10;
-  panel.width = "30%";
 
   // initialize plugin
   const havokInstance = await HavokPhysics();
@@ -274,22 +278,6 @@ var createScene = async function () {
   bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
   [diceMaterial, diceUVs] = CreateDiceMaterial(scene);
-
-  const viewerCheckbox = AddToggle("Debug Viewer", panel);
-  viewerCheckbox.isChecked = false;
-  viewerCheckbox.onIsCheckedChangedObservable.add((value) => {
-    if (value) {
-      viewer = new BABYLON.Debug.PhysicsViewer(scene);
-      for (let mesh of scene.meshes) {
-        if (viewer && mesh.physicsBody) {
-          viewer.showBody(mesh.physicsBody);
-        }
-      }
-    } else {
-      viewer.dispose();
-      viewer = null;
-    }
-  });
 
   var modelNameAndExtension = "dice.glb";
 
@@ -462,9 +450,11 @@ var createScene = async function () {
     }
   });
 
+  var panning = false;
   scene.onPointerObservable.add((pointerInfo) => {
     switch (pointerInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN:
+        if (pointerInfo.event.button == 1) panning = true;
         if (pointerInfo.event.button != 0) break;
         if (!pointerInfo.pickInfo.hit) break;
         if (pointerInfo.pickInfo.pickedMesh == ground) {
@@ -519,6 +509,7 @@ var createScene = async function () {
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
+        if (pointerInfo.event.button == 1 && panning) panning = false;
         if (pointerInfo.event.button != 0) break;
 
         if (box_selection) {
@@ -544,6 +535,13 @@ var createScene = async function () {
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
+        if (panning) {
+          const delta = 0.01; // Amount of change in movement
+          let x = delta * pointerInfo.event.movementX;
+          let y = -delta * pointerInfo.event.movementY;
+          camera.position.addInPlace(new BABYLON.Vector3(x, y, 0));
+        }
+
         updateMouseSpeed(pointerInfo.event);
         if (box_selection) {
           SelectionHandler.selbox.setSecondPoint(
