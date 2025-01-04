@@ -125,3 +125,37 @@ class FastUI {
     });
   }
 }
+
+class MouseSpeed {
+  static timestamp = 0;
+  static speedMax = 0;
+  static value = 0;
+  static update(e) {
+    var now = Date.now();
+
+    var dt = now - this.timestamp;
+    var dx = e.movementX;
+    var dy = e.movementY;
+
+    var distance = Math.sqrt(dx * dx + dy * dy);
+//    var direction = Math.atan2(dy, dx);
+
+    //speed is zero when mouse was still (dt hold a long pause)
+    this.value = parseInt((distance / dt) * 100);
+    // var speedX = Math.round((dx / dt) * 100);
+    // var speedY = Math.round((dy / dt) * 100);
+
+    //reset if speed is zero, otherwise set max of any speed
+    this.speedMax = !this.mouse_speed
+      ? 0
+      : this.mouse_speed > this.speedMax
+      ? this.mouse_speed
+      : this.speedMax;
+    //console.log("max:",speedMax)
+    this.timestamp = now;
+  }
+  static reset() {
+    this.speedMax = 0;
+  }
+
+}

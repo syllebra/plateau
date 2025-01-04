@@ -35,6 +35,8 @@ class PhysicObject {
     this.body.shape = colliderShape;
     this.body.disablePreStep = false;
     //}, spawnPosition = null, spawnRotation = null) {
+
+    this.node.plateauObj = this;
   }
 
   setEnabled(b) {

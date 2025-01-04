@@ -191,34 +191,6 @@ var createScene = async function () {
     return max_height;
   }
 
-  var timestamp = 0,
-    speedMax = 0,
-    mouse_speed = 0;
-
-  function updateMouseSpeed(e) {
-    var now = Date.now();
-
-    var dt = now - timestamp;
-    var dx = e.movementX;
-    var dy = e.movementY;
-
-    var distance = Math.sqrt(dx * dx + dy * dy);
-    var direction = Math.atan2(dy, dx);
-
-    //speed is zero when mouse was still (dt hold a long pause)
-    mouse_speed = parseInt((distance / dt) * 100);
-    var speedX = Math.round((dx / dt) * 100);
-    var speedY = Math.round((dy / dt) * 100);
-
-    //reset if speed is zero, otherwise set max of any speed
-    speedMax = !mouse_speed
-      ? 0
-      : mouse_speed > speedMax
-      ? mouse_speed
-      : speedMax;
-    //console.log("max:",speedMax)
-    timestamp = now;
-  }
 
   var picked = null;
   var picked_ground_pos = new BABYLON.Vector3();
@@ -299,7 +271,7 @@ var createScene = async function () {
           //camera.detachControl(canvas);
           box_selection = true;
         } else if (pointerInfo.pickInfo.pickedMesh != ground) {
-          speedMax = 0;
+          MouseSpeed.reset();
 
           if (!pointerInfo.pickInfo.pickedMesh.physicsBody) break;
 
@@ -339,6 +311,7 @@ var createScene = async function () {
             0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
           //picked.position.y = target_height;
           changeAnimTarget(picked, target_height);
+          console.log("PICKED PLATEAU OBJECT:",picked.plateauObj)
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -353,10 +326,10 @@ var createScene = async function () {
         } else if (picked) {
           picked.physicsBody.disablePreStep = true;
           picked.physicsBody.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-          //picked.physicsBody.applyForce(dir_speed, picked.position);
+
           dir_speed = dir_speed.normalize();
           var power =
-            picked.physicsBody.getMassProperties().mass * 1.5 * mouse_speed;
+            picked.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
           dir_speed.x *= power;
           dir_speed.z *= power;
           var pos = picked.position;
@@ -375,7 +348,7 @@ var createScene = async function () {
           camera.position.addInPlace(new BABYLON.Vector3(x, y, 0));
         }
 
-        updateMouseSpeed(pointerInfo.event);
+        MouseSpeed.update(pointerInfo.event);
         if (box_selection) {
           SelectionHandler.selbox.setSecondPoint(
             pointerInfo.pickInfo.ray.intersectsMesh(
@@ -453,45 +426,6 @@ var createScene = async function () {
   SelectionHandler.init(scene);
 
   return scene;
-};
-
-const AddBtn = function (text, panel, clickFn) {
-  const addBtn = BABYLON.GUI.Button.CreateSimpleButton(
-    "btn_" + text.slice(0, 5),
-    text
-  );
-  panel.addControl(addBtn);
-  addBtn.width = "100%";
-  addBtn.height = "40px";
-  addBtn.background = "green";
-  addBtn.color = "white";
-  addBtn.onPointerClickObservable.add(clickFn);
-  return addBtn;
-};
-
-var AddToggle = function (toggleText, panel) {
-  var toggleViewLine = new BABYLON.GUI.StackPanel("toggleViewLine");
-  toggleViewLine.isVertical = false;
-  toggleViewLine.horizontalAlignment =
-    BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-  toggleViewLine.spacing = 5;
-  toggleViewLine.resizeToFit = true;
-  toggleViewLine.height = "25px";
-  panel.addControl(toggleViewLine);
-  var checkbox = new BABYLON.GUI.Checkbox();
-  checkbox.verticalAlignment = 0; //BABYLON.Control.VERTICAL_ALIGNMENT_TOP;
-  checkbox.width = "20px";
-  checkbox.height = "20px";
-  checkbox.isChecked = false;
-  checkbox.color = "green";
-  toggleViewLine.addControl(checkbox);
-  toggleViewLine.paddingTop = 2;
-
-  var checkboxText = new BABYLON.GUI.TextBlock("checkboxText", toggleText);
-  checkboxText.resizeToFit = true;
-  checkboxText.color = "white";
-  toggleViewLine.addControl(checkboxText);
-  return checkbox;
 };
 
 createScene().then((scene) => {
