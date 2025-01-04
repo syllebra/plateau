@@ -87,7 +87,7 @@ class FastUI {
     return bodiesCounter;
   }
 
-  setup(scene, hk) {
+  setup(scene, hk, viewer) {
     // Debug physics button
     const viewerCheckbox = this.addToggle("Debug Viewer");
     viewerCheckbox.isChecked = false;

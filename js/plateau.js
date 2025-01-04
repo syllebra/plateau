@@ -1,176 +1,18 @@
-let canvas, engine, pathTracingScene;
-let camera;
-let dice_mesh, dice_collider;
-
 canvas = document.getElementById("renderCanvas");
 engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
-var bindBodyShape = function (mesh, shape, scene) {
-  mesh.material = bodyRenderingMaterial;
-  if (mesh.getDescendants && mesh.getDescendants().length) {
-    mesh.getDescendants().forEach((d) => {
-      d.material = bodyRenderingMaterial;
-    });
-  }
-
-  var body = new BABYLON.PhysicsBody(
-    mesh,
-    BABYLON.PhysicsMotionType.DYNAMIC,
-    false,
-    scene
-  );
-
-  shape.material = physicsMaterial;
-  body.shape = shape;
-  // body.setMassProperties({
-  //   mass: 1,
-  // });
-};
-
-var CreateDiceMaterial = function (scene) {
-  // Texture
-
-  BABYLON.Effect.ShadersStore["LinesPixelShader"] =
-    "#ifdef GL_ES\n" +
-    "precision highp float;\n" +
-    "#endif\n\n" +
-    "varying vec2 vUV; \n" +
-    "void main(void) {\n" +
-    " gl_FragColor = vec4(vUV.x,vUV.y,-vUV.x, 1.0);\n" +
-    "}\n" +
-    "";
-  //const customProcText = new BABYLON.CustomProceduralTexture("customtext", "Lines", 1024, scene);
-  const customProcText = new BABYLON.CustomProceduralTexture(
-    "dice_dynamic_texture",
-    "textures/dice",
-    256,
-    scene
-  );
-  console.log(customProcText._uniforms);
-  const mat = new BABYLON.StandardMaterial("diceMaterial");
-  const texture = new BABYLON.Texture(
-    "textures/dice/D6.jpg",
-    scene,
-    true,
-    false
-  );
-  const textureNorm = new BABYLON.Texture(
-    "textures/dice/D6_N.jpg",
-    scene,
-    true,
-    false
-  );
-  mat.diffuseTexture = customProcText;
-  mat.bumpTexture = textureNorm;
-  mat.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
-
-  var columns = 3;
-  var rows = 2;
-
-  const faceUV = new Array(6);
-
-  var dx = 1 / columns;
-  var dy = 1 / rows;
-  faceUV[3] = new BABYLON.Vector4(0 * dx, 0 * dy, 1 * dx, 1 * dy);
-  faceUV[1] = new BABYLON.Vector4(1 * dx, 0 * dy, 2 * dx, 1 * dy);
-  faceUV[2] = new BABYLON.Vector4(2 * dx, 0 * dy, 3 * dx, 1 * dy);
-  faceUV[0] = new BABYLON.Vector4(0 * dx, 1 * dy, 1 * dx, 2 * dy);
-  faceUV[4] = new BABYLON.Vector4(1 * dx, 1 * dy, 2 * dx, 2 * dy);
-  faceUV[5] = new BABYLON.Vector4(2 * dx, 1 * dy, 3 * dx, 2 * dy);
-  return [mat, faceUV];
-};
-
-var AddBody = function (
-  scene,
-  position,
-  shadowGen,
-  viewer,
-  W = 0.16,
-  H = 0.16,
-  D = 0.16
-) {
-  const options = {
-    faceUV: diceUVs,
-    wrap: true,
-    //size: 0.1
-    width: W,
-    height: H,
-    depth: D,
-  };
-
-  var box = BABYLON.MeshBuilder.CreateBox("dice", options);
-  box.position = position;
-  box.showBoundingBox = false;
-
-  shadowGen.addShadowCaster(box);
-
-  var boxShape = new BABYLON.PhysicsShapeBox(
+var BoxWorld = function (scene, position, size, viewer, shadowGen) {
+  var name = "boxWorld_" + Date.now();
+  console.log("creating box world", name);
+  var ground = BABYLON.Mesh.CreateGround(name, size, size, 2, scene);
+  ground.position = position;
+  var groundShape = new BABYLON.PhysicsShapeBox(
     new BABYLON.Vector3(0, 0, 0),
     BABYLON.Quaternion.Identity(),
-    new BABYLON.Vector3(W, H, D),
+    new BABYLON.Vector3(size, 0.1, size),
     scene
   );
-
-  bindBodyShape(box, boxShape, scene);
-  box.material = bodyRenderingMaterial; //diceMaterial;
-
-  if (viewer) {
-    viewer.showBody(box.physicsBody);
-  }
-
-  box.physicsBody.disablePreStep = false;
-
-  return box;
-};
-
-var AddCard = function (scene, position, shadowGen, viewer) {
-  AddBody(
-    scene,
-    position,
-    shadowGen,
-    viewer,
-    (W = 0.572),
-    (H = 0.004),
-    (D = 0.889)
-  );
-};
-
-var AddDice = function (scene, position, shadowGen, viewer, s = 0.14) {
-  s = Math.random() * 0.2 + 0.1;
-  // var dice = AddBody(scene, position, shadowGen, viewer, W=s, H=s, D=s);
-  var dice = dice_mesh.clone("dice");
-  dice.showBoundingBox = false;
-  console.log(dice);
-  dice.scaling = new BABYLON.Vector3(s * 0.05, s * 0.05, s * 0.05);
-  dice.position = position;
-  shadowGen.addShadowCaster(dice);
-  // var boxShape = new BABYLON.PhysicsShapeBox(
-  //   new BABYLON.Vector3(0, 0, 0),
-  //   BABYLON.Quaternion.Identity(),
-  //   new BABYLON.Vector3(s, s, s),
-  //   scene
-  // );
-
-  //var coll = dice_collider.clone("dice_collider");
-  dice_collider.scaling.copyFrom(dice.scaling);
-  var boxShape = new BABYLON.PhysicsShapeConvexHull(
-    dice_collider, // mesh from which to produce the convex hull
-    scene // scene of the shape
-  );
-
-  bindBodyShape(dice, boxShape, scene);
-  dice.material = bodyRenderingMaterial; //diceMaterial;
-
-  if (viewer) {
-    viewer.showBody(dice.physicsBody);
-  }
-
-  dice.physicsBody.disablePreStep = false;
-
-  dice.material = diceMaterial;
-};
-
-var WorldBuild = function (ground, groundShape, scene, shadowGen) {
+  //  WorldBuild(ground, groundShape, scene, shadowGen);
   var groundBody = new BABYLON.PhysicsBody(
     ground,
     BABYLON.PhysicsMotionType.STATIC,
@@ -187,27 +29,14 @@ var WorldBuild = function (ground, groundShape, scene, shadowGen) {
 
   ground.receiveShadows = true;
   shadowGen.addShadowCaster(ground);
-};
 
-var BoxWorld = function (scene, position, size, viewer, shadowGen) {
-  var name = "boxWorld_" + Date.now();
-  console.log("creating box world", name);
-  var ground = BABYLON.Mesh.CreateGround(name, size, size, 2, scene);
-  ground.position = position;
-  var groundShape = new BABYLON.PhysicsShapeBox(
-    new BABYLON.Vector3(0, 0, 0),
-    BABYLON.Quaternion.Identity(),
-    new BABYLON.Vector3(size, 0.1, size),
-    scene
-  );
-  WorldBuild(ground, groundShape, scene, shadowGen);
   if (viewer) viewer.showBody(ground.physicsBody);
   return ground;
 };
 
 var createScene = async function () {
   // This creates a basic Babylon Scene object (non-mesh)
-  var scene = new BABYLON.Scene(engine);
+  scene = new BABYLON.Scene(engine);
   scene.useRightHandedSystem = true;
 
   //This creates and positions a free camera (non-mesh)
@@ -256,7 +85,7 @@ var createScene = async function () {
   );
   dirLight.autoCalcShadowZBounds = true;
   dirLight.intensity = 0.4;
-  var shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
+  shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
   shadowGen.bias = 0.01;
   shadowGen.usePercentageCloserFiltering = true;
 
@@ -272,22 +101,15 @@ var createScene = async function () {
 
   var viewer = null; // new BABYLON.Debug.PhysicsViewer(scene);
 
+  await preload();
+
   physicsMaterial = { friction: 0.6, restitution: 0.3 };
-  bodyRenderingMaterial = new BABYLON.StandardMaterial("mat", scene);
-  bodyRenderingMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.3, 1);
-  bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
-
-  [diceMaterial, diceUVs] = CreateDiceMaterial(scene);
-
-  var modelNameAndExtension = "dice.glb";
-
-  const container = await BABYLON.loadAssetContainerAsync(
-    "models/" + modelNameAndExtension,
+  bodyRenderingMaterial = new BABYLON.StandardMaterial(
+    "default_material",
     scene
   );
-  console.log(container.meshes);
-  dice_mesh = container.meshes[1];
-  dice_collider = container.meshes[2];
+  bodyRenderingMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.3, 1);
+  bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
   // body/shape on box
   var ground = BoxWorld(
@@ -297,31 +119,41 @@ var createScene = async function () {
     viewer,
     shadowGen
   );
-  const instance = AddDice(
-    scene,
-    new BABYLON.Vector3(0, 0.6, 0),
-    shadowGen,
-    viewer
-  );
+
+  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
 
   var ui = new FastUI();
-  ui.setup(scene, hk);
+  ui.setup(scene, hk, viewer);
 
+  const tstBtn = ui.addBtn("Test", () => {
+    tst.setEnabled(true);
+  });
   const addDiceBtn = ui.addBtn("Add a dice", () => {
-    const newBody = AddDice(
-      scene,
-      new BABYLON.Vector3(0, 0.6, 0),
-      shadowGen,
-      viewer
+    var target_height =
+      0.3 +
+      getSceneHeight(
+        scene,
+        new BABYLON.Vector3(0, 10, 0),
+        0.1,
+        SelectionHandler.selbox.box
+      );
+    console.log(target_height);
+    const newBody = new Dice(
+      new BABYLON.Vector3(0, target_height, 0),
+      Math.random() * 0.2 + 0.1
     );
   });
   const addCardBtn = ui.addBtn("Add a card", () => {
-    const newBody = AddCard(
-      scene,
-      new BABYLON.Vector3(0, 0.6, 0),
-      shadowGen,
-      viewer
-    );
+    var target_height =
+      0.3 +
+      getSceneHeight(
+        scene,
+        new BABYLON.Vector3(0, 10, 0),
+        0.1,
+        SelectionHandler.selbox.box
+      );
+    console.log(target_height);
+    const newBody = new Card(new BABYLON.Vector3(0, target_height, 0));
   });
 
   function getSceneHeight(scene, position, test_radius = 0, avoid = null) {
@@ -331,7 +163,8 @@ var createScene = async function () {
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
     var height_pick_info = scene.pickWithRay(
       (ray = ray),
-      (predicate = (mesh, i) => mesh != avoid)
+      (predicate = (mesh, i) =>
+        mesh != avoid && mesh != SelectionHandler.selbox.box)
     );
 
     max_height = height_pick_info.hit ? height_pick_info.pickedPoint.y : 0;
