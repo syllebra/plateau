@@ -1,6 +1,8 @@
 class PhysicObject {
   body = null;
   node = null;
+  animations = new Map();
+
   constructor(
     node,
     colliderShape = null,
@@ -42,6 +44,47 @@ class PhysicObject {
   setEnabled(b) {
     this.node.setEnabled(b);
     this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, b);
+  }
+
+  startAnimationMode() {
+    //camera.detachControl(canvas);
+    this.body.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
+    this.body.disablePreStep = false;
+    this.body.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
+    this.body.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
+    this.body.checkCollisions = true;
+  }
+  updateAnimationModeTarget(params, currentValue, targetValue, speed=2) {
+
+    var nbf = ((targetValue - currentValue) * 1000) / speed;
+
+    if (this.animations.has(params.targets)) {
+      // Change current animation if not finished
+      let current_anim = this.animations.get(params.targets);
+      if(current_anim.target == this.node) {
+        current_anim.getAnimations()[0].currentValue = height;
+        current_anim.getAnimations()[0].duration = nbf;
+        current_anim.getAnimations()[0].restart();
+      }
+      //current_anim.animations[0]()[0]._keys[1].value = height;
+      return;
+    }
+
+    params.easing = "linear";
+    params.duration = nbf;
+    let current_anim = anime(params);
+    this.animations.set(params.targets, current_anim);
+    let animPhysObj = this;
+    //current_anim.play()
+    current_anim.complete = function () {
+      current_anim = null;
+      animPhysObj.animations.delete(params.targets);
+    };
+
+  }
+  stopAnimationMode() {
+    this.body.disablePreStep = true;
+    this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
   }
 }
 

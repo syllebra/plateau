@@ -97,8 +97,7 @@ var createScene = async function () {
   var physicsEngine = scene.getPhysicsEngine();
   console.log(physicsEngine);
 
-  //physicsEngine.setTimeStep((1/100))// * scene.getAnimationRatio())
-
+  
   var viewer = null; // new BABYLON.Debug.PhysicsViewer(scene);
 
   await preload();
@@ -199,38 +198,7 @@ var createScene = async function () {
   var dir_speed = new BABYLON.Vector3();
   var last_base_hit = new BABYLON.Vector3();
   var last_base_hit_time = performance.now();
-  var current_anim = null;
-
-  function changeAnimTarget(obj, height = 0.3) {
-    var phys_step = scene.getPhysicsEngine().getTimeStep();
-    const ySpeed = 2.0;
-    var nbf = ((height - obj.position.y) * 1000) / ySpeed;
-
-    if (current_anim && current_anim.target == obj) {
-      current_anim.getAnimations()[0].currentValue = height;
-      current_anim.getAnimations()[0].duration = nbf;
-      current_anim.getAnimations()[0].restart();
-      //current_anim.animations[0]()[0]._keys[1].value = height;
-      return;
-    }
-
-    current_anim = anime({
-      targets: obj.position,
-      y: height,
-      easing: "linear", //'easeInElastic(1, .6)',
-      //round: 1,
-      duration: nbf,
-      //autoplay: false
-      // update: function() {
-      //   console.log(JSON.stringify(obj.position));
-      // }
-    });
-    //current_anim.play()
-    current_anim.complete = function () {
-      current_anim = null;
-    };
-  }
-
+  
   let controlKeyDown = false;
 
   // Handle keyboard events
@@ -293,25 +261,15 @@ var createScene = async function () {
             ).pickedPoint
           );
 
-          console.log(
-            "picked",
-            pointerInfo.pickInfo,
-            picked_ground_pos,
-            picked_ray_hit_ground
-          );
+          if(picked.plateauObj) {
+            picked.plateauObj.startAnimationMode();
+            
+            var target_height =
+              0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
 
-          //camera.detachControl(canvas);
-          picked.physicsBody.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
-          picked.physicsBody.disablePreStep = false;
-          console.log(picked.physicsBody);
-          picked.physicsBody.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
-          picked.physicsBody.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
-          picked.physicsBody.checkCollisions = true;
-          var target_height =
-            0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
-          //picked.position.y = target_height;
-          changeAnimTarget(picked, target_height);
-          console.log("PICKED PLATEAU OBJECT:",picked.plateauObj)
+            picked.plateauObj.updateAnimationModeTarget({targets:picked.position, y:target_height}, picked.position.y, target_height);
+          }
+          
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -324,8 +282,9 @@ var createScene = async function () {
           //camera.attachControl(canvas, true);
           SelectionHandler.selbox.setVisiblity(false);
         } else if (picked) {
-          picked.physicsBody.disablePreStep = true;
-          picked.physicsBody.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+
+          if(picked.plateauObj)
+            picked.plateauObj.stopAnimationMode();
 
           dir_speed = dir_speed.normalize();
           var power =
@@ -375,16 +334,8 @@ var createScene = async function () {
           if (base_hit.hit) {
             var target_height =
               0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
-            //picked.position.y = target_height;
-            changeAnimTarget(picked, target_height);
+            picked.plateauObj.updateAnimationModeTarget({targets:picked.position, y:target_height}, picked.position.y, target_height);
 
-            // if(anim)
-            //   anim.stop()
-            // console.log("pickedPoint",base_hit.pickedPoint)
-            // console.log("picked_ground_pos",picked_ground_pos)
-            // console.log("picked_ray_hit_ground",picked_ray_hit_ground)
-            // BABYLON.Animation.CreateAndStartAnimation("pickup_move_x", picked, "position.x", phys_step * 2, phys_step * 0.1, picked.position.x, base_hit.pickedPoint.x, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-            // BABYLON.Animation.CreateAndStartAnimation("pickup_move_z", picked, "position.z", phys_step * 2, phys_step * 0.1, picked.position.z, base_hit.pickedPoint.z, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             picked.position.x =
               picked_ground_pos.x +
               base_hit.pickedPoint.x -
