@@ -128,4 +128,8 @@ class SelectionHandler {
     if (isIn) this.removeMesh(mesh);
     else this.addMesh(mesh);
   }
+
+  static getMeshes() {
+    return Array.from(Object.values(this.hl._meshes), (m) => m.mesh) ;
+  }
 }

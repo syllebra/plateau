@@ -97,7 +97,6 @@ var createScene = async function () {
   var physicsEngine = scene.getPhysicsEngine();
   console.log(physicsEngine);
 
-  
   var viewer = null; // new BABYLON.Debug.PhysicsViewer(scene);
 
   await preload();
@@ -160,10 +159,14 @@ var createScene = async function () {
     var max_height = 0;
 
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
+
+    function isDragged(mesh) {
+      return mesh.dragged;
+      //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
+    }
     var height_pick_info = scene.pickWithRay(
       (ray = ray),
-      (predicate = (mesh, i) =>
-        mesh != avoid && mesh != SelectionHandler.selbox.box)
+      (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh))
     );
 
     max_height = height_pick_info.hit ? height_pick_info.pickedPoint.y : 0;
@@ -180,7 +183,7 @@ var createScene = async function () {
         ray = new BABYLON.Ray(ray_start, new BABYLON.Vector3(0, -10000, 0));
         height_pick_info = scene.pickWithRay(
           (ray = ray),
-          (predicate = (mesh, i) => mesh != avoid)
+          (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh))
         );
         if (height_pick_info.hit && height_pick_info.pickedPoint.y > max_height)
           max_height = height_pick_info.pickedPoint.y;
@@ -190,7 +193,6 @@ var createScene = async function () {
     return max_height;
   }
 
-
   var picked = null;
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
@@ -198,7 +200,7 @@ var createScene = async function () {
   var dir_speed = new BABYLON.Vector3();
   var last_base_hit = new BABYLON.Vector3();
   var last_base_hit_time = performance.now();
-  
+
   let controlKeyDown = false;
 
   // Handle keyboard events
@@ -222,6 +224,16 @@ var createScene = async function () {
         break;
     }
   });
+
+  function updateDraggedNodeHeight(obj) {
+    var target_height =
+      0.3 + getSceneHeight(scene, obj.node.position, 0.1, picked);
+    obj.updateAnimationModeTarget(
+      { targets: obj.node.position, y: target_height },
+      obj.node.position.y,
+      target_height
+    );
+  }
 
   var panning = false;
   scene.onPointerObservable.add((pointerInfo) => {
@@ -261,15 +273,14 @@ var createScene = async function () {
             ).pickedPoint
           );
 
-          if(picked.plateauObj) {
-            picked.plateauObj.startAnimationMode();
-            
-            var target_height =
-              0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
-
-            picked.plateauObj.updateAnimationModeTarget({targets:picked.position, y:target_height}, picked.position.y, target_height);
-          }
-          
+          var meshes = SelectionHandler.getMeshes();
+          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
+          for (var m of meshes)
+            if (m.plateauObj) {
+              m.dragged = true;
+              m.plateauObj.startAnimationMode();
+              updateDraggedNodeHeight(m.plateauObj);
+            }
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -282,21 +293,28 @@ var createScene = async function () {
           //camera.attachControl(canvas, true);
           SelectionHandler.selbox.setVisiblity(false);
         } else if (picked) {
-
-          if(picked.plateauObj)
-            picked.plateauObj.stopAnimationMode();
-
           dir_speed = dir_speed.normalize();
-          var power =
-            picked.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
-          dir_speed.x *= power;
-          dir_speed.z *= power;
-          var pos = picked.position;
-          pos.y += 0.03; // slightly up to induce some moment (angular velocity)
-          picked.physicsBody.applyForce(dir_speed, pos);
-          //camera.attachControl(canvas, true);
+
+          var meshes = SelectionHandler.getMeshes();
+          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
+          for (var m of meshes)
+            if (m.plateauObj) {
+              m.dragged = false;
+              var pos = new BABYLON.Vector3();
+              pos.copyFrom(m.position);
+              pos.y += 0.03; // slightly up to induce some moment (angular velocity)
+              m.plateauObj.stopAnimationMode();
+
+              var power = m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
+              var forceVector = new BABYLON.Vector3();
+              forceVector.copyFrom(dir_speed);
+              forceVector.x *= power;
+              forceVector.z *= power;  
+              m.physicsBody.applyForce(forceVector, pos);
+            }
 
           picked = null;
+          //camera.attachControl(canvas, true);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
@@ -332,18 +350,26 @@ var createScene = async function () {
             (onlyBoundingInfo = true)
           );
           if (base_hit.hit) {
-            var target_height =
-              0.3 + getSceneHeight(scene, picked.position, 0.1, picked);
-            picked.plateauObj.updateAnimationModeTarget({targets:picked.position, y:target_height}, picked.position.y, target_height);
-
-            picked.position.x =
+            let dx =
               picked_ground_pos.x +
               base_hit.pickedPoint.x -
-              picked_ray_hit_ground.x;
-            picked.position.z =
+              picked_ray_hit_ground.x -
+              picked.position.x;
+            let dz =
               picked_ground_pos.z +
               base_hit.pickedPoint.z -
-              picked_ray_hit_ground.z;
+              picked_ray_hit_ground.z -
+              picked.position.z;
+
+            var meshes = SelectionHandler.getMeshes();
+            if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
+            for (var m of meshes)
+              if (m.plateauObj) {
+                m.position.x += dx;
+                m.position.z += dz;
+                updateDraggedNodeHeight(m.plateauObj);
+              }
+
             var elapsed = performance.now() - last_base_hit_time;
             dir_speed.x = (base_hit.pickedPoint.x - last_base_hit.x) / elapsed;
             dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;

@@ -39,6 +39,7 @@ class PhysicObject {
     //}, spawnPosition = null, spawnRotation = null) {
 
     this.node.plateauObj = this;
+    this.node.dragged = false;
   }
 
   setEnabled(b) {
@@ -54,14 +55,13 @@ class PhysicObject {
     this.body.setAngularVelocity(new BABYLON.Vector3(0, 0, 0));
     this.body.checkCollisions = true;
   }
-  updateAnimationModeTarget(params, currentValue, targetValue, speed=2) {
-
+  updateAnimationModeTarget(params, currentValue, targetValue, speed = 2) {
     var nbf = ((targetValue - currentValue) * 1000) / speed;
 
     if (this.animations.has(params.targets)) {
       // Change current animation if not finished
       let current_anim = this.animations.get(params.targets);
-      if(current_anim.target == this.node) {
+      if (current_anim.target == this.node) {
         current_anim.getAnimations()[0].currentValue = height;
         current_anim.getAnimations()[0].duration = nbf;
         current_anim.getAnimations()[0].restart();
@@ -80,9 +80,9 @@ class PhysicObject {
       current_anim = null;
       animPhysObj.animations.delete(params.targets);
     };
-
   }
   stopAnimationMode() {
+    // TODO: Clear all current animations
     this.body.disablePreStep = true;
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
   }

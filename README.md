@@ -13,11 +13,11 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Selection box
 - [x] Simple lifting animation
 - [x] Throwing interaction (drag/drop while lifting)
-- [ ] Multiple objects manipulation
+- [x] Multiple objects manipulation
 - [ ] Fliping object(s)
 - [ ] Cards deck mechanism
 - [ ] Fixed object
 
 # Todo
 
-- [ ] Refactoring animations
+- [x] Refactoring animations
