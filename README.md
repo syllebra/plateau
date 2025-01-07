@@ -14,9 +14,13 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Simple lifting animation
 - [x] Throwing interaction (drag/drop while lifting)
 - [x] Multiple objects manipulation
-- [ ] Fliping object(s)
+- [ ] Flipping object(s)
 - [ ] Cards deck mechanism
 - [ ] Fixed object
+- [ ] Detect shake movement
+- [ ] Predefined poses (oriented)
+- [ ] Handling events (lift, dropped, thrown...)
+- [ ] PBR materials
 
 # Todo
 
