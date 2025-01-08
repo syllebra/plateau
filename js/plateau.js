@@ -4,14 +4,61 @@ engine = new BABYLON.Engine(canvas, true, { stencil: true });
 var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   var name = "boxWorld_" + Date.now();
   console.log("creating box world", name);
-  var ground = BABYLON.Mesh.CreateGround(name, size, size, 2, scene);
-  ground.position = position;
-  var groundShape = new BABYLON.PhysicsShapeBox(
-    new BABYLON.Vector3(0, 0, 0),
-    BABYLON.Quaternion.Identity(),
-    new BABYLON.Vector3(size, 0.1, size),
+
+  const faceUV = [];
+  faceUV[0] = new BABYLON.Vector4(0.1, 0.1, 0.9, 0.9);
+  faceUV[1] = new BABYLON.Vector4(0.5, 0.5, 0.5, 0.5); // x, z swapped to flip image
+  faceUV[2] = new BABYLON.Vector4(0.1, 0.1, 0.9, 0.9);
+
+  const faceColors = [];
+  faceColors[0] = new BABYLON.Color4(0.5, 0.5, 0.5, 1);
+
+  var ground = BABYLON.MeshBuilder.CreateCylinder("ground", {
+    diameter: size,
+    height: 0.2,
+    tessellation: 128,
+    faceUV: faceUV,
+    faceColors: faceColors,
+  });
+
+  //ground.rotation.x = Math.PI / 2;
+  ground.position.copyFrom(position);
+  ground.position.y -= 0.2;
+
+  const pbr = new BABYLON.PBRMaterial("pbr", scene);
+  pbr.baseColor = new BABYLON.Color3(1.0, 0.766, 0.336);
+  pbr.metallic = 0;
+  pbr.roughness = 1.0;
+
+  // pbr.clearCoat.isEnabled = true;
+  // pbr.clearCoat.intensity = 0.2;
+
+  pbr.albedoTexture = new BABYLON.Texture(
+    "textures/table/37_Old table top_DIFF.jpg",
     scene
   );
+  pbr.bumpTexture = new BABYLON.Texture(
+    "textures/table/37_Old table top_NORM.jpg",
+    scene
+  );
+  pbr.ambientTexture = new BABYLON.Texture(
+    "textures/table/37_Old table top-AO.jpg",
+    scene
+  );
+
+  pbr.reflectanceTexture = new BABYLON.Texture(
+    "textures/table/37_Old table top_SPEC.jpg",
+    scene
+  );
+  ground.material = pbr;
+
+  const groundShape = new BABYLON.PhysicsShapeCylinder(
+    new BABYLON.Vector3(0, -0.1, 0), // starting point of the cylinder segment
+    new BABYLON.Vector3(0, 0.1, 0), // ending point of the cylinder segment
+    size * 0.5, // radius of the cylinder
+    scene // scene of the shape
+  );
+
   //  WorldBuild(ground, groundShape, scene, shadowGen);
   var groundBody = new BABYLON.PhysicsBody(
     ground,
@@ -28,7 +75,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   });
 
   ground.receiveShadows = true;
-  shadowGen.addShadowCaster(ground);
+  if (shadowGen) shadowGen.addShadowCaster(ground);
 
   if (viewer) viewer.showBody(ground.physicsBody);
   return ground;
@@ -38,6 +85,15 @@ var createScene = async function () {
   // This creates a basic Babylon Scene object (non-mesh)
   scene = new BABYLON.Scene(engine);
   scene.useRightHandedSystem = true;
+
+  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+    "textures/environment.dds",
+    scene
+  );
+
+  gizmoManager = new BABYLON.GizmoManager(scene);
+  gizmoManager.positionGizmoEnabled = true;
+  gizmoManager.attachableMeshes = [];
 
   //This creates and positions a free camera (non-mesh)
   camera = new BABYLON.UniversalCamera(
@@ -69,25 +125,25 @@ var createScene = async function () {
 
   console.log(camera.inputs.attached.keyboard);
 
-  // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-  var light = new BABYLON.HemisphericLight(
-    "light1",
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
+  // // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+  // var light = new BABYLON.HemisphericLight(
+  //   "light1",
+  //   new BABYLON.Vector3(0, 1, 0),
+  //   scene
+  // );
 
-  // Default intensity is 1. Let's dim the light a small amount
-  light.intensity = 0.7;
+  // // Default intensity is 1. Let's dim the light a small amount
+  // light.intensity = 0.7;
 
-  var dirLight = new BABYLON.DirectionalLight(
-    "dirLight",
-    new BABYLON.Vector3(0, -1, 1)
-  );
-  dirLight.autoCalcShadowZBounds = true;
-  dirLight.intensity = 0.4;
-  shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
-  shadowGen.bias = 0.01;
-  shadowGen.usePercentageCloserFiltering = true;
+  // var dirLight = new BABYLON.DirectionalLight(
+  //   "dirLight",
+  //   new BABYLON.Vector3(0, -1, 1)
+  // );
+  // dirLight.autoCalcShadowZBounds = true;
+  // dirLight.intensity = 0.4;
+  // shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
+  // shadowGen.bias = 0.01;
+  // shadowGen.usePercentageCloserFiltering = true;
 
   // initialize plugin
   const havokInstance = await HavokPhysics();
@@ -113,7 +169,7 @@ var createScene = async function () {
   var ground = BoxWorld(
     scene,
     new BABYLON.Vector3(0, 0, 0),
-    40,
+    10,
     viewer,
     shadowGen
   );
@@ -151,7 +207,10 @@ var createScene = async function () {
         SelectionHandler.selbox.box
       );
     console.log(target_height);
-    const newBody = new Card(new BABYLON.Vector3(0, target_height, 0));
+    const newBody = new Card(
+      new BABYLON.Vector3(0, target_height, 0),
+      (num = Math.floor(Math.random() * 54))
+    );
   });
 
   function getSceneHeight(scene, position, test_radius = 0, avoid = null) {
@@ -212,6 +271,55 @@ var createScene = async function () {
         switch (kbInfo.event.key) {
           case "Control":
             controlKeyDown = true;
+            break;
+
+          case "f":
+          case "F":
+            //console.log(picked.rotationQuaternion);
+            //rotationQuaternion
+            //picked.rotationQuaternion.copyFrom(BABYLON.Quaternion.Identity)
+
+            //   var dest = new BABYLON.Quaternion();
+
+            //   var vecUp = picked.up;
+            //   var destUp = new BABYLON.Vector3(0,-1,0);
+            //   vecUp.normalize();
+            //   destUp.normalize();
+            //   var rotaAxis = vecUp.cross(destUp);
+            //   if(rotaAxis.length() > 0.001) {
+            //   rotaAxis.normalize();
+            //   var angleRad = BABYLON.Vector3.GetAngleBetweenVectors(vecUp,destUp,rotaAxis);
+
+            //   //dest = picked.absoluteRotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(rotaAxis, angleRad))
+            //   dest = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0).multiply(picked.absoluteRotationQuaternion);
+            //   dest.normalize();
+            //   // dest.invertInPlace();
+            //   // dest.normalize();
+            //     console.log(angleRad);
+            //   if(Math.abs(angleRad)>0.001)
+            //     //picked.rotationQuaternion = dest;
+            //     picked.rotationQuaternion = dest.multiply(picked.absoluteRotationQuaternion.invert());
+            // }
+            picked.rotation = RotationBetweenVectorsToRef(
+              mesh.position,
+              new BABYLON(),
+              result
+            ).addInPlaceFromFloats(0, 0, -Math.PI / 2);
+            // anime({
+            //   targets: picked.rotationQuaternion,
+            //   x: dest.x,
+            //   y: dest.y,
+            //   z: dest.z,
+            //   w: dest.w,
+            //   //rotationQuaternion: dest,
+            //   easing: 'linear',
+            //   duration: 160,
+            //   update: function(v) {
+            //     //console.log(v)
+            //     picked.rotationQuaternion.normalize()
+            //   }
+            // });
+
             break;
         }
         break;
@@ -305,11 +413,12 @@ var createScene = async function () {
               pos.y += 0.03; // slightly up to induce some moment (angular velocity)
               m.plateauObj.stopAnimationMode();
 
-              var power = m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
+              var power =
+                m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
               var forceVector = new BABYLON.Vector3();
               forceVector.copyFrom(dir_speed);
               forceVector.x *= power;
-              forceVector.z *= power;  
+              forceVector.z *= power;
               m.physicsBody.applyForce(forceVector, pos);
             }
 

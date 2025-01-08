@@ -1,6 +1,7 @@
 let canvas, engine, pathTracingScene;
 let camera;
 let scene, shadowGen;
+let gizmoManager;
 
 let preloadFunctions = [];
 

@@ -11,7 +11,7 @@ class PhysicObject {
   ) {
     if (position) node.position = position;
     this.node = node;
-    shadowGen.addShadowCaster(node);
+    if (shadowGen) shadowGen.addShadowCaster(node);
     this.body = new BABYLON.PhysicsBody(
       node,
       BABYLON.PhysicsMotionType.DYNAMIC,
@@ -40,6 +40,9 @@ class PhysicObject {
 
     this.node.plateauObj = this;
     this.node.dragged = false;
+
+    gizmoManager.attachableMeshes.push(this.node);
+    gizmoManager.attachToMesh(this.node);
   }
 
   setEnabled(b) {
@@ -89,24 +92,89 @@ class PhysicObject {
 }
 
 class Card extends PhysicObject {
+  static {
+    registerPreload(async () => {
+      {
+        Card.createCardMaterial();
+      }
+    });
+  }
+
+  static cardMaterial = null;
+  static async createCardMaterial() {
+    const texture = new BABYLON.Texture(
+      "textures/cards/french_deck.png",
+      scene,
+      true,
+      false
+    );
+
+    const pbr = new BABYLON.PBRMaterial("diceMaterial", scene);
+
+    pbr.metallic = 0;
+    pbr.roughness = 0.5;
+    pbr.albedoTexture = texture;
+
+    // Metadata
+    pbr.cols = 13;
+    pbr.rows = 5;
+    pbr.nb = 55;
+
+    this.cardMaterial = pbr;
+    return pbr;
+  }
+
   constructor(
     position = null,
+    num = 32,
+    numBack = 54,
     width = 0.572,
     height = 0.889,
     thickness = 0.004
   ) {
+    console.log(
+      Card.cardMaterial.cols,
+      Card.cardMaterial.rows,
+      Card.cardMaterial.nb
+    );
+
+    function uv(num) {
+      var row = Math.floor(num / Card.cardMaterial.cols);
+      var col = num % Card.cardMaterial.cols;
+      console.log(row, col);
+
+      var dx = 1.0 / Card.cardMaterial.cols;
+      var dy = 1.0 / Card.cardMaterial.rows;
+      return new BABYLON.Vector4(
+        dx * col,
+        dy * row,
+        dx * (col + 1),
+        dy * (row + 1)
+      );
+    }
+
+    var faceUV = new Array(6);
+    faceUV[0] = new BABYLON.Vector4(0, 0, 0, 0);
+    faceUV[1] = new BABYLON.Vector4(0, 0, 0, 0);
+    faceUV[2] = new BABYLON.Vector4(0, 0, 0, 0);
+    faceUV[3] = new BABYLON.Vector4(0, 0, 0, 0);
+    faceUV[4] = uv(num);
+    faceUV[5] = uv(numBack);
+
     const options = {
       // faceUV: diceUVs,
       // wrap: true,
       //size: 0.1
-      width: width,
+      width: height, //width,
       height: thickness,
-      depth: height,
+      depth: width, //height,
+      faceUV: faceUV,
     };
 
     var box = BABYLON.MeshBuilder.CreateBox("card", options);
     if (position) box.position.copyFrom(position);
-    box.material = scene.getMaterialByName("default_material");
+    box.material = Card.cardMaterial; //scene.getMaterialByName("default_material");
+
     super(box);
   }
 }
@@ -140,39 +208,26 @@ class Dice extends PhysicObject {
       scene
     );
     console.log(customProcText._uniforms);
-    const mat = new BABYLON.StandardMaterial("diceMaterial");
-    const texture = new BABYLON.Texture(
-      "textures/dice/D6.jpg",
-      scene,
-      true,
-      false
-    );
+    const pbr = new BABYLON.PBRMaterial("diceMaterial", scene);
+
+    pbr.metallic = 0;
+    pbr.roughness = 1.0;
+
+    pbr.clearCoat.isEnabled = true;
+    pbr.clearCoat.intensity = 1.0;
+
     const textureNorm = new BABYLON.Texture(
       "textures/dice/D6_N.jpg",
       scene,
       true,
       false
     );
-    mat.diffuseTexture = customProcText;
-    mat.bumpTexture = textureNorm;
-    mat.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+    pbr.albedoTexture = customProcText;
+    pbr.bumpTexture = textureNorm;
+    pbr.bumpTexture.level = 1;
 
-    // var columns = 3;
-    // var rows = 2;
-
-    // const faceUV = new Array(6);
-
-    // var dx = 1 / columns;
-    // var dy = 1 / rows;
-    // faceUV[3] = new BABYLON.Vector4(0 * dx, 0 * dy, 1 * dx, 1 * dy);
-    // faceUV[1] = new BABYLON.Vector4(1 * dx, 0 * dy, 2 * dx, 1 * dy);
-    // faceUV[2] = new BABYLON.Vector4(2 * dx, 0 * dy, 3 * dx, 1 * dy);
-    // faceUV[0] = new BABYLON.Vector4(0 * dx, 1 * dy, 1 * dx, 2 * dy);
-    // faceUV[4] = new BABYLON.Vector4(1 * dx, 1 * dy, 2 * dx, 2 * dy);
-    // faceUV[5] = new BABYLON.Vector4(2 * dx, 1 * dy, 3 * dx, 2 * dy);
-
-    this.diceMaterial = mat;
-    return mat;
+    this.diceMaterial = pbr;
+    return pbr;
   }
 
   static async loadMeshes() {

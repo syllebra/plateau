@@ -21,6 +21,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Predefined poses (oriented)
 - [ ] Handling events (lift, dropped, thrown...)
 - [ ] PBR materials
+- [ ] System to retrieve fallen objects
 
 # Todo
 
