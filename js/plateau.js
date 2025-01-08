@@ -26,9 +26,9 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   ground.position.y -= 0.2;
 
   const pbr = new BABYLON.PBRMaterial("pbr", scene);
-  pbr.baseColor = new BABYLON.Color3(1.0, 0.766, 0.336);
+  //pbr.albedoColor = new BABYLON.Color3(1.0, 0.766, 0.336);
   pbr.metallic = 0;
-  pbr.roughness = 1.0;
+  pbr.roughness = 0.8;
 
   // pbr.clearCoat.isEnabled = true;
   // pbr.clearCoat.intensity = 0.2;
@@ -41,6 +41,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
     "textures/table/37_Old table top_NORM.jpg",
     scene
   );
+  pbr.bumpTexture.level = 2;
   pbr.ambientTexture = new BABYLON.Texture(
     "textures/table/37_Old table top-AO.jpg",
     scene
@@ -81,15 +82,108 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   return ground;
 };
 
+function preparePipeline(scene, camera) {
+  var defaultPipeline = new BABYLON.DefaultRenderingPipeline(
+    "defaultPipeline", // The name of the pipeline
+    true, // Do you want the pipeline to use HDR texture?
+    scene, // The scene instance
+    [camera] // The list of cameras to be attached to
+  );
+
+
+// var defaultPipeline = new StandardRenderingPipeline(
+//     "defaultPipeline", // The name of the pipeline
+//     scene,
+//     1.0,null, [camera]
+// // );
+
+// // Create SSAO and configure all properties (for the example)
+//     var ssaoRatio = {
+//         ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
+//         combineRatio: 1.0 // Ratio of the combine post-process (combines the SSAO and the scene)
+//     };
+
+//     var ssao = new BABYLON.SSAORenderingPipeline("ssao", scene, ssaoRatio);
+//     ssao.fallOff = 0.000001;
+//     ssao.area = 1;
+//     ssao.radius = 0.0001;
+//     ssao.totalStrength = 1.0;
+//     ssao.base = 0.5;
+
+//     // Attach camera to the SSAO render pipeline
+//     scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", camera);
+
+  // defaultPipeline.imageProcessing.contrast = 1.8;
+  // defaultPipeline.imageProcessing.exposure = 0.8;
+  defaultPipeline.bloomEnabled  =true;
+  defaultPipeline.bloomKernel = 100;
+  defaultPipeline.bloomWeight = 0.38;
+
+   defaultPipeline.bloomThreshold = 0.85;
+
+  defaultPipeline.chromaticAberrationEnabled = false;
+  defaultPipeline.chromaticAberration.aberrationAmount = 10;
+  defaultPipeline.imageProcessing.vignetteEnabled = true;
+
+
+  var curve = new BABYLON.ColorCurves();
+  curve.globalHue = 200;
+  curve.globalDensity = 80;
+  curve.globalSaturation = 80;
+  curve.highlightsHue = 20;
+  curve.highlightsDensity = 80;
+  curve.highlightsSaturation = -80;
+  curve.shadowsHue = 2;
+  curve.shadowsDensity = 80;
+  curve.shadowsSaturation = 40;
+  defaultPipeline.imageProcessing.colorCurves = curve;
+  //defaultPipeline.depthOfField.focalLength = 150;
+  defaultPipeline.fxaaEnabled = true;
+  defaultPipeline.samples =4;
+  defaultPipeline.sharpenEnabled = true;
+
+//   var lensEffect = new BABYLON.LensRenderingPipeline('lens', {
+//     edge_blur: 0.1,
+//     chromatic_aberration: 1.0,
+//     distortion: 0.1,
+//     dof_focus_distance: 1,
+//     dof_aperture: 0.80,			// set this very high for tilt-shift effect
+//     grain_amount: 0.0,
+//     //grain_texture: grain_texture,
+//     dof_pentagon: true,
+//     dof_gain: 0.0,
+//     dof_threshold: 1.0,
+//     dof_darken: 0.25
+// }, scene, 1.0, [camera]);
+// lensEffect._disableEffect
+
+// camera.onViewMatrixChangedObservable.add(function(c: BABYLON.ArcRotateCamera ) {
+//     lensEffect.setAperture(c.radius*0.06);
+// })
+
+scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+  "textures/environment.dds",
+  scene
+);
+
+            // Skybox
+            var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
+            var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
+            hdrSkyboxMaterial.backFaceCulling = false;
+            hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture.clone();
+            hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+            hdrSkyboxMaterial.microSurface = 1.0;
+            hdrSkyboxMaterial.cameraExposure = 0.6;
+            hdrSkyboxMaterial.cameraContrast = 1.6;
+            hdrSkyboxMaterial.disableLighting = true;
+            hdrSkybox.material = hdrSkyboxMaterial;
+            hdrSkybox.infiniteDistance = true;
+}
+
 var createScene = async function () {
   // This creates a basic Babylon Scene object (non-mesh)
   scene = new BABYLON.Scene(engine);
   scene.useRightHandedSystem = true;
-
-  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
-    "textures/environment.dds",
-    scene
-  );
 
   gizmoManager = new BABYLON.GizmoManager(scene);
   gizmoManager.positionGizmoEnabled = true;
@@ -122,6 +216,8 @@ var createScene = async function () {
 
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
+
+  preparePipeline(scene, camera)
 
   console.log(camera.inputs.attached.keyboard);
 
@@ -526,9 +622,9 @@ createScene().then((scene) => {
       // // and lastly raise to the power of (0.4545), in order to make gamma correction (gives more brightness range where it counts).  This last step should also take minimal time
       // eRenderer.render(screenOutputEffect, null); // null, because we don't feed this non-linear image-processed output back into the pathTracing accumulation buffer as it would 'pollute' the pathtracing unbounded linear color space
 
-      // scene.debugLayer.show({
-      //   embedMode: false,
-      // });
+      scene.debugLayer.show({
+        embedMode: false,
+      });
 
       StatsUI.update();
     }

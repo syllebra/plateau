@@ -109,8 +109,8 @@ class Card extends PhysicObject {
       false
     );
 
-    const pbr = new BABYLON.PBRMaterial("diceMaterial", scene);
-
+    const pbr = new BABYLON.PBRMaterial("cardMaterial", scene);
+    pbr.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
     pbr.metallic = 0;
     pbr.roughness = 0.5;
     pbr.albedoTexture = texture;
@@ -225,6 +225,9 @@ class Dice extends PhysicObject {
     pbr.albedoTexture = customProcText;
     pbr.bumpTexture = textureNorm;
     pbr.bumpTexture.level = 1;
+    pbr.clearCoat.bumpTexture = textureNorm;
+    pbr.clearCoat.bumpTexture.level = 2;
+    
 
     this.diceMaterial = pbr;
     return pbr;
