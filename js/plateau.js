@@ -272,6 +272,36 @@ var createScene = async function () {
 
   const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
 
+  BABYLON.SceneLoader.LoadAssetContainer(
+    "models/",
+    "figurine_01.glb",
+    scene,
+    function (
+      container
+    ) //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+    {
+      // clear out the mesh object and array
+      //meshes = container.meshes;
+      console.log(container.meshes)
+      var mesh = container.meshes[1].clone()
+      mesh.createNormals()
+      mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
+      console.log(mesh.material)
+      // mesh.material.clearCoat.isEnabled = true;
+      // mesh.material.clearCoat.intensity = 1.0;
+
+      mesh.material.metallic = 0.0;
+      mesh.material.roughness = 0;
+      
+      mesh.material.subSurface.isTranslucencyEnabled = true;
+      mesh.material.subSurface.tintColor = BABYLON.Color3.White();
+
+      const instance = new PhysicObject(mesh, null, { friction: 0.6, restitution: 0.3 },new BABYLON.Vector3(0, 1.6, 0),1);
+
+      // pathTracedMesh = null;
+      // containerMeshes = [];
+    });
+
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
 
@@ -396,25 +426,36 @@ var createScene = async function () {
             //     //picked.rotationQuaternion = dest;
             //     picked.rotationQuaternion = dest.multiply(picked.absoluteRotationQuaternion.invert());
             // }
-            picked.rotation = RotationBetweenVectorsToRef(
-              mesh.position,
-              new BABYLON(),
-              result
-            ).addInPlaceFromFloats(0, 0, -Math.PI / 2);
-            // anime({
-            //   targets: picked.rotationQuaternion,
-            //   x: dest.x,
-            //   y: dest.y,
-            //   z: dest.z,
-            //   w: dest.w,
-            //   //rotationQuaternion: dest,
-            //   easing: 'linear',
-            //   duration: 160,
-            //   update: function(v) {
-            //     //console.log(v)
-            //     picked.rotationQuaternion.normalize()
-            //   }
-            // });
+            
+            // picked.rotation = RotationBetweenVectorsToRef(
+            //   mesh.position,
+            //   new BABYLON(),
+            //   result
+            // ).addInPlaceFromFloats(0, 0, -Math.PI / 2);
+
+
+            var world_H_up = new XTransform(picked.position, new BABYLON.Quaternion(0,0,0,1));
+            var up_H_down = new XTransform(null, BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0))
+
+            var dest = world_H_up.multiply(up_H_down);
+
+            //dest.applyToNode(picked)
+
+
+            anime({
+              targets: picked.rotationQuaternion,
+              x: dest.x,
+              y: dest.y,
+              z: dest.z,
+              w: dest.w,
+              //rotationQuaternion: dest,
+              easing: 'linear',
+              duration: 60,
+              update: function(v) {
+                //console.log(v)
+                picked.rotationQuaternion.normalize()
+              }
+            });
 
             break;
         }
@@ -424,8 +465,19 @@ var createScene = async function () {
           case "Control":
             controlKeyDown = false;
             break;
+          case "I":
+          case "i":
+            if(scene.debugLayer.IsVisible)
+              scene.debugLayer.hide();
+            else
+            scene.debugLayer.show({
+              embedMode: false,
+            });
+            break;
         }
         break;
+
+  
     }
   });
 
@@ -483,6 +535,7 @@ var createScene = async function () {
             if (m.plateauObj) {
               m.dragged = true;
               m.plateauObj.startAnimationMode();
+              m.plateauObj.onPickup();
               updateDraggedNodeHeight(m.plateauObj);
             }
         }
@@ -508,6 +561,7 @@ var createScene = async function () {
               pos.copyFrom(m.position);
               pos.y += 0.03; // slightly up to induce some moment (angular velocity)
               m.plateauObj.stopAnimationMode();
+              m.plateauObj.onRelease()
 
               var power =
                 m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
@@ -621,10 +675,6 @@ createScene().then((scene) => {
       // // finally take the accumulated pathTracingRenderTarget buffer and average by numberOfSamples taken, then apply Reinhard tonemapping (brings image into friendly 0.0-1.0 rgb color float range),
       // // and lastly raise to the power of (0.4545), in order to make gamma correction (gives more brightness range where it counts).  This last step should also take minimal time
       // eRenderer.render(screenOutputEffect, null); // null, because we don't feed this non-linear image-processed output back into the pathTracing accumulation buffer as it would 'pollute' the pathtracing unbounded linear color space
-
-      scene.debugLayer.show({
-        embedMode: false,
-      });
 
       StatsUI.update();
     }

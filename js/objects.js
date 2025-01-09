@@ -2,12 +2,14 @@ class PhysicObject {
   body = null;
   node = null;
   animations = new Map();
+  rotationAnimation = null;
 
   constructor(
     node,
     colliderShape = null,
     physicsMaterial = { friction: 0.6, restitution: 0.3 },
-    position = null
+    position = null,
+    auto_collider_mode = 0
   ) {
     if (position) node.position = position;
     this.node = node;
@@ -20,6 +22,7 @@ class PhysicObject {
     );
 
     if (!colliderShape) {
+    if(auto_collider_mode == 0){
       var bb = node.getBoundingInfo().boundingBox;
       console.log(bb);
       colliderShape = new BABYLON.PhysicsShapeBox(
@@ -33,6 +36,15 @@ class PhysicObject {
         scene
       );
     }
+    
+    else if(auto_collider_mode == 1){
+      colliderShape  = new BABYLON.PhysicsShapeConvexHull(node, scene);
+      console.log(colliderShape)
+
+    }
+    
+
+    }
     colliderShape.material = physicsMaterial;
     this.body.shape = colliderShape;
     this.body.disablePreStep = false;
@@ -40,6 +52,9 @@ class PhysicObject {
 
     this.node.plateauObj = this;
     this.node.dragged = false;
+
+    this.straightenAtPickup = true;
+    this.flipable = true;
 
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
@@ -84,10 +99,70 @@ class PhysicObject {
       animPhysObj.animations.delete(params.targets);
     };
   }
+
+  animateRotation(targetQuaternion, angularspeed = 270) {
+      var vecUp = this.node.up;
+      var destUp = new BABYLON.Vector3(0,1,0);
+      new BABYLON.Vector3(0,1,0).rotateByQuaternionToRef(targetQuaternion, destUp);
+
+      vecUp.normalize();
+      destUp.normalize();
+      var rotaAxis = vecUp.cross(destUp);
+      var angleRad = 0.0;
+      if(rotaAxis.length() > 0.001) {
+        rotaAxis.normalize();
+        angleRad = Math.abs(BABYLON.Vector3.GetAngleBetweenVectors(vecUp,destUp,rotaAxis));
+      }
+      var dist = BABYLON.Tools.ToDegrees(angleRad);
+      var speed = 270;
+
+      var nbf = (dist * 600) / speed;
+      console.log(nbf)
+
+    let toRotate = this.node;
+    toRotate.rotateAnimValue = 0.0;
+    toRotate.rotateAnimStart = new BABYLON.Quaternion();
+    toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
+    toRotate.rotateAnimTarget = new BABYLON.Quaternion();
+    toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
+
+      if(this.rotationAnimation) {
+        anime.remove(this.rotationAnimation)
+      }
+
+    this.rotationAnimation = anime({
+      targets: toRotate,
+      rotateAnimValue: 1.0,
+      //rotationQuaternion: destRot,
+      easing: 'linear',
+      duration: nbf,
+      update: function(v) {
+        BABYLON.Quaternion.SlerpToRef(toRotate.rotateAnimStart, toRotate.rotateAnimTarget,toRotate.rotateAnimValue, toRotate.rotationQuaternion)
+      }
+    });
+
+    this.rotationAnimation.complete = function () {
+      toRotate.plateauObj.rotationAnimation = null;
+    };    
+  }
+
   stopAnimationMode() {
     // TODO: Clear all current animations
     this.body.disablePreStep = true;
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+  }
+
+  onPickup() {
+    if(this.straightenAtPickup) {
+      var destRot = new BABYLON.Quaternion(0,0,0,1);
+      var addrot = computeVectortoVectorRotationQuaternion(this.node.up, new BABYLON.Vector3(0,1,0));
+      addrot.multiplyToRef(this.node.rotationQuaternion,destRot);
+      this.animateRotation(destRot);
+    }
+  }
+
+  onRelease() {
+
   }
 }
 
