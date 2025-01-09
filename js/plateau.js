@@ -406,30 +406,10 @@ var createScene = async function () {
 
           case "f":
           case "F":
-            var curAngle = angleDegreesBetweenTwoUnitVectors(
-              picked.up,
-              BABYLON.Vector3.Up()
-            );
-
-            var dstUp =
-              curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
-
-            var quat = computeVectortoVectorRotationQuaternion(
-              picked.up,
-              dstUp,
-              picked.left
-            );
-            var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
-            quat.multiplyToRef(picked.rotationQuaternion, destRot);
-            picked.plateauObj.animateRotation(destRot);
-            //picked.rotationQuaternion = destRot;
-
-            // var dest = BABYLON.Quaternion.FromEulerAngles(
-            //   BABYLON.Tools.ToRadians(180),
-            //   0,
-            //   0
-            // ).multiply(picked.absoluteRotationQuaternion);
-            // picked.plateauObj.animateRotation(dest);
+            var meshes = SelectionHandler.getMeshes();
+            if (picked && !SelectionHandler.isSelected(picked))
+              meshes.push(picked);
+            for (var m of meshes) if (m.plateauObj) m.plateauObj.flip();
 
             break;
         }

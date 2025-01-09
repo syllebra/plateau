@@ -49,7 +49,7 @@ class PhysicObject {
     this.node.dragged = false;
 
     this.straightenAtPickup = true;
-    this.flipable = true;
+    this.isFlipable = true;
 
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
@@ -123,9 +123,6 @@ class PhysicObject {
     var nbf = (dist * 600) / angularspeed;
 
     if (this.rotationAnimation) {
-      // this.rotationAnimation.pause();
-      console.log(this.rotationAnimation);
-      // anime.remove(this.rotationAnimation);
       let toRotate = this.rotationAnimation.animatables[0].target;
       toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
       toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
@@ -173,6 +170,28 @@ class PhysicObject {
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     var addrot = computeVectortoVectorRotationQuaternion(this.node.up, destUp);
     addrot.multiplyToRef(this.node.rotationQuaternion, destRot);
+    this.animateRotation(destRot);
+  }
+
+  flip() {
+    if (!this.isFlipable) return;
+
+    if (!this.node.dragged) return; // For now only if handled
+
+    var curAngle = angleDegreesBetweenTwoUnitVectors(
+      this.node.up,
+      BABYLON.Vector3.Up()
+    );
+
+    var dstUp = curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
+
+    var quat = computeVectortoVectorRotationQuaternion(
+      this.node.up,
+      dstUp,
+      this.node.left
+    );
+    var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
+    quat.multiplyToRef(this.node.rotationQuaternion, destRot);
     this.animateRotation(destRot);
   }
 
@@ -274,7 +293,6 @@ class Card extends PhysicObject {
   }
 
   onPickup() {
-    console.log("Pickup Card");
     if (this.straightenAtPickup) {
       // Same as standard but keep closest face up or down
       var curAngle = angleDegreesBetweenTwoUnitVectors(
@@ -372,6 +390,6 @@ class Dice extends PhysicObject {
     super(dice, diceShape);
 
     this.straightenAtPickup = false;
-    this.flipable = false;
+    this.isFlipable = false;
   }
 }
