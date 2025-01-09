@@ -433,29 +433,32 @@ var createScene = async function () {
             //   result
             // ).addInPlaceFromFloats(0, 0, -Math.PI / 2);
 
-
-            var world_H_up = new XTransform(picked.position, new BABYLON.Quaternion(0,0,0,1));
-            var up_H_down = new XTransform(null, BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0))
-
-            var dest = world_H_up.multiply(up_H_down);
-
-            //dest.applyToNode(picked)
+            var dest = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0).multiply(picked.absoluteRotationQuaternion);
+            picked.plateauObj.animateRotation(dest);
 
 
-            anime({
-              targets: picked.rotationQuaternion,
-              x: dest.x,
-              y: dest.y,
-              z: dest.z,
-              w: dest.w,
-              //rotationQuaternion: dest,
-              easing: 'linear',
-              duration: 60,
-              update: function(v) {
-                //console.log(v)
-                picked.rotationQuaternion.normalize()
-              }
-            });
+            // var world_H_up = new XTransform(picked.position, new BABYLON.Quaternion(0,0,0,1));
+            // var up_H_down = new XTransform(null, BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0))
+
+            // var dest = world_H_up.multiply(up_H_down);
+
+            // //dest.applyToNode(picked)
+
+
+            // anime({
+            //   targets: picked.rotationQuaternion,
+            //   x: dest.x,
+            //   y: dest.y,
+            //   z: dest.z,
+            //   w: dest.w,
+            //   //rotationQuaternion: dest,
+            //   easing: 'linear',
+            //   duration: 60,
+            //   update: function(v) {
+            //     //console.log(v)
+            //     picked.rotationQuaternion.normalize()
+            //   }
+            // });
 
             break;
         }
