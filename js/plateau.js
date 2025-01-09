@@ -90,41 +90,39 @@ function preparePipeline(scene, camera) {
     [camera] // The list of cameras to be attached to
   );
 
+  // var defaultPipeline = new StandardRenderingPipeline(
+  //     "defaultPipeline", // The name of the pipeline
+  //     scene,
+  //     1.0,null, [camera]
+  // // );
 
-// var defaultPipeline = new StandardRenderingPipeline(
-//     "defaultPipeline", // The name of the pipeline
-//     scene,
-//     1.0,null, [camera]
-// // );
+  // // Create SSAO and configure all properties (for the example)
+  //     var ssaoRatio = {
+  //         ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
+  //         combineRatio: 1.0 // Ratio of the combine post-process (combines the SSAO and the scene)
+  //     };
 
-// // Create SSAO and configure all properties (for the example)
-//     var ssaoRatio = {
-//         ssaoRatio: 0.5, // Ratio of the SSAO post-process, in a lower resolution
-//         combineRatio: 1.0 // Ratio of the combine post-process (combines the SSAO and the scene)
-//     };
+  //     var ssao = new BABYLON.SSAORenderingPipeline("ssao", scene, ssaoRatio);
+  //     ssao.fallOff = 0.000001;
+  //     ssao.area = 1;
+  //     ssao.radius = 0.0001;
+  //     ssao.totalStrength = 1.0;
+  //     ssao.base = 0.5;
 
-//     var ssao = new BABYLON.SSAORenderingPipeline("ssao", scene, ssaoRatio);
-//     ssao.fallOff = 0.000001;
-//     ssao.area = 1;
-//     ssao.radius = 0.0001;
-//     ssao.totalStrength = 1.0;
-//     ssao.base = 0.5;
-
-//     // Attach camera to the SSAO render pipeline
-//     scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", camera);
+  //     // Attach camera to the SSAO render pipeline
+  //     scene.postProcessRenderPipelineManager.attachCamerasToRenderPipeline("ssao", camera);
 
   // defaultPipeline.imageProcessing.contrast = 1.8;
   // defaultPipeline.imageProcessing.exposure = 0.8;
-  defaultPipeline.bloomEnabled  =true;
+  defaultPipeline.bloomEnabled = true;
   defaultPipeline.bloomKernel = 100;
   defaultPipeline.bloomWeight = 0.38;
 
-   defaultPipeline.bloomThreshold = 0.85;
+  defaultPipeline.bloomThreshold = 0.85;
 
   defaultPipeline.chromaticAberrationEnabled = false;
   defaultPipeline.chromaticAberration.aberrationAmount = 10;
   defaultPipeline.imageProcessing.vignetteEnabled = true;
-
 
   var curve = new BABYLON.ColorCurves();
   curve.globalHue = 200;
@@ -139,45 +137,46 @@ function preparePipeline(scene, camera) {
   defaultPipeline.imageProcessing.colorCurves = curve;
   //defaultPipeline.depthOfField.focalLength = 150;
   defaultPipeline.fxaaEnabled = true;
-  defaultPipeline.samples =4;
+  defaultPipeline.samples = 4;
   defaultPipeline.sharpenEnabled = true;
 
-//   var lensEffect = new BABYLON.LensRenderingPipeline('lens', {
-//     edge_blur: 0.1,
-//     chromatic_aberration: 1.0,
-//     distortion: 0.1,
-//     dof_focus_distance: 1,
-//     dof_aperture: 0.80,			// set this very high for tilt-shift effect
-//     grain_amount: 0.0,
-//     //grain_texture: grain_texture,
-//     dof_pentagon: true,
-//     dof_gain: 0.0,
-//     dof_threshold: 1.0,
-//     dof_darken: 0.25
-// }, scene, 1.0, [camera]);
-// lensEffect._disableEffect
+  //   var lensEffect = new BABYLON.LensRenderingPipeline('lens', {
+  //     edge_blur: 0.1,
+  //     chromatic_aberration: 1.0,
+  //     distortion: 0.1,
+  //     dof_focus_distance: 1,
+  //     dof_aperture: 0.80,			// set this very high for tilt-shift effect
+  //     grain_amount: 0.0,
+  //     //grain_texture: grain_texture,
+  //     dof_pentagon: true,
+  //     dof_gain: 0.0,
+  //     dof_threshold: 1.0,
+  //     dof_darken: 0.25
+  // }, scene, 1.0, [camera]);
+  // lensEffect._disableEffect
 
-// camera.onViewMatrixChangedObservable.add(function(c: BABYLON.ArcRotateCamera ) {
-//     lensEffect.setAperture(c.radius*0.06);
-// })
+  // camera.onViewMatrixChangedObservable.add(function(c: BABYLON.ArcRotateCamera ) {
+  //     lensEffect.setAperture(c.radius*0.06);
+  // })
 
-scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
-  "textures/environment.dds",
-  scene
-);
+  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+    "textures/environment.dds",
+    scene
+  );
 
-            // Skybox
-            var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
-            var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
-            hdrSkyboxMaterial.backFaceCulling = false;
-            hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture.clone();
-            hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-            hdrSkyboxMaterial.microSurface = 1.0;
-            hdrSkyboxMaterial.cameraExposure = 0.6;
-            hdrSkyboxMaterial.cameraContrast = 1.6;
-            hdrSkyboxMaterial.disableLighting = true;
-            hdrSkybox.material = hdrSkyboxMaterial;
-            hdrSkybox.infiniteDistance = true;
+  // Skybox
+  var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
+  var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
+  hdrSkyboxMaterial.backFaceCulling = false;
+  hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture.clone();
+  hdrSkyboxMaterial.reflectionTexture.coordinatesMode =
+    BABYLON.Texture.SKYBOX_MODE;
+  hdrSkyboxMaterial.microSurface = 1.0;
+  hdrSkyboxMaterial.cameraExposure = 0.6;
+  hdrSkyboxMaterial.cameraContrast = 1.6;
+  hdrSkyboxMaterial.disableLighting = true;
+  hdrSkybox.material = hdrSkyboxMaterial;
+  hdrSkybox.infiniteDistance = true;
 }
 
 var createScene = async function () {
@@ -217,7 +216,7 @@ var createScene = async function () {
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
 
-  preparePipeline(scene, camera)
+  preparePipeline(scene, camera);
 
   console.log(camera.inputs.attached.keyboard);
 
@@ -277,30 +276,36 @@ var createScene = async function () {
     "figurine_01.glb",
     scene,
     function (
-      container
-    ) //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
-    {
+      container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+    ) {
       // clear out the mesh object and array
       //meshes = container.meshes;
-      console.log(container.meshes)
-      var mesh = container.meshes[1].clone()
-      mesh.createNormals()
-      mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
-      console.log(mesh.material)
+      console.log(container.meshes);
+      var mesh = container.meshes[1].clone();
+      mesh.createNormals();
+      mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+      console.log(mesh.material);
       // mesh.material.clearCoat.isEnabled = true;
       // mesh.material.clearCoat.intensity = 1.0;
 
       mesh.material.metallic = 0.0;
       mesh.material.roughness = 0;
-      
+
       mesh.material.subSurface.isTranslucencyEnabled = true;
       mesh.material.subSurface.tintColor = BABYLON.Color3.White();
 
-      const instance = new PhysicObject(mesh, null, { friction: 0.6, restitution: 0.3 },new BABYLON.Vector3(0, 1.6, 0),1);
+      const instance = new PhysicObject(
+        mesh,
+        null,
+        { friction: 0.6, restitution: 0.3 },
+        new BABYLON.Vector3(0, 1.6, 0),
+        1
+      );
 
       // pathTracedMesh = null;
       // containerMeshes = [];
-    });
+    }
+  );
 
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
@@ -401,64 +406,30 @@ var createScene = async function () {
 
           case "f":
           case "F":
-            //console.log(picked.rotationQuaternion);
-            //rotationQuaternion
-            //picked.rotationQuaternion.copyFrom(BABYLON.Quaternion.Identity)
+            var curAngle = angleDegreesBetweenTwoUnitVectors(
+              picked.up,
+              BABYLON.Vector3.Up()
+            );
 
-            //   var dest = new BABYLON.Quaternion();
+            var dstUp =
+              curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
 
-            //   var vecUp = picked.up;
-            //   var destUp = new BABYLON.Vector3(0,-1,0);
-            //   vecUp.normalize();
-            //   destUp.normalize();
-            //   var rotaAxis = vecUp.cross(destUp);
-            //   if(rotaAxis.length() > 0.001) {
-            //   rotaAxis.normalize();
-            //   var angleRad = BABYLON.Vector3.GetAngleBetweenVectors(vecUp,destUp,rotaAxis);
+            var quat = computeVectortoVectorRotationQuaternion(
+              picked.up,
+              dstUp,
+              picked.left
+            );
+            var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
+            quat.multiplyToRef(picked.rotationQuaternion, destRot);
+            picked.plateauObj.animateRotation(destRot);
+            //picked.rotationQuaternion = destRot;
 
-            //   //dest = picked.absoluteRotationQuaternion.multiply(BABYLON.Quaternion.RotationAxis(rotaAxis, angleRad))
-            //   dest = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0).multiply(picked.absoluteRotationQuaternion);
-            //   dest.normalize();
-            //   // dest.invertInPlace();
-            //   // dest.normalize();
-            //     console.log(angleRad);
-            //   if(Math.abs(angleRad)>0.001)
-            //     //picked.rotationQuaternion = dest;
-            //     picked.rotationQuaternion = dest.multiply(picked.absoluteRotationQuaternion.invert());
-            // }
-            
-            // picked.rotation = RotationBetweenVectorsToRef(
-            //   mesh.position,
-            //   new BABYLON(),
-            //   result
-            // ).addInPlaceFromFloats(0, 0, -Math.PI / 2);
-
-            var dest = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0).multiply(picked.absoluteRotationQuaternion);
-            picked.plateauObj.animateRotation(dest);
-
-
-            // var world_H_up = new XTransform(picked.position, new BABYLON.Quaternion(0,0,0,1));
-            // var up_H_down = new XTransform(null, BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(180),0,0))
-
-            // var dest = world_H_up.multiply(up_H_down);
-
-            // //dest.applyToNode(picked)
-
-
-            // anime({
-            //   targets: picked.rotationQuaternion,
-            //   x: dest.x,
-            //   y: dest.y,
-            //   z: dest.z,
-            //   w: dest.w,
-            //   //rotationQuaternion: dest,
-            //   easing: 'linear',
-            //   duration: 60,
-            //   update: function(v) {
-            //     //console.log(v)
-            //     picked.rotationQuaternion.normalize()
-            //   }
-            // });
+            // var dest = BABYLON.Quaternion.FromEulerAngles(
+            //   BABYLON.Tools.ToRadians(180),
+            //   0,
+            //   0
+            // ).multiply(picked.absoluteRotationQuaternion);
+            // picked.plateauObj.animateRotation(dest);
 
             break;
         }
@@ -470,17 +441,14 @@ var createScene = async function () {
             break;
           case "I":
           case "i":
-            if(scene.debugLayer.IsVisible)
-              scene.debugLayer.hide();
+            if (scene.debugLayer.IsVisible) scene.debugLayer.hide();
             else
-            scene.debugLayer.show({
-              embedMode: false,
-            });
+              scene.debugLayer.show({
+                embedMode: false,
+              });
             break;
         }
         break;
-
-  
     }
   });
 
@@ -564,7 +532,7 @@ var createScene = async function () {
               pos.copyFrom(m.position);
               pos.y += 0.03; // slightly up to induce some moment (angular velocity)
               m.plateauObj.stopAnimationMode();
-              m.plateauObj.onRelease()
+              m.plateauObj.onRelease();
 
               var power =
                 m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;

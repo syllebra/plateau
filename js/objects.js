@@ -22,28 +22,23 @@ class PhysicObject {
     );
 
     if (!colliderShape) {
-    if(auto_collider_mode == 0){
-      var bb = node.getBoundingInfo().boundingBox;
-      console.log(bb);
-      colliderShape = new BABYLON.PhysicsShapeBox(
-        bb.center,
-        BABYLON.Quaternion.Identity(),
-        new BABYLON.Vector3(
-          bb.extendSize.x * 2.0,
-          bb.extendSize.y * 2.0,
-          bb.extendSize.z * 2.0
-        ),
-        scene
-      );
-    }
-    
-    else if(auto_collider_mode == 1){
-      colliderShape  = new BABYLON.PhysicsShapeConvexHull(node, scene);
-      console.log(colliderShape)
-
-    }
-    
-
+      if (auto_collider_mode == 0) {
+        var bb = node.getBoundingInfo().boundingBox;
+        console.log(bb);
+        colliderShape = new BABYLON.PhysicsShapeBox(
+          bb.center,
+          BABYLON.Quaternion.Identity(),
+          new BABYLON.Vector3(
+            bb.extendSize.x * 2.0,
+            bb.extendSize.y * 2.0,
+            bb.extendSize.z * 2.0
+          ),
+          scene
+        );
+      } else if (auto_collider_mode == 1) {
+        colliderShape = new BABYLON.PhysicsShapeConvexHull(node, scene);
+        console.log(colliderShape);
+      }
     }
     colliderShape.material = physicsMaterial;
     this.body.shape = colliderShape;
@@ -101,23 +96,44 @@ class PhysicObject {
   }
 
   animateRotation(targetQuaternion, angularspeed = 270) {
-      var vecUp = this.node.up;
-      var destUp = new BABYLON.Vector3(0,1,0);
-      new BABYLON.Vector3(0,1,0).rotateByQuaternionToRef(targetQuaternion, destUp);
+    var vecUp = this.node.up;
+    var destUp = new BABYLON.Vector3(0, 1, 0);
+    new BABYLON.Vector3(0, 1, 0).rotateByQuaternionToRef(
+      targetQuaternion,
+      destUp
+    );
 
-      vecUp.normalize();
-      destUp.normalize();
-      var rotaAxis = vecUp.cross(destUp);
-      var angleRad = 0.0;
-      if(rotaAxis.length() > 0.001) {
-        rotaAxis.normalize();
-        angleRad = Math.abs(BABYLON.Vector3.GetAngleBetweenVectors(vecUp,destUp,rotaAxis));
-      }
-      var dist = BABYLON.Tools.ToDegrees(angleRad);
-      var speed = 270;
+    vecUp.normalize();
+    destUp.normalize();
+    var rotaAxis = vecUp.cross(destUp);
+    var angleRad = 0.0;
+    if (rotaAxis.length() > 0.00001) {
+      rotaAxis.normalize();
+      angleRad = Math.abs(
+        BABYLON.Vector3.GetAngleBetweenVectors(vecUp, destUp, rotaAxis)
+      );
+    } else {
+      angleRad = BABYLON.Tools.ToRadians(
+        angleDegreesBetweenTwoUnitVectors(vecUp, destUp)
+      );
+    }
 
-      var nbf = (dist * 600) / speed;
-      console.log(nbf)
+    var dist = BABYLON.Tools.ToDegrees(angleRad);
+
+    var nbf = (dist * 600) / angularspeed;
+
+    if (this.rotationAnimation) {
+      // this.rotationAnimation.pause();
+      console.log(this.rotationAnimation);
+      // anime.remove(this.rotationAnimation);
+      let toRotate = this.rotationAnimation.animatables[0].target;
+      toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
+      toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
+      this.rotationAnimation.animations[0].currentValue = 0;
+      this.rotationAnimation.animations[0].duration = nbf;
+      this.rotationAnimation.restart();
+      return;
+    }
 
     let toRotate = this.node;
     toRotate.rotateAnimValue = 0.0;
@@ -126,24 +142,25 @@ class PhysicObject {
     toRotate.rotateAnimTarget = new BABYLON.Quaternion();
     toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
 
-      if(this.rotationAnimation) {
-        anime.remove(this.rotationAnimation)
-      }
-
     this.rotationAnimation = anime({
       targets: toRotate,
       rotateAnimValue: 1.0,
       //rotationQuaternion: destRot,
-      easing: 'linear',
+      easing: "linear",
       duration: nbf,
-      update: function(v) {
-        BABYLON.Quaternion.SlerpToRef(toRotate.rotateAnimStart, toRotate.rotateAnimTarget,toRotate.rotateAnimValue, toRotate.rotationQuaternion)
-      }
+      update: function (v) {
+        BABYLON.Quaternion.SlerpToRef(
+          toRotate.rotateAnimStart,
+          toRotate.rotateAnimTarget,
+          toRotate.rotateAnimValue,
+          toRotate.rotationQuaternion
+        );
+      },
     });
 
     this.rotationAnimation.complete = function () {
       toRotate.plateauObj.rotationAnimation = null;
-    };    
+    };
   }
 
   stopAnimationMode() {
@@ -152,18 +169,20 @@ class PhysicObject {
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
   }
 
+  orientUpTo(destUp = BABYLON.Vector3.Up()) {
+    var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
+    var addrot = computeVectortoVectorRotationQuaternion(this.node.up, destUp);
+    addrot.multiplyToRef(this.node.rotationQuaternion, destRot);
+    this.animateRotation(destRot);
+  }
+
   onPickup() {
-    if(this.straightenAtPickup) {
-      var destRot = new BABYLON.Quaternion(0,0,0,1);
-      var addrot = computeVectortoVectorRotationQuaternion(this.node.up, new BABYLON.Vector3(0,1,0));
-      addrot.multiplyToRef(this.node.rotationQuaternion,destRot);
-      this.animateRotation(destRot);
+    if (this.straightenAtPickup) {
+      this.orientUpTo();
     }
   }
 
-  onRelease() {
-
-  }
+  onRelease() {}
 }
 
 class Card extends PhysicObject {
@@ -251,6 +270,22 @@ class Card extends PhysicObject {
     box.material = Card.cardMaterial; //scene.getMaterialByName("default_material");
 
     super(box);
+    //this.straightenAtPickup = false;
+  }
+
+  onPickup() {
+    console.log("Pickup Card");
+    if (this.straightenAtPickup) {
+      // Same as standard but keep closest face up or down
+      var curAngle = angleDegreesBetweenTwoUnitVectors(
+        this.node.up,
+        BABYLON.Vector3.Up()
+      );
+
+      var dstUp = curAngle < 90 ? BABYLON.Vector3.Up() : BABYLON.Vector3.Down();
+
+      this.orientUpTo(dstUp);
+    }
   }
 }
 
@@ -302,7 +337,6 @@ class Dice extends PhysicObject {
     pbr.bumpTexture.level = 1;
     pbr.clearCoat.bumpTexture = textureNorm;
     pbr.clearCoat.bumpTexture.level = 2;
-    
 
     this.diceMaterial = pbr;
     return pbr;
@@ -336,5 +370,8 @@ class Dice extends PhysicObject {
     );
 
     super(dice, diceShape);
+
+    this.straightenAtPickup = false;
+    this.flipable = false;
   }
 }
