@@ -29,9 +29,9 @@ class SelectionBox {
 
   update() {
     this.box.scaling = new BABYLON.Vector3(
-      this.p1.x - this.p0.x,
+      this.p1.x - this.p0.x + 0.0001,
       this.height,
-      this.p1.z - this.p0.z
+      this.p1.z - this.p0.z + 0.0001
     );
     this.box.position = new BABYLON.Vector3(
       (this.p1.x + this.p0.x) * 0.5,
@@ -107,12 +107,17 @@ class SelectionHandler {
   }
 
   static addMesh(mesh) {
-    if (this.hl && !this.isSelected(mesh))
+    if (this.hl && !this.isSelected(mesh) && !this.isExcluded(mesh)) {
+      console.log("Selecting ", mesh.id);
       this.hl.addMesh(mesh, new BABYLON.Color3(0, 1, 1));
+    }
   }
 
   static removeMesh(mesh) {
-    if (this.hl && this.isSelected(mesh)) this.hl.removeMesh(mesh);
+    if (this.hl && this.isSelected(mesh)) {
+      console.log("Deselecting ", mesh.id);
+      this.hl.removeMesh(mesh);
+    }
   }
 
   static removeAll() {
@@ -130,6 +135,15 @@ class SelectionHandler {
   }
 
   static getMeshes() {
-    return Array.from(Object.values(this.hl._meshes), (m) => m.mesh) ;
+    return Array.from(Object.values(this.hl._meshes), (m) => m.mesh);
+  }
+
+  static getExcluded() {
+    return Array.from(Object.values(this.hl._excludedMeshes), (m) => m.mesh);
+  }
+
+  static isExcluded(m) {
+    for (var mt of this.getExcluded()) if (m == mt) return true;
+    return false;
   }
 }

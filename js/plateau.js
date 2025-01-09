@@ -547,9 +547,9 @@ var createScene = async function () {
             SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
 
           for (var m of scene.meshes) {
-            if (m == SelectionHandler.selbox.box || m == ground) continue;
+            if (SelectionHandler.isExcluded(m)) continue;
             var m_bb = m.getBoundingInfo().boundingBox;
-            //let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;)
+
             if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb)) {
               SelectionHandler.addMesh(m);
             } else if (!controlKeyDown) SelectionHandler.removeMesh(m);
@@ -611,7 +611,9 @@ var createScene = async function () {
   // });
 
   SelectionHandler.init(scene);
+  SelectionHandler.hl.addExcludedMesh(ground);
 
+  SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
   return scene;
 };
 
