@@ -55,7 +55,7 @@ function angleDegreesBetweenTwoUnitVectors(v0, v1) {
 function computeVectortoVectorRotationQuaternion(
   v0,
   v1,
-  defaultAxisRot = BABYLON.Vector3.Left()
+  defaultAxisRot = BABYLON.Vector3.Forward()
 ) {
   var ret = new BABYLON.Quaternion(0, 0, 0, 1);
 

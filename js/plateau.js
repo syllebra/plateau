@@ -191,7 +191,7 @@ var createScene = async function () {
   //This creates and positions a free camera (non-mesh)
   camera = new BABYLON.UniversalCamera(
     "camera1",
-    new BABYLON.Vector3(0, 1, -3),
+    new BABYLON.Vector3(0, 1, 3),
     scene
   );
 
@@ -253,12 +253,11 @@ var createScene = async function () {
   await preload();
 
   physicsMaterial = { friction: 0.6, restitution: 0.3 };
-  bodyRenderingMaterial = new BABYLON.StandardMaterial(
-    "default_material",
-    scene
-  );
-  bodyRenderingMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.3, 1);
-  bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+  bodyRenderingMaterial = new BABYLON.PBRMaterial("default_material", scene);
+  bodyRenderingMaterial.albedoColor = new BABYLON.Color3(0.1, 0.3, 1);
+  bodyRenderingMaterial.metallic = 0.0;
+  bodyRenderingMaterial.roughness = 0.1;
+  // bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
   // body/shape on box
   var ground = BoxWorld(
@@ -614,6 +613,7 @@ var createScene = async function () {
   SelectionHandler.hl.addExcludedMesh(ground);
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
+
   return scene;
 };
 

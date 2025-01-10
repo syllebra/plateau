@@ -237,6 +237,109 @@ class Card extends PhysicObject {
     return pbr;
   }
 
+  static createCardShape(
+    w = 0.572,
+    h = 0.889,
+    thickness = 0.004,
+    cRad = 0.05,
+    cN = 4,
+    frontUvs = new BABYLON.Vector4(0, 0, 1, 1),
+    backUvs = new BABYLON.Vector4(0, 0, 1, 1)
+  ) {
+    var shape = [];
+
+    var tmp = h;
+    h = w;
+    w = tmp;
+
+    function arcFan(cx, cy, r, start, end, nb) {
+      var inc = (end - start) / nb;
+
+      for (var a = start + inc; a < end; a += inc) {
+        shape.push(
+          new BABYLON.Vector3(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0.0)
+        );
+      }
+    }
+
+    shape.push(new BABYLON.Vector3(-w * 0.5, h * 0.5 - cRad, 0.0));
+    shape.push(new BABYLON.Vector3(-w * 0.5, -h * 0.5 + cRad, 0.0));
+
+    arcFan(-w * 0.5 + cRad, -h * 0.5 + cRad, cRad, Math.PI, Math.PI * 1.5, cN);
+
+    shape.push(new BABYLON.Vector3(-w * 0.5 + cRad, -h * 0.5, 0.0));
+    shape.push(new BABYLON.Vector3(w * 0.5 - cRad, -h * 0.5, 0.0));
+
+    arcFan(
+      w * 0.5 - cRad,
+      -h * 0.5 + cRad,
+      cRad,
+      Math.PI * 1.5,
+      Math.PI * 2,
+      cN
+    );
+
+    shape.push(new BABYLON.Vector3(w * 0.5, -h * 0.5 + cRad, 0.0));
+    shape.push(new BABYLON.Vector3(w * 0.5, h * 0.5 - cRad, 0.0));
+
+    arcFan(w * 0.5 - cRad, h * 0.5 - cRad, cRad, 0, Math.PI * 0.5, cN);
+
+    shape.push(new BABYLON.Vector3(w * 0.5 - cRad, h * 0.5, 0.0));
+    shape.push(new BABYLON.Vector3(-w * 0.5 + cRad, h * 0.5, 0.0));
+
+    arcFan(-w * 0.5 + cRad, h * 0.5 - cRad, cRad, Math.PI * 0.5, Math.PI, cN);
+
+    var path = [
+      new BABYLON.Vector3(0, thickness * 0.5, 0),
+      new BABYLON.Vector3(0, -thickness * 0.5, 0),
+    ];
+    const options = {
+      shape: shape, //vec3 array with z = 0,
+      path: path, //vec3 array
+      // rotationFunction: rotFn,
+      // scaleFunction: scaleFn,
+      updatable: true,
+      closeShape: true,
+      cap: BABYLON.Mesh.CAP_ALL,
+      //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+    };
+
+    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom(
+      "ext",
+      options,
+      scene
+    ); //scene is
+
+    const positions = extruded.getVerticesData(
+      BABYLON.VertexBuffer.PositionKind
+    );
+    const uvs = extruded.getVerticesData(BABYLON.VertexBuffer.UVKind);
+    const numVertices = positions.length / 3;
+    for (let i = 0; i < numVertices; i++) {
+      const x = positions[i * 3 + 0];
+      const y = positions[i * 3 + 1];
+      const z = positions[i * 3 + 2];
+
+      var mult = y > 0 ? 1 : -1;
+      var uv = y > 0 ? frontUvs : backUvs;
+      // TODO: borders (use normals)
+
+      uvs[i * 2] = -(x - h * 0.5) / h;
+      if (y < 0) uvs[i * 2] = 1.0 - uvs[i * 2];
+
+      uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x) + uv.x;
+      console.log(uvs[i * 2], uvs[i * 2 + 1]);
+      uvs[i * 2 + 1] = -(z - w * 0.5) / w;
+      //if (y < 0) uvs[i * 2 + 1] = 1.0 - uvs[i * 2 + 1];
+      uvs[i * 2 + 1] = uvs[i * 2 + 1] * (uv.w - uv.y) + uv.y;
+    }
+
+    extruded.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
+
+    console.log("MESH:", extruded);
+    return extruded;
+  }
+
   constructor(
     position = null,
     num = 32,
@@ -266,25 +369,16 @@ class Card extends PhysicObject {
       );
     }
 
-    var faceUV = new Array(6);
-    faceUV[0] = new BABYLON.Vector4(0, 0, 0, 0);
-    faceUV[1] = new BABYLON.Vector4(0, 0, 0, 0);
-    faceUV[2] = new BABYLON.Vector4(0, 0, 0, 0);
-    faceUV[3] = new BABYLON.Vector4(0, 0, 0, 0);
-    faceUV[4] = uv(num);
-    faceUV[5] = uv(numBack);
+    var box = Card.createCardShape(
+      width,
+      height,
+      thickness,
+      0.05,
+      4,
+      uv(num),
+      uv(numBack)
+    );
 
-    const options = {
-      // faceUV: diceUVs,
-      // wrap: true,
-      //size: 0.1
-      width: height, //width,
-      height: thickness,
-      depth: width, //height,
-      faceUV: faceUV,
-    };
-
-    var box = BABYLON.MeshBuilder.CreateBox("card", options);
     if (position) box.position.copyFrom(position);
     box.material = Card.cardMaterial; //scene.getMaterialByName("default_material");
 
