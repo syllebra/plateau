@@ -433,7 +433,9 @@ var createScene = async function () {
 
   function updateDraggedNodeHeight(obj) {
     var target_height =
-      0.3 + getSceneHeight(scene, obj.node.position, 0.1, picked)+ obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
+      0.3 +
+      getSceneHeight(scene, obj.node.position, 0.1, picked) +
+      obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
     obj.updateAnimationModeTarget(
       { targets: obj.node.position, y: target_height },
@@ -532,7 +534,12 @@ var createScene = async function () {
           const delta = 0.01; // Amount of change in movement
           let x = delta * pointerInfo.event.movementX;
           let y = -delta * pointerInfo.event.movementY;
-          camera.position.addInPlace(new BABYLON.Vector3(x, y, 0));
+          var dx = camera.getDirection(new BABYLON.Vector3(1, 0, 0));
+          var dy = camera.getDirection(new BABYLON.Vector3(0, 1, 0));
+          dx = dx.multiplyByFloats(x, x, x);
+          dy = dy.multiplyByFloats(y, y, y);
+          camera.position.addInPlace(dx);
+          camera.position.addInPlace(dy);
         }
 
         MouseSpeed.update(pointerInfo.event);
@@ -615,36 +622,36 @@ var createScene = async function () {
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
-  function createTileTest(w,h,thickness,cRad, cN, bRad, bN) {
+  function createTileTest(w, h, thickness, cRad, cN, bRad, bN) {
     var shape = createBeveledProfile(thickness, bRad, bN);
-    var path = createRoundedRectangleShape(w,h,cRad, cN);
-    console.log(shape)
-    console.log(path)
+    var path = createRoundedRectangleShape(w, h, cRad, cN);
+    console.log(shape);
+    console.log(path);
     const options = {
-        shape: shape, //vec3 array with z = 0,
-        path: path, //vec3 array
-        // rotationFunction: rotFn,
-        // scaleFunction: scaleFn,
-        updatable: true,
-        closeShape: false,
-        closePath: true,
-        //cap: BABYLON.Mesh.CAP_ALL,
-        sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-        firstNormal: BABYLON.Vector3.Right()
-      };
-  
-      let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom(
-        "ext",
-        options,
-        scene
-      ); //scene is
-  
-      return extruded;
+      shape: shape, //vec3 array with z = 0,
+      path: path, //vec3 array
+      // rotationFunction: rotFn,
+      // scaleFunction: scaleFn,
+      updatable: true,
+      closeShape: false,
+      closePath: true,
+      //cap: BABYLON.Mesh.CAP_ALL,
+      sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+      firstNormal: BABYLON.Vector3.Right(),
+    };
+
+    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom(
+      "ext",
+      options,
+      scene
+    ); //scene is
+
+    return extruded;
   }
-  
-  var tile = createTileTest(0.6,1,0.05,0.01,4,0.04,4);
+
+  var tile = createTileTest(0.6, 1, 0.05, 0.01, 4, 0.04, 4);
   tile.material = bodyRenderingMaterial;
-  tile.position = new BABYLON.Vector3(0,0.6,0);
+  tile.position = new BABYLON.Vector3(0, 0.6, 0);
 
   return scene;
 };
