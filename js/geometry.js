@@ -1,3 +1,13 @@
+function arcFan(cx, cy, r, start, end, nb, shape) {
+  var inc = (end - start) / nb;
+
+  for (var a = start + inc; a < end; a += inc) {
+    shape.push(
+      new BABYLON.Vector3(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0.0)
+    );
+  }
+}
+
 function createRoundedRectangleShape(
   w = 0.572,
   h = 0.889,
@@ -10,37 +20,38 @@ function createRoundedRectangleShape(
   h = w;
   w = tmp;
 
-  function arcFan(cx, cy, r, start, end, nb) {
-    var inc = (end - start) / nb;
-
-    for (var a = start + inc; a < end; a += inc) {
-      shape.push(
-        new BABYLON.Vector3(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 0.0)
-      );
-    }
-  }
 
   shape.push(new BABYLON.Vector3(-w * 0.5, h * 0.5 - cRad, 0.0));
   shape.push(new BABYLON.Vector3(-w * 0.5, -h * 0.5 + cRad, 0.0));
 
-  arcFan(-w * 0.5 + cRad, -h * 0.5 + cRad, cRad, Math.PI, Math.PI * 1.5, cN);
+  arcFan(-w * 0.5 + cRad, -h * 0.5 + cRad, cRad, Math.PI, Math.PI * 1.5, cN, shape);
 
   shape.push(new BABYLON.Vector3(-w * 0.5 + cRad, -h * 0.5, 0.0));
   shape.push(new BABYLON.Vector3(w * 0.5 - cRad, -h * 0.5, 0.0));
 
-  arcFan(w * 0.5 - cRad, -h * 0.5 + cRad, cRad, Math.PI * 1.5, Math.PI * 2, cN);
+  arcFan(w * 0.5 - cRad, -h * 0.5 + cRad, cRad, Math.PI * 1.5, Math.PI * 2, cN, shape);
 
   shape.push(new BABYLON.Vector3(w * 0.5, -h * 0.5 + cRad, 0.0));
   shape.push(new BABYLON.Vector3(w * 0.5, h * 0.5 - cRad, 0.0));
 
-  arcFan(w * 0.5 - cRad, h * 0.5 - cRad, cRad, 0, Math.PI * 0.5, cN);
+  arcFan(w * 0.5 - cRad, h * 0.5 - cRad, cRad, 0, Math.PI * 0.5, cN, shape);
 
   shape.push(new BABYLON.Vector3(w * 0.5 - cRad, h * 0.5, 0.0));
   shape.push(new BABYLON.Vector3(-w * 0.5 + cRad, h * 0.5, 0.0));
 
-  arcFan(-w * 0.5 + cRad, h * 0.5 - cRad, cRad, Math.PI * 0.5, Math.PI, cN);
+  arcFan(-w * 0.5 + cRad, h * 0.5 - cRad, cRad, Math.PI * 0.5, Math.PI, cN, shape);
   return shape;
 }
+
+function createBeveledProfile(thickness, radius, segments) {
+  var shape = [];
+  arcFan(0.0, -radius, radius, Math.PI*0.5, Math.PI, segments, shape);
+  shape.push(new BABYLON.Vector3(-radius, -radius, 0.0));
+  shape.push(new BABYLON.Vector3(-radius, -thickness, 0.0));
+  return shape;
+}
+
+
 
 function planarUVProjectXZ(
   mesh,
