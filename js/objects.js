@@ -348,7 +348,9 @@ class Card extends PhysicObject {
     numBack = 54,
     width = 0.572,
     height = 0.889,
-    thickness = 0.004
+    thickness = 0.004,
+    cornerRadius = 0.05,
+    cornerSegments = 4
   ) {
     console.log(
       Card.cardMaterial.cols,
@@ -375,8 +377,8 @@ class Card extends PhysicObject {
       width,
       height,
       thickness,
-      0.05,
-      4,
+      cornerRadius,
+      cornerSegments,
       uv(num),
       uv(numBack)
     );
