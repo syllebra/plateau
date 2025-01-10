@@ -433,7 +433,8 @@ var createScene = async function () {
 
   function updateDraggedNodeHeight(obj) {
     var target_height =
-      0.3 + getSceneHeight(scene, obj.node.position, 0.1, picked);
+      0.3 + getSceneHeight(scene, obj.node.position, 0.1, picked)+ obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
+
     obj.updateAnimationModeTarget(
       { targets: obj.node.position, y: target_height },
       obj.node.position.y,
