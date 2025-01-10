@@ -173,11 +173,7 @@ class PhysicObject {
     this.animateRotation(destRot);
   }
 
-  flip() {
-    if (!this.isFlipable) return;
-
-    if (!this.node.dragged) return; // For now only if handled
-
+  animateFlip(worldAxis) {
     var curAngle = angleDegreesBetweenTwoUnitVectors(
       this.node.up,
       BABYLON.Vector3.Up()
@@ -188,11 +184,19 @@ class PhysicObject {
     var quat = computeVectortoVectorRotationQuaternion(
       this.node.up,
       dstUp,
-      this.node.left
+      worldAxis
     );
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     quat.multiplyToRef(this.node.rotationQuaternion, destRot);
     this.animateRotation(destRot);
+  }
+
+  flip() {
+    if (!this.isFlipable) return;
+
+    if (!this.node.dragged) return; // For now only if handled
+
+    this.animateFlip(this.node.forward);
   }
 
   onPickup() {
@@ -320,7 +324,6 @@ class Card extends PhysicObject {
       const y = positions[i * 3 + 1];
       const z = positions[i * 3 + 2];
 
-      var mult = y > 0 ? 1 : -1;
       var uv = y > 0 ? frontUvs : backUvs;
       // TODO: borders (use normals)
 
@@ -328,7 +331,7 @@ class Card extends PhysicObject {
       if (y < 0) uvs[i * 2] = 1.0 - uvs[i * 2];
 
       uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x) + uv.x;
-      console.log(uvs[i * 2], uvs[i * 2 + 1]);
+
       uvs[i * 2 + 1] = -(z - w * 0.5) / w;
       //if (y < 0) uvs[i * 2 + 1] = 1.0 - uvs[i * 2 + 1];
       uvs[i * 2 + 1] = uvs[i * 2 + 1] * (uv.w - uv.y) + uv.y;
@@ -336,7 +339,6 @@ class Card extends PhysicObject {
 
     extruded.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
 
-    console.log("MESH:", extruded);
     return extruded;
   }
 

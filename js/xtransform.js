@@ -52,21 +52,17 @@ function angleDegreesBetweenTwoUnitVectors(v0, v1) {
   return BABYLON.Tools.ToDegrees(angleRad);
 }
 
-function computeVectortoVectorRotationQuaternion(
-  v0,
-  v1,
-  defaultAxisRot = BABYLON.Vector3.Forward()
-) {
+function computeVectortoVectorRotationQuaternion(v0, v1, axisRot = null) {
   var ret = new BABYLON.Quaternion(0, 0, 0, 1);
 
   v0.normalize();
   v1.normalize();
-  var rotaAxis = v0.cross(v1);
+  var rotaAxis = axisRot ? axisRot : v0.cross(v1);
   if (rotaAxis.length() > 0.00001) {
     rotaAxis.normalize();
     var angleRad = BABYLON.Vector3.GetAngleBetweenVectors(v0, v1, rotaAxis);
   } else {
-    rotaAxis.copyFrom(defaultAxisRot);
+    rotaAxis.copyFrom(BABYLON.Vector3.Forward());
     angleRad = BABYLON.Tools.ToRadians(
       angleDegreesBetweenTwoUnitVectors(v0, v1)
     );
