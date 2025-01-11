@@ -15,8 +15,10 @@ class XTransform {
   // }
   static FromNode(node) {
     var result = new XTransform();
+    console.log("Node:", node, "result:", result);
     result.position.copyFrom(node.position);
     result.rotation.copyFrom(node.rotationQuaternion);
+    return result;
   }
 
   multiply(xTransform) {
@@ -29,13 +31,13 @@ class XTransform {
 
   inverse() {
     var rot = new BABYLON.Quaternion();
-    this.rotation.inverseToRef(rot);
+    BABYLON.Quaternion.InverseToRef(this.rotation, rot);
     var position = new BABYLON.Vector3();
-    this.position.rotateByQuaternionToRef(this.rotation, position);
+    this.position.rotateByQuaternionToRef(rot, position);
     position.x = -position.x;
     position.y = -position.y;
     position.z = -position.z;
-    return new XTransform(position, rotation);
+    return new XTransform(position, rot);
   }
 
   applyToNode(node) {
@@ -63,9 +65,7 @@ function computeVectortoVectorRotationQuaternion(v0, v1, axisRot = null) {
     var angleRad = BABYLON.Vector3.GetAngleBetweenVectors(v0, v1, rotaAxis);
   } else {
     rotaAxis.copyFrom(BABYLON.Vector3.Forward());
-    angleRad = BABYLON.Tools.ToRadians(
-      angleDegreesBetweenTwoUnitVectors(v0, v1)
-    );
+    angleRad = BABYLON.Tools.ToRadians(angleDegreesBetweenTwoUnitVectors(v0, v1));
   }
   BABYLON.Quaternion.RotationAxisToRef(rotaAxis, -angleRad, ret);
   ret.normalize();

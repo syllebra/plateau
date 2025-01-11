@@ -3,11 +3,11 @@ import os
 
 from PIL import Image
 
-TEXTURE_WIDTH = 2048
-COLS = 8
+TEXTURE_WIDTH = 1024
+COLS = 4
 
-src_path = "textures/tmp2"
-dst_img = "atlas.png"
+src_path = "textures/tiles"
+dst_img = "hand_painted_tiles.png"
 
 dst = None  # Image.new('RGB', (60, 30), color='white')
 

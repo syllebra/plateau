@@ -14,12 +14,7 @@ class PhysicObject {
     if (position) node.position = position;
     this.node = node;
     if (shadowGen) shadowGen.addShadowCaster(node);
-    this.body = new BABYLON.PhysicsBody(
-      node,
-      BABYLON.PhysicsMotionType.DYNAMIC,
-      false,
-      scene
-    );
+    this.body = new BABYLON.PhysicsBody(node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
 
     if (!colliderShape) {
       if (auto_collider_mode == 0) {
@@ -28,11 +23,7 @@ class PhysicObject {
         colliderShape = new BABYLON.PhysicsShapeBox(
           bb.center,
           BABYLON.Quaternion.Identity(),
-          new BABYLON.Vector3(
-            bb.extendSize.x * 2.0,
-            bb.extendSize.y * 2.0,
-            bb.extendSize.z * 2.0
-          ),
+          new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
           scene
         );
       } else if (auto_collider_mode == 1) {
@@ -98,10 +89,7 @@ class PhysicObject {
   animateRotation(targetQuaternion, angularspeed = 270) {
     var vecUp = this.node.up;
     var destUp = new BABYLON.Vector3(0, 1, 0);
-    new BABYLON.Vector3(0, 1, 0).rotateByQuaternionToRef(
-      targetQuaternion,
-      destUp
-    );
+    new BABYLON.Vector3(0, 1, 0).rotateByQuaternionToRef(targetQuaternion, destUp);
 
     vecUp.normalize();
     destUp.normalize();
@@ -109,13 +97,9 @@ class PhysicObject {
     var angleRad = 0.0;
     if (rotaAxis.length() > 0.00001) {
       rotaAxis.normalize();
-      angleRad = Math.abs(
-        BABYLON.Vector3.GetAngleBetweenVectors(vecUp, destUp, rotaAxis)
-      );
+      angleRad = Math.abs(BABYLON.Vector3.GetAngleBetweenVectors(vecUp, destUp, rotaAxis));
     } else {
-      angleRad = BABYLON.Tools.ToRadians(
-        angleDegreesBetweenTwoUnitVectors(vecUp, destUp)
-      );
+      angleRad = BABYLON.Tools.ToRadians(angleDegreesBetweenTwoUnitVectors(vecUp, destUp));
     }
 
     var dist = BABYLON.Tools.ToDegrees(angleRad);
@@ -174,18 +158,11 @@ class PhysicObject {
   }
 
   animateFlip(worldAxis) {
-    var curAngle = angleDegreesBetweenTwoUnitVectors(
-      this.node.up,
-      BABYLON.Vector3.Up()
-    );
+    var curAngle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
 
     var dstUp = curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
 
-    var quat = computeVectortoVectorRotationQuaternion(
-      this.node.up,
-      dstUp,
-      worldAxis
-    );
+    var quat = computeVectortoVectorRotationQuaternion(this.node.up, dstUp, worldAxis);
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     quat.multiplyToRef(this.node.rotationQuaternion, destRot);
     this.animateRotation(destRot);
@@ -219,12 +196,7 @@ class Card extends PhysicObject {
 
   static cardMaterial = null;
   static async createCardMaterial() {
-    const texture = new BABYLON.Texture(
-      "textures/cards/french_deck.png",
-      scene,
-      true,
-      false
-    );
+    const texture = new BABYLON.Texture("textures/cards/french_deck.png", scene, true, false);
 
     const pbr = new BABYLON.PBRMaterial("cardMaterial", scene);
     pbr.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
@@ -241,19 +213,10 @@ class Card extends PhysicObject {
     return pbr;
   }
 
-  static createCardShape(
-    w = 0.572,
-    h = 0.889,
-    thickness = 0.004,
-    cRad = 0.05,
-    cN = 4
-  ) {
+  static createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
     var shape = createRoundedRectangleShape(w, h, cRad, cN);
 
-    var path = [
-      new BABYLON.Vector3(0, thickness * 0.5, 0),
-      new BABYLON.Vector3(0, -thickness * 0.5, 0),
-    ];
+    var path = [new BABYLON.Vector3(0, thickness * 0.5, 0), new BABYLON.Vector3(0, -thickness * 0.5, 0)];
     const options = {
       shape: shape, //vec3 array with z = 0,
       path: path, //vec3 array
@@ -265,11 +228,7 @@ class Card extends PhysicObject {
       //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
     };
 
-    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom(
-      "ext",
-      options,
-      scene
-    ); //scene is
+    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom("ext", options, scene); //scene is
 
     return extruded;
   }
@@ -284,36 +243,15 @@ class Card extends PhysicObject {
     cornerRadius = 0.05,
     cornerSegments = 4
   ) {
-    console.log(
-      Card.cardMaterial.cols,
-      Card.cardMaterial.rows,
-      Card.cardMaterial.nb
+    console.log(Card.cardMaterial.cols, Card.cardMaterial.rows, Card.cardMaterial.nb);
+
+    var box = Card.createCardShape(width, height, thickness, cornerRadius, cornerSegments);
+
+    planarUVProjectXZ(
+      box,
+      uvFromAtlas(num, Card.cardMaterial.cols, Card.cardMaterial.rows),
+      uvFromAtlas(numBack, Card.cardMaterial.cols, Card.cardMaterial.rows)
     );
-
-    function uv(num) {
-      var row = Math.floor(num / Card.cardMaterial.cols);
-      var col = num % Card.cardMaterial.cols;
-      console.log(row, col);
-
-      var dx = 1.0 / Card.cardMaterial.cols;
-      var dy = 1.0 / Card.cardMaterial.rows;
-      return new BABYLON.Vector4(
-        dx * col,
-        dy * row,
-        dx * (col + 1),
-        dy * (row + 1)
-      );
-    }
-
-    var box = Card.createCardShape(
-      width,
-      height,
-      thickness,
-      cornerRadius,
-      cornerSegments
-    );
-
-    planarUVProjectXZ(box, uv(num), uv(numBack));
 
     if (position) box.position.copyFrom(position);
     box.material = Card.cardMaterial; //scene.getMaterialByName("default_material");
@@ -325,10 +263,7 @@ class Card extends PhysicObject {
   onPickup() {
     if (this.straightenAtPickup) {
       // Same as standard but keep closest face up or down
-      var curAngle = angleDegreesBetweenTwoUnitVectors(
-        this.node.up,
-        BABYLON.Vector3.Up()
-      );
+      var curAngle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
 
       var dstUp = curAngle < 90 ? BABYLON.Vector3.Up() : BABYLON.Vector3.Down();
 
@@ -359,12 +294,7 @@ class Dice extends PhysicObject {
       "}\n" +
       "";
     //const customProcText = new BABYLON.CustomProceduralTexture("customtext", "Lines", 1024, scene);
-    const customProcText = new BABYLON.CustomProceduralTexture(
-      "dice_dynamic_texture",
-      "textures/dice",
-      256,
-      scene
-    );
+    const customProcText = new BABYLON.CustomProceduralTexture("dice_dynamic_texture", "textures/dice", 256, scene);
     console.log(customProcText._uniforms);
     const pbr = new BABYLON.PBRMaterial("diceMaterial", scene);
 
@@ -374,12 +304,7 @@ class Dice extends PhysicObject {
     pbr.clearCoat.isEnabled = true;
     pbr.clearCoat.intensity = 1.0;
 
-    const textureNorm = new BABYLON.Texture(
-      "textures/dice/D6_N.jpg",
-      scene,
-      true,
-      false
-    );
+    const textureNorm = new BABYLON.Texture("textures/dice/D6_N.jpg", scene, true, false);
     pbr.albedoTexture = customProcText;
     pbr.bumpTexture = textureNorm;
     pbr.bumpTexture.level = 1;
@@ -392,10 +317,7 @@ class Dice extends PhysicObject {
 
   static async loadMeshes() {
     var modelNameAndExtension = "dice.glb";
-    const container = await BABYLON.loadAssetContainerAsync(
-      "models/" + modelNameAndExtension,
-      scene
-    );
+    const container = await BABYLON.loadAssetContainerAsync("models/" + modelNameAndExtension, scene);
     console.log(container.meshes);
     this.diceMesh = container.meshes[1];
     this.diceColliderMesh = container.meshes[2];

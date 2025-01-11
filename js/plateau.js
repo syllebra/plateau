@@ -33,24 +33,12 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   // pbr.clearCoat.isEnabled = true;
   // pbr.clearCoat.intensity = 0.2;
 
-  pbr.albedoTexture = new BABYLON.Texture(
-    "textures/table/37_Old table top_DIFF.jpg",
-    scene
-  );
-  pbr.bumpTexture = new BABYLON.Texture(
-    "textures/table/37_Old table top_NORM.jpg",
-    scene
-  );
+  pbr.albedoTexture = new BABYLON.Texture("textures/table/37_Old table top_DIFF.jpg", scene);
+  pbr.bumpTexture = new BABYLON.Texture("textures/table/37_Old table top_NORM.jpg", scene);
   pbr.bumpTexture.level = 2;
-  pbr.ambientTexture = new BABYLON.Texture(
-    "textures/table/37_Old table top-AO.jpg",
-    scene
-  );
+  pbr.ambientTexture = new BABYLON.Texture("textures/table/37_Old table top-AO.jpg", scene);
 
-  pbr.reflectanceTexture = new BABYLON.Texture(
-    "textures/table/37_Old table top_SPEC.jpg",
-    scene
-  );
+  pbr.reflectanceTexture = new BABYLON.Texture("textures/table/37_Old table top_SPEC.jpg", scene);
   ground.material = pbr;
 
   const groundShape = new BABYLON.PhysicsShapeCylinder(
@@ -61,12 +49,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   );
 
   //  WorldBuild(ground, groundShape, scene, shadowGen);
-  var groundBody = new BABYLON.PhysicsBody(
-    ground,
-    BABYLON.PhysicsMotionType.STATIC,
-    false,
-    scene
-  );
+  var groundBody = new BABYLON.PhysicsBody(ground, BABYLON.PhysicsMotionType.STATIC, false, scene);
   var groundMaterial = { friction: 0.6, restitution: 0.3 };
 
   groundShape.material = groundMaterial;
@@ -159,24 +142,28 @@ function preparePipeline(scene, camera) {
   //     lensEffect.setAperture(c.radius*0.06);
   // })
 
-  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
-    "textures/environment.dds",
-    scene
-  );
+  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/environment.dds", scene);
 
   // Skybox
   var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
   var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
   hdrSkyboxMaterial.backFaceCulling = false;
   hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture.clone();
-  hdrSkyboxMaterial.reflectionTexture.coordinatesMode =
-    BABYLON.Texture.SKYBOX_MODE;
+  hdrSkyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
   hdrSkyboxMaterial.microSurface = 1.0;
-  hdrSkyboxMaterial.cameraExposure = 0.6;
+  hdrSkyboxMaterial.cameraExposure = 1.0;
   hdrSkyboxMaterial.cameraContrast = 1.6;
   hdrSkyboxMaterial.disableLighting = true;
   hdrSkybox.material = hdrSkyboxMaterial;
   hdrSkybox.infiniteDistance = true;
+
+  // const ssr = new BABYLON.SSRRenderingPipeline(
+  //   "ssr", // The name of the pipeline
+  //   scene, // The scene to which the pipeline belongs
+  //   [scene.activeCamera], // The list of cameras to attach the pipeline to
+  //   true, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
+  //   BABYLON.Constants.TEXTURETYPE_UNSIGNED_BYTE // The texture type used by the SSR effect (default: TEXTURETYPE_UNSIGNED_BYTE)
+  // );
 }
 
 var createScene = async function () {
@@ -189,11 +176,7 @@ var createScene = async function () {
   gizmoManager.attachableMeshes = [];
 
   //This creates and positions a free camera (non-mesh)
-  camera = new BABYLON.UniversalCamera(
-    "camera1",
-    new BABYLON.Vector3(0, 1, 3),
-    scene
-  );
+  camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 1, 3), scene);
 
   // This targets the camera to scene origin
   camera.setTarget(BABYLON.Vector3.Zero());
@@ -208,10 +191,8 @@ var createScene = async function () {
   //camera.inputs.removeMouse();
   camera.inputs.addMouseWheel();
 
-  camera.inputs.attached.mousewheel.wheelPrecisionX =
-    camera.inputs.attached.mousewheel.wheelPrecisionY =
-    camera.inputs.attached.mousewheel.wheelPrecisionZ =
-      0.2;
+  var mouseWheelHandler = camera.inputs.attached.mousewheel;
+  mouseWheelHandler.wheelPrecisionX = mouseWheelHandler.wheelPrecisionY = mouseWheelHandler.wheelPrecisionZ = 0.2;
 
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
@@ -252,7 +233,6 @@ var createScene = async function () {
 
   await preload();
 
-  physicsMaterial = { friction: 0.6, restitution: 0.3 };
   bodyRenderingMaterial = new BABYLON.PBRMaterial("default_material", scene);
   bodyRenderingMaterial.albedoColor = new BABYLON.Color3(0.1, 0.3, 1);
   bodyRenderingMaterial.metallic = 0.0;
@@ -260,19 +240,13 @@ var createScene = async function () {
   // bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
   // body/shape on box
-  var ground = BoxWorld(
-    scene,
-    new BABYLON.Vector3(0, 0, 0),
-    10,
-    viewer,
-    shadowGen
-  );
+  var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 10, viewer, shadowGen);
 
   const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
 
   BABYLON.SceneLoader.LoadAssetContainer(
     "models/",
-    "figurine_01.glb",
+    "stairs_01.glb",
     scene,
     function (
       container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
@@ -313,34 +287,14 @@ var createScene = async function () {
     tst.setEnabled(true);
   });
   const addDiceBtn = ui.addBtn("Add a dice", () => {
-    var target_height =
-      0.3 +
-      getSceneHeight(
-        scene,
-        new BABYLON.Vector3(0, 10, 0),
-        0.1,
-        SelectionHandler.selbox.box
-      );
+    var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
     console.log(target_height);
-    const newBody = new Dice(
-      new BABYLON.Vector3(0, target_height, 0),
-      Math.random() * 0.2 + 0.1
-    );
+    const newBody = new Dice(new BABYLON.Vector3(0, target_height, 0), Math.random() * 0.2 + 0.1);
   });
   const addCardBtn = ui.addBtn("Add a card", () => {
-    var target_height =
-      0.3 +
-      getSceneHeight(
-        scene,
-        new BABYLON.Vector3(0, 10, 0),
-        0.1,
-        SelectionHandler.selbox.box
-      );
+    var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
     console.log(target_height);
-    const newBody = new Card(
-      new BABYLON.Vector3(0, target_height, 0),
-      (num = Math.floor(Math.random() * 54))
-    );
+    const newBody = new Card(new BABYLON.Vector3(0, target_height, 0), (num = Math.floor(Math.random() * 54)));
   });
 
   function getSceneHeight(scene, position, test_radius = 0, avoid = null) {
@@ -353,10 +307,7 @@ var createScene = async function () {
       return mesh.dragged;
       //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
     }
-    var height_pick_info = scene.pickWithRay(
-      (ray = ray),
-      (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh))
-    );
+    var height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh)));
 
     max_height = height_pick_info.hit ? height_pick_info.pickedPoint.y : 0;
 
@@ -364,16 +315,9 @@ var createScene = async function () {
       for (var a = 0.0; a < Math.PI * 2; a += (Math.PI * 2) / N) {
         var dx = -Math.cos(a) * test_radius;
         var dy = Math.sin(a) * test_radius;
-        var ray_start = new BABYLON.Vector3(
-          position.x + dx,
-          position.y,
-          position.z + dy
-        );
+        var ray_start = new BABYLON.Vector3(position.x + dx, position.y, position.z + dy);
         ray = new BABYLON.Ray(ray_start, new BABYLON.Vector3(0, -10000, 0));
-        height_pick_info = scene.pickWithRay(
-          (ray = ray),
-          (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh))
-        );
+        height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh)));
         if (height_pick_info.hit && height_pick_info.pickedPoint.y > max_height)
           max_height = height_pick_info.pickedPoint.y;
       }
@@ -406,8 +350,7 @@ var createScene = async function () {
           case "f":
           case "F":
             var meshes = SelectionHandler.getMeshes();
-            if (picked && !SelectionHandler.isSelected(picked))
-              meshes.push(picked);
+            if (picked && !SelectionHandler.isSelected(picked)) meshes.push(picked);
             for (var m of meshes) if (m.plateauObj) m.plateauObj.flip();
 
             break;
@@ -437,11 +380,7 @@ var createScene = async function () {
       getSceneHeight(scene, obj.node.position, 0.1, picked) +
       obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
-    obj.updateAnimationModeTarget(
-      { targets: obj.node.position, y: target_height },
-      obj.node.position.y,
-      target_height
-    );
+    obj.updateAnimationModeTarget({ targets: obj.node.position, y: target_height }, obj.node.position.y, target_height);
   }
 
   var panning = false;
@@ -454,9 +393,7 @@ var createScene = async function () {
         if (pointerInfo.pickInfo.pickedMesh == ground) {
           if (!controlKeyDown) SelectionHandler.removeAll();
           SelectionHandler.selbox.setVisiblity(true);
-          SelectionHandler.selbox.setInitPoint(
-            pointerInfo.pickInfo.pickedPoint
-          );
+          SelectionHandler.selbox.setInitPoint(pointerInfo.pickInfo.pickedPoint);
           //camera.detachControl(canvas);
           box_selection = true;
         } else if (pointerInfo.pickInfo.pickedMesh != ground) {
@@ -468,18 +405,14 @@ var createScene = async function () {
             SelectionHandler.toggleSelection(pointerInfo.pickInfo.pickedMesh);
             break;
           } else {
-            if (!SelectionHandler.isSelected(pointerInfo.pickInfo.pickedMesh))
-              SelectionHandler.removeAll();
+            if (!SelectionHandler.isSelected(pointerInfo.pickInfo.pickedMesh)) SelectionHandler.removeAll();
           }
 
           picked = pointerInfo.pickInfo.pickedMesh;
 
           picked_ground_pos.copyFrom(picked.position);
           picked_ray_hit_ground.copyFrom(
-            pointerInfo.pickInfo.ray.intersectsMesh(
-              ground,
-              (onlyBoundingInfo = true)
-            ).pickedPoint
+            pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
 
           var meshes = SelectionHandler.getMeshes();
@@ -491,6 +424,9 @@ var createScene = async function () {
               m.plateauObj.onPickup();
               updateDraggedNodeHeight(m.plateauObj);
             }
+
+          //camera.inputs.removeMouseWheel();
+          camera.inputs.remove(mouseWheelHandler);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -516,8 +452,7 @@ var createScene = async function () {
               m.plateauObj.stopAnimationMode();
               m.plateauObj.onRelease();
 
-              var power =
-                m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
+              var power = m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
               var forceVector = new BABYLON.Vector3();
               forceVector.copyFrom(dir_speed);
               forceVector.x *= power;
@@ -526,7 +461,7 @@ var createScene = async function () {
             }
 
           picked = null;
-          //camera.attachControl(canvas, true);
+          camera.inputs.add(mouseWheelHandler);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
@@ -545,13 +480,9 @@ var createScene = async function () {
         MouseSpeed.update(pointerInfo.event);
         if (box_selection) {
           SelectionHandler.selbox.setSecondPoint(
-            pointerInfo.pickInfo.ray.intersectsMesh(
-              ground,
-              (onlyBoundingInfo = true)
-            ).pickedPoint
+            pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
-          var sel_bb =
-            SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
+          var sel_bb = SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
 
           for (var m of scene.meshes) {
             if (SelectionHandler.isExcluded(m)) continue;
@@ -562,21 +493,10 @@ var createScene = async function () {
             } else if (!controlKeyDown) SelectionHandler.removeMesh(m);
           }
         } else if (picked) {
-          var base_hit = pointerInfo.pickInfo.ray.intersectsMesh(
-            ground,
-            (onlyBoundingInfo = true)
-          );
+          var base_hit = pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true));
           if (base_hit.hit) {
-            let dx =
-              picked_ground_pos.x +
-              base_hit.pickedPoint.x -
-              picked_ray_hit_ground.x -
-              picked.position.x;
-            let dz =
-              picked_ground_pos.z +
-              base_hit.pickedPoint.z -
-              picked_ray_hit_ground.z -
-              picked.position.z;
+            let dx = picked_ground_pos.x + base_hit.pickedPoint.x - picked_ray_hit_ground.x - picked.position.x;
+            let dz = picked_ground_pos.z + base_hit.pickedPoint.z - picked_ray_hit_ground.z - picked.position.z;
 
             var meshes = SelectionHandler.getMeshes();
             if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
@@ -593,6 +513,28 @@ var createScene = async function () {
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
           }
+        }
+        break;
+      case BABYLON.PointerEventTypes.POINTERWHEEL:
+        if (picked) {
+          const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;
+
+          var world_H_axisRot = new XTransform(picked.position);
+          var axisRot_H_world = world_H_axisRot.inverse();
+          var /* The code seems to be a comment in JavaScript. The text "picked_h_new" and " */
+            axisRot_H_newAxisRot = new XTransform(
+              new BABYLON.Vector3.Zero(),
+              BABYLON.Quaternion.FromEulerAngles(0, BABYLON.Tools.ToRadians(angle), 0)
+            );
+          var meshes = SelectionHandler.getMeshes();
+          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
+          for (var m of meshes)
+            if (m.plateauObj) {
+              var world_H_obj = XTransform.FromNode(m);
+              var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
+              var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
+              world_h_objnew.applyToNode(m);
+            }
         }
         break;
     }
@@ -622,36 +564,16 @@ var createScene = async function () {
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
-  function createTileTest(w, h, thickness, cRad, cN, bRad, bN) {
-    var shape = createBeveledProfile(thickness, bRad, bN);
-    var path = createRoundedRectangleShape(w, h, cRad, cN);
-    console.log(shape);
-    console.log(path);
-    const options = {
-      shape: shape, //vec3 array with z = 0,
-      path: path, //vec3 array
-      // rotationFunction: rotFn,
-      // scaleFunction: scaleFn,
-      updatable: true,
-      closeShape: false,
-      closePath: true,
-      //cap: BABYLON.Mesh.CAP_ALL,
-      sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-      firstNormal: BABYLON.Vector3.Right(),
-    };
-
-    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom(
-      "ext",
-      options,
-      scene
-    ); //scene is
-
-    return extruded;
-  }
-
-  var tile = createTileTest(0.6, 1, 0.05, 0.01, 4, 0.04, 4);
-  tile.material = bodyRenderingMaterial;
+  var tile = createTileTest(0.4, 0.4, 0.02, 0.005, 4, 0.01, 3);
   tile.position = new BABYLON.Vector3(0, 0.6, 0);
+
+  var mat = new BABYLON.PBRMaterial("cardBoard", scene);
+  mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
+  mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+  mat.metallic = 0.0;
+  mat.roughness = 0.13;
+  tile.material = mat;
+  new PhysicObject(tile);
 
   return scene;
 };
