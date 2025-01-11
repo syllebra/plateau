@@ -283,6 +283,8 @@ var createScene = async function () {
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
 
+  var french_deck_atlas = new CardAtlas();
+
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
   });
@@ -294,7 +296,12 @@ var createScene = async function () {
   const addCardBtn = ui.addBtn("Add a card", () => {
     var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
     console.log(target_height);
-    const newBody = new Card(new BABYLON.Vector3(0, target_height, 0), (num = Math.floor(Math.random() * 54)));
+    const newBody = new Card(
+      new BABYLON.Vector3(0, target_height, 0),
+      french_deck_atlas,
+      Math.floor(Math.random() * french_deck_atlas.nb),
+      french_deck_atlas.back
+    );
   });
 
   function getSceneHeight(scene, position, test_radius = 0, avoid = null) {
