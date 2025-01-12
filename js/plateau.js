@@ -242,48 +242,49 @@ var createScene = async function () {
   // body/shape on box
   var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 10, viewer, shadowGen);
 
-  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
+//  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
 
-  BABYLON.SceneLoader.LoadAssetContainer(
-    "models/",
-    "stairs_01.glb",
-    scene,
-    function (
-      container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
-    ) {
-      // clear out the mesh object and array
-      //meshes = container.meshes;
-      console.log(container.meshes);
-      var mesh = container.meshes[1].clone();
-      mesh.createNormals();
-      mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-      console.log(mesh.material);
-      // mesh.material.clearCoat.isEnabled = true;
-      // mesh.material.clearCoat.intensity = 1.0;
+  // BABYLON.SceneLoader.LoadAssetContainer(
+  //   "models/",
+  //   "stairs_01.glb",
+  //   scene,
+  //   function (
+  //     container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+  //   ) {
+  //     // clear out the mesh object and array
+  //     //meshes = container.meshes;
+  //     var mesh = container.meshes[1].clone();
+  //     mesh.createNormals();
+  //     mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+  //     console.log(mesh.material);
+  //     // mesh.material.clearCoat.isEnabled = true;
+  //     // mesh.material.clearCoat.intensity = 1.0;
 
-      mesh.material.metallic = 0.0;
-      mesh.material.roughness = 0;
+  //     mesh.material.metallic = 0.0;
+  //     mesh.material.roughness = 0;
 
-      mesh.material.subSurface.isTranslucencyEnabled = true;
-      mesh.material.subSurface.tintColor = BABYLON.Color3.White();
+  //     mesh.material.subSurface.isTranslucencyEnabled = true;
+  //     mesh.material.subSurface.tintColor = BABYLON.Color3.White();
 
-      const instance = new PhysicObject(
-        mesh,
-        null,
-        { friction: 0.6, restitution: 0.3 },
-        new BABYLON.Vector3(0, 1.6, 0),
-        1
-      );
+  //     const instance = new PhysicObject(
+  //       mesh,
+  //       null,
+  //       { friction: 0.6, restitution: 0.3 },
+  //       new BABYLON.Vector3(0, 1.6, 0),
+  //       1
+  //     );
 
-      // pathTracedMesh = null;
-      // containerMeshes = [];
-    }
-  );
+  //     // pathTracedMesh = null;
+  //     // containerMeshes = [];
+  //   }
+  // );
 
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
 
   var french_deck_atlas = new CardAtlas();
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1,0.4,0));
+  console.log("DECK:", deck)
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
@@ -407,6 +408,7 @@ var createScene = async function () {
           MouseSpeed.reset();
 
           if (!pointerInfo.pickInfo.pickedMesh.physicsBody) break;
+          if(pointerInfo.pickInfo.pickedMesh.plateauObj && !pointerInfo.pickInfo.pickedMesh.plateauObj.pickable) break;
 
           if (controlKeyDown) {
             SelectionHandler.toggleSelection(pointerInfo.pickInfo.pickedMesh);

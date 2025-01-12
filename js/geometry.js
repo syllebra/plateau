@@ -54,7 +54,6 @@ function expandShape(shape, amount = 0.05) {
     var p = new BABYLON.Vector3(shape[i].x + t.x * amount, shape[i].y + t.y * amount, shape[i].z + t.z * amount);
     ret.push(p);
   }
-  console.log(ret);
   return ret;
 }
 
@@ -133,8 +132,6 @@ function planarUVProjectXZ(
 function uvFromAtlas(num, cols, rows) {
   var row = Math.floor(num / cols);
   var col = num % cols;
-  console.log(row, col);
-
   var dx = 1.0 / cols;
   var dy = 1.0 / rows;
   return new BABYLON.Vector4(dx * col, dy * row, dx * (col + 1), dy * (row + 1));

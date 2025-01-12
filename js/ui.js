@@ -95,7 +95,7 @@ class FastUI {
       if (value) {
         viewer = new BABYLON.Debug.PhysicsViewer(scene);
         for (let mesh of scene.meshes) {
-          if (viewer && mesh.physicsBody) {
+          if (viewer && mesh.physicsBody && mesh.plateauObj && mesh.plateauObj.physicsEnabled) {
             viewer.showBody(mesh.physicsBody);
           }
         }

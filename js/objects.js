@@ -3,6 +3,7 @@ class PhysicObject {
   node = null;
   animations = new Map();
   rotationAnimation = null;
+  auto_collider_mode = 0;
 
   constructor(
     node,
@@ -16,20 +17,10 @@ class PhysicObject {
     if (shadowGen) shadowGen.addShadowCaster(node);
     this.body = new BABYLON.PhysicsBody(node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
 
+    this.auto_collider_mode = auto_collider_mode;
+
     if (!colliderShape) {
-      if (auto_collider_mode == 0) {
-        var bb = node.getBoundingInfo().boundingBox;
-        console.log(bb);
-        colliderShape = new BABYLON.PhysicsShapeBox(
-          bb.center,
-          BABYLON.Quaternion.Identity(),
-          new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
-          scene
-        );
-      } else if (auto_collider_mode == 1) {
-        colliderShape = new BABYLON.PhysicsShapeConvexHull(node, scene);
-        console.log(colliderShape);
-      }
+      colliderShape = this._updateAutoCollider();
     }
     colliderShape.material = physicsMaterial;
     this.body.shape = colliderShape;
@@ -42,13 +33,40 @@ class PhysicObject {
     this.straightenAtPickup = true;
     this.isFlipable = true;
 
+    this.pickable = true;
+
+    this.physicsEnabled = true;
+
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
   }
 
-  setEnabled(b) {
+  _updateAutoCollider() {
+    var colliderShape = this.body.shape;
+    if (this.auto_collider_mode == 0) {
+      var bb = this.node.getBoundingInfo().boundingBox;
+      var bv = this.node.getHierarchyBoundingVectors();
+      console.log(bb);
+      var sz = new BABYLON.Vector3(bv.max.x-bv.min.x, bv.max.y-bv.min.y,bv.max.z-bv.min.z)
+      // console.log(this.node.name,"BB:",bb.extendSizeWorld,"SZ:", sz)
+      // console.log(bb);
+      colliderShape = new BABYLON.PhysicsShapeBox(
+        bb.center,
+        this.node.rotationQuaternion,
+        //new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
+        sz,
+        scene
+      );
+    } else if (this.auto_collider_mode == 1) {
+      colliderShape = new BABYLON.PhysicsShapeConvexHull(this.node, scene);
+    }
+    return colliderShape;
+  }
+
+  setEnabled(b, bPhys = undefined) {
     this.node.setEnabled(b);
-    this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, b);
+    this.physicsEnabled = bPhys !==undefined ? bPhys : b;
+    this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, this.physicsEnabled);
   }
 
   startAnimationMode() {
@@ -232,7 +250,6 @@ class Dice extends PhysicObject {
   static async loadMeshes() {
     var modelNameAndExtension = "dice.glb";
     const container = await BABYLON.loadAssetContainerAsync("models/" + modelNameAndExtension, scene);
-    console.log(container.meshes);
     this.diceMesh = container.meshes[1];
     this.diceColliderMesh = container.meshes[2];
   }
