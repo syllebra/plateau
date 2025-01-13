@@ -186,7 +186,6 @@ var createScene = async function () {
   camera.inertia = 0.5;
   camera.minZ = 0.01;
   camera.inputs.attached.mouse.buttons = [2];
-  console.log(camera.inputs.attached.mouse);
 
   //camera.inputs.removeMouse();
   camera.inputs.addMouseWheel();
@@ -198,8 +197,6 @@ var createScene = async function () {
   camera.lowerRadiusLimit = 0.001;
 
   preparePipeline(scene, camera);
-
-  console.log(camera.inputs.attached.keyboard);
 
   // // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
   // var light = new BABYLON.HemisphericLight(
@@ -227,7 +224,6 @@ var createScene = async function () {
   const hk = new BABYLON.HavokPlugin(true, havokInstance);
   scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
   var physicsEngine = scene.getPhysicsEngine();
-  console.log(physicsEngine);
 
   var viewer = null; // new BABYLON.Debug.PhysicsViewer(scene);
 
@@ -253,11 +249,9 @@ var createScene = async function () {
     ) {
       // clear out the mesh object and array
       //meshes = container.meshes;
-      console.log(container.meshes);
       var mesh = container.meshes[1].clone();
       mesh.createNormals();
       mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-      console.log(mesh.material);
       // mesh.material.clearCoat.isEnabled = true;
       // mesh.material.clearCoat.intensity = 1.0;
 
@@ -267,7 +261,7 @@ var createScene = async function () {
       mesh.material.subSurface.isTranslucencyEnabled = true;
       mesh.material.subSurface.tintColor = BABYLON.Color3.White();
 
-      const instance = new PhysicObject(
+      const instance = new PlateauObject(
         mesh,
         null,
         { friction: 0.6, restitution: 0.3 },
@@ -279,6 +273,7 @@ var createScene = async function () {
       box.material = bodyRenderingMaterial;
       instance.node.addChild(box);
       box.position = new BABYLON.Vector3(0, 0.3, 0);
+      instance.updateBoundingInfos();
       // pathTracedMesh = null;
       // containerMeshes = [];
     }
@@ -289,19 +284,16 @@ var createScene = async function () {
 
   var french_deck_atlas = new CardAtlas();
   var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
-  console.log("DECK:", deck);
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
   });
   const addDiceBtn = ui.addBtn("Add a dice", () => {
     var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
-    console.log(target_height);
     const newBody = new Dice(new BABYLON.Vector3(0, target_height, 0), Math.random() * 0.2 + 0.1);
   });
   const addCardBtn = ui.addBtn("Add a card", () => {
     var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
-    console.log(target_height);
     const newBody = new Card(
       new BABYLON.Vector3(0, target_height, 0),
       french_deck_atlas,
@@ -339,7 +331,7 @@ var createScene = async function () {
     return max_height;
   }
 
-  var picked = null;
+  var pickedObject = null;
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
   var box_selection = false;
@@ -362,9 +354,9 @@ var createScene = async function () {
 
           case "f":
           case "F":
-            var meshes = SelectionHandler.getMeshes();
-            if (picked && !SelectionHandler.isSelected(picked)) meshes.push(picked);
-            for (var m of meshes) if (m.plateauObj) m.plateauObj.flip();
+            var objects = SelectionHandler.getPlateauObjects();
+            if (pickedObject && !SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+            for (var o of objects) o.flip();
 
             break;
         }
@@ -390,7 +382,7 @@ var createScene = async function () {
   function updateDraggedNodeHeight(obj) {
     var target_height =
       0.3 +
-      getSceneHeight(scene, obj.node.position, 0.1, picked) +
+      getSceneHeight(scene, obj.node.position, 0.1, obj.node) +
       obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
     obj.updateAnimationModeTarget({ targets: obj.node.position, y: target_height }, obj.node.position.y, target_height);
@@ -412,37 +404,34 @@ var createScene = async function () {
         } else if (pointerInfo.pickInfo.pickedMesh != ground) {
           MouseSpeed.reset();
 
-          picked = PhysicObject.GetTopMost(pointerInfo.pickInfo.pickedMesh);
-          if (!picked) break;
-          if (!picked.physicsBody) {
-            picked = null;
+          var po = PlateauObject.GetTopMost(pointerInfo.pickInfo.pickedMesh);
+          if (!po || !po.node || !po.body || !po.pickable) {
+            pickedObject = null;
             break;
           }
-          if (picked.plateauObj && !picked.plateauObj.pickable) break;
+          pickedObject = po;
 
           if (controlKeyDown) {
-            SelectionHandler.toggleSelection(picked);
+            SelectionHandler.toggleSelection(pickedObject);
             break;
           } else {
-            if (!SelectionHandler.isSelected(picked)) SelectionHandler.removeAll();
+            if (!SelectionHandler.isSelected(pickedObject)) SelectionHandler.removeAll();
           }
 
-          picked_ground_pos.copyFrom(picked.position);
+          picked_ground_pos.copyFrom(pickedObject.node.absolutePosition);
           picked_ray_hit_ground.copyFrom(
             pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
 
-          var meshes = SelectionHandler.getMeshes();
-          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
-          for (var m of meshes)
-            if (m.plateauObj) {
-              m.dragged = true;
-              m.plateauObj.startAnimationMode();
-              m.plateauObj.onPickup();
-              updateDraggedNodeHeight(m.plateauObj);
-            }
+          var objects = SelectionHandler.getPlateauObjects();
+          if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+          for (var o of objects) {
+            o.node.dragged = true;
+            o.startAnimationMode();
+            o.onPickup();
+            updateDraggedNodeHeight(o);
+          }
 
-          //camera.inputs.removeMouseWheel();
           camera.inputs.remove(mouseWheelHandler);
         }
         break;
@@ -451,35 +440,31 @@ var createScene = async function () {
         if (pointerInfo.event.button != 0) break;
 
         if (box_selection) {
-          //SelectionHandler.selbox.setSecondPoint(pointerInfo.pickInfo.ray.intersectsMesh(ground, onlyBoundingInfo = true).pickedPoint);
           box_selection = false;
-          //camera.attachControl(canvas, true);
           SelectionHandler.selbox.setVisiblity(false);
-        } else if (picked) {
+        } else if (pickedObject) {
           dir_speed = dir_speed.normalize();
 
-          var meshes = SelectionHandler.getMeshes();
-          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
-          for (var m of meshes)
-            if (m.plateauObj) {
-              m.dragged = false;
-              var pos = new BABYLON.Vector3();
-              pos.copyFrom(m.position);
-              pos.y += 0.03; // slightly up to induce some moment (angular velocity)
-              m.plateauObj.stopAnimationMode();
-              m.plateauObj.onRelease();
+          var objects = SelectionHandler.getPlateauObjects();
+          if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+          for (var o of objects) {
+            o.node.dragged = false;
+            var pos = new BABYLON.Vector3();
+            pos.copyFrom(o.node.absolutePosition);
+            pos.y += 0.03; // slightly up to induce some moment (angular velocity)
+            o.stopAnimationMode();
+            o.onRelease();
 
-              if (m.plateauObj.body) {
-                var power = m.plateauObj.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
-                var forceVector = new BABYLON.Vector3();
-                forceVector.copyFrom(dir_speed);
-                forceVector.x *= power;
-                forceVector.z *= power;
-                m.plateauObj.body.applyForce(forceVector, pos);
-              }
+            if (o.body) {
+              var power = o.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
+              var forceVector = new BABYLON.Vector3();
+              forceVector.copyFrom(dir_speed);
+              forceVector.x *= power;
+              forceVector.z *= power;
+              o.body.applyForce(forceVector, pos);
             }
-
-          picked = null;
+          }
+          pickedObject = null;
           camera.inputs.add(mouseWheelHandler);
         }
         break;
@@ -504,30 +489,29 @@ var createScene = async function () {
           var sel_bb = SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
 
           for (var m of scene.meshes) {
-            if (SelectionHandler.isExcluded(m)) continue;
+            var po = PlateauObject.GetTopMost(m);
+            if (!po) continue;
+            var m_bb = po.getBoundingInfos().boundingBox;
 
-            m = PhysicObject.GetTopMost(m);
-            if (!m) continue;
-            var m_bb = m.getBoundingInfo().boundingBox;
-
-            if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb)) {
-              SelectionHandler.addMesh(m);
-            } else if (!controlKeyDown) SelectionHandler.removeMesh(m);
+            if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb, true)) {
+              SelectionHandler.addPlateauObject(po);
+            } else if (!controlKeyDown) SelectionHandler.removePlateauObject(po);
           }
-        } else if (picked) {
+        } else if (pickedObject) {
           var base_hit = pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true));
           if (base_hit.hit) {
-            let dx = picked_ground_pos.x + base_hit.pickedPoint.x - picked_ray_hit_ground.x - picked.position.x;
-            let dz = picked_ground_pos.z + base_hit.pickedPoint.z - picked_ray_hit_ground.z - picked.position.z;
+            let dx =
+              picked_ground_pos.x + base_hit.pickedPoint.x - picked_ray_hit_ground.x - pickedObject.node.position.x;
+            let dz =
+              picked_ground_pos.z + base_hit.pickedPoint.z - picked_ray_hit_ground.z - pickedObject.node.position.z;
 
-            var meshes = SelectionHandler.getMeshes();
-            if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
-            for (var m of meshes)
-              if (m.plateauObj) {
-                m.position.x += dx;
-                m.position.z += dz;
-                updateDraggedNodeHeight(m.plateauObj);
-              }
+            var objects = SelectionHandler.getPlateauObjects();
+            if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+            for (var o of objects) {
+              o.node.position.x += dx;
+              o.node.position.z += dz;
+              updateDraggedNodeHeight(o);
+            }
 
             var elapsed = performance.now() - last_base_hit_time;
             dir_speed.x = (base_hit.pickedPoint.x - last_base_hit.x) / elapsed;
@@ -538,48 +522,28 @@ var createScene = async function () {
         }
         break;
       case BABYLON.PointerEventTypes.POINTERWHEEL:
-        if (picked) {
+        if (pickedObject) {
           const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;
 
-          var world_H_axisRot = new XTransform(picked.absolutePosition);
+          var world_H_axisRot = new XTransform(pickedObject.node.absolutePosition);
           var axisRot_H_world = world_H_axisRot.inversed();
           var /* The code seems to be a comment in JavaScript. The text "picked_h_new" and " */
             axisRot_H_newAxisRot = new XTransform(
               new BABYLON.Vector3.Zero(),
               BABYLON.Quaternion.FromEulerAngles(0, BABYLON.Tools.ToRadians(angle), 0)
             );
-          var meshes = SelectionHandler.getMeshes();
-          if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
-          for (var m of meshes)
-            if (m.plateauObj) {
-              var world_H_obj = XTransform.FromNodeWorld(m);
-              var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
-              var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
-              world_h_objnew.applyToNodeWorld(m);
-            }
+          var objects = SelectionHandler.getPlateauObjects();
+          if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+          for (var o of objects) {
+            var world_H_obj = XTransform.FromNodeWorld(o.node);
+            var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
+            var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
+            world_h_objnew.applyToNodeWorld(o.node);
+          }
         }
         break;
     }
   });
-
-  // scene.onBeforePhysicsObservable.add( (e) => {
-  //   if(current_anim)
-  //   {
-  //     current_anim.tick(e.deltaTime);
-  //     //console.log(current_anim.currentTime)
-  //   }
-  // });
-
-  // console.log(BABYLON.Effect.ShadersStore);
-  // console.log(BABYLON.Effect.ShadersStore["highlightsPixelShader"]);
-
-  //   var alpha = 0;
-  //   scene.registerBeforeRender(() => {
-  //   alpha += 0.06;
-
-  //   hl.blurHorizontalSize = 0.4 + Math.cos(alpha) * 0.6;// + 0.6;
-  //   hl.blurVerticalSize = 0.4 + Math.sin(alpha) * 0.6;// + 0.6;
-  // });
 
   SelectionHandler.init(scene);
   SelectionHandler.hl.addExcludedMesh(ground);
@@ -593,7 +557,7 @@ var createScene = async function () {
   mat.metallic = 0.0;
   mat.roughness = 0.13;
   tile.material = mat;
-  new PhysicObject(tile);
+  new PlateauObject(tile);
   tile.position = new BABYLON.Vector3(0, 0.6, 0);
   return scene;
 };

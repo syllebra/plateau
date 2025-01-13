@@ -29,7 +29,7 @@ class CardAtlas {
   }
 }
 
-class Card extends PhysicObject {
+class Card extends PlateauObject {
   static createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
     var shape = createRoundedRectangleShape(w, h, cRad, cN);
 
@@ -98,11 +98,10 @@ class Card extends PhysicObject {
   }
 }
 
-class Deck extends PhysicObject {
+class Deck extends PlateauObject {
   cards = [];
 
   constructor(name = "deck", position) {
-
     // var box = BABYLON.Mesh.CreateBox("box", 6.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
 
     // const options = {
@@ -114,8 +113,7 @@ class Deck extends PhysicObject {
     // var.box = BABYLON.MeshBuilder.CreateBox("selection_box", options);
 
     var node = new BABYLON.Mesh(name, scene);
-    if(position)
-      node.position.copyFrom(position);
+    if (position) node.position.copyFrom(position);
 
     super(node);
   }
@@ -128,21 +126,22 @@ class Deck extends PhysicObject {
       deck.addCard(c);
     }
     deck._updateCardsPhysics();
-    if(position)
-      deck.node.position.copyFrom(position);
+    if (position) deck.node.position.copyFrom(position);
+
     return deck;
   }
 
   static BuildFromCardsAtlases(name) {}
 
-  addCard(card, flip=false, position = -1) {
-    // Add a card inside the deck, at a given position, fliped or not
+  addCard(card, flip = false, position = -1) {
+    // Add a card inside the deck, at a given position, flipped or not
     // TODO: position and flip
     card.startAnimationMode();
     card.setEnabled(true, false);
     card.pickable = false;
     card.body.dispose();
     card.body = null;
+    //card.node.showBoundingBox = false;
     this.cards.push(card);
     this.node.addChild(card.node);
   }
@@ -152,13 +151,13 @@ class Deck extends PhysicObject {
   _updateCardsPhysics() {
     // Update cards positions inside deck according to list
     var y = 0;
-    for(var c of this.cards)
-    {
-      c.node.position = new BABYLON.Vector3(0,y,0);
+    for (var c of this.cards) {
+      c.node.position = new BABYLON.Vector3(0, y, 0);
       var angle = BABYLON.Tools.ToRadians(180); //TODO: flip?
-      c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0,0,angle);
+      c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, 0, angle);
       y += 0.004; // TODO: bounding box
     }
+    this.updateBoundingInfos();
     this.body.shape = this._updateAutoCollider();
   }
 }

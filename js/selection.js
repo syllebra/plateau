@@ -28,11 +28,7 @@ class SelectionBox {
   }
 
   update() {
-    this.box.scaling = new BABYLON.Vector3(
-      this.p1.x - this.p0.x + 0.0001,
-      this.height,
-      this.p1.z - this.p0.z + 0.0001
-    );
+    this.box.scaling = new BABYLON.Vector3(this.p1.x - this.p0.x + 0.0001, this.height, this.p1.z - this.p0.z + 0.0001);
     this.box.position = new BABYLON.Vector3(
       (this.p1.x + this.p0.x) * 0.5,
       this.p0.y + this.height * 0.5 + 0.001,
@@ -57,6 +53,8 @@ class SelectionBox {
 class SelectionHandler {
   static hl = null;
   static selbox = null;
+
+  static selected = new Set();
 
   static createHighlightLayer(scene) {
     BABYLON.Effect.ShadersStore["glowBlurPostProcessPixelShader"] = `
@@ -106,44 +104,63 @@ class SelectionHandler {
     this.hl.addExcludedMesh(this.selbox.box);
   }
 
-  static addMesh(mesh) {
-    if (this.hl && !this.isSelected(mesh) && !this.isExcluded(mesh)) {
-      console.log("Selecting ", mesh.id);
+  static _addMeshesRecursive(mesh) {
+    if (this.hl && !this._isMeshSelected(mesh) && !this._isMeshExcluded(mesh)) {
       this.hl.addMesh(mesh, new BABYLON.Color3(0, 1, 1));
+
+      for (var c of mesh.getChildren()) this._addMeshesRecursive(c);
     }
   }
-
-  static removeMesh(mesh) {
-    if (this.hl && this.isSelected(mesh)) {
-      console.log("Deselecting ", mesh.id);
+  static _removeMeshesRecursive(mesh) {
+    if (this.hl && this._isMeshSelected(mesh)) {
       this.hl.removeMesh(mesh);
+      for (var c of mesh.getChildren()) this._removeMeshesRecursive(c);
     }
+  }
+  static _isMeshSelected(mesh) {
+    return this.hl.hasMesh(mesh);
+  }
+
+  static _getMeshExcluded() {
+    return Array.from(Object.values(this.hl._excludedMeshes), (m) => m.mesh);
+  }
+
+  static _isMeshExcluded(m) {
+    for (var mt of this._getMeshExcluded()) if (m == mt) return true;
+    return false;
+  }
+
+  static addPlateauObject(obj) {
+    if (!this.hl || !obj.node) return;
+    console.log("Selecting ", obj.node.id);
+    this._addMeshesRecursive(obj.node);
+    this.selected.add(obj);
+  }
+
+  static removePlateauObject(obj) {
+    if (!this.hl || !obj.node) return;
+    console.log("Deselecting ", obj.node.id);
+    this._removeMeshesRecursive(obj.node);
+    this.selected.delete(obj);
   }
 
   static removeAll() {
     if (this.hl) this.hl.removeAllMeshes();
+    this.selected.clear();
   }
 
-  static isSelected(mesh) {
-    return this.hl.hasMesh(mesh);
+  static toggleSelection(obj) {
+    var isIn = this.isSelected(obj);
+    if (isIn) this.removePlateauObject(obj);
+    else this.addPlateauObject(obj);
   }
 
-  static toggleSelection(mesh) {
-    var isIn = this.isSelected(mesh);
-    if (isIn) this.removeMesh(mesh);
-    else this.addMesh(mesh);
+  static getPlateauObjects() {
+    return Array.from(this.selected);
+    //return Array.from(Object.values(this.hl._meshes), (m) => m.mesh);
   }
 
-  static getMeshes() {
-    return Array.from(Object.values(this.hl._meshes), (m) => m.mesh);
-  }
-
-  static getExcluded() {
-    return Array.from(Object.values(this.hl._excludedMeshes), (m) => m.mesh);
-  }
-
-  static isExcluded(m) {
-    for (var mt of this.getExcluded()) if (m == mt) return true;
-    return false;
+  static isSelected(obj) {
+    return this.selected.has(obj);
   }
 }

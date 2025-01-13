@@ -1,4 +1,4 @@
-class PhysicObject {
+class PlateauObject {
   body = null;
   node = null;
   animations = new Map();
@@ -14,6 +14,7 @@ class PhysicObject {
   ) {
     if (position) node.position = position;
     this.node = node;
+    this.updateBoundingInfos();
     if (shadowGen) shadowGen.addShadowCaster(node);
     this.body = new BABYLON.PhysicsBody(node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
 
@@ -22,9 +23,11 @@ class PhysicObject {
     if (!colliderShape) {
       colliderShape = this._updateAutoCollider();
     }
-    if(colliderShape)
+    if (colliderShape) {
       colliderShape.material = physicsMaterial;
-    this.body.shape = colliderShape;
+      this.body.shape = colliderShape;
+    }
+
     this.body.disablePreStep = false;
     //}, spawnPosition = null, spawnRotation = null) {
 
@@ -32,50 +35,115 @@ class PhysicObject {
     this.node.dragged = false;
 
     this.straightenAtPickup = true;
-    this.isFlipable = true;
+    this.isFlippable = true;
 
     this.pickable = true;
 
     this.physicsEnabled = true;
 
+    //this.node.showBoundingBox = true;
+
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
   }
 
-  dispose(){
-    if(this.body) {this.body.dispose(); this.body = null; }
-    if(this.node) {this.node.dispose(); this.node = null; }
+  dispose() {
+    if (this.body) {
+      this.body.dispose();
+      this.body = null;
+    }
+    if (this.node) {
+      this.node.dispose();
+      this.node = null;
+    }
+  }
+
+  updateBoundingInfos() {
+    var dst_H_world = XTransform.FromNodeWorld(this.node).inversed();
+
+    function getLocalBB(n, dst) {
+      var world_H_n = XTransform.FromNodeWorld(n);
+      var dst_H_n = dst_H_world.multiply(world_H_n);
+      var nbb = n.getBoundingInfo().boundingBox;
+      var n_H_min = new XTransform(nbb.minimum);
+      var n_H_max = new XTransform(nbb.maximum);
+
+      var lMin = dst_H_n.multiply(n_H_min).position;
+      var lMax = dst_H_n.multiply(n_H_max).position;
+
+      lMin.x *= n.scaling.x;
+      lMin.y *= n.scaling.y;
+      lMin.z *= n.scaling.z;
+      lMax.x *= n.scaling.x;
+      lMax.y *= n.scaling.y;
+      lMax.z *= n.scaling.z;
+
+      for (var c of n.getChildren()) {
+        var cBB = getLocalBB(c, dst);
+
+        lMin.x = Math.min(cBB.min.x, cBB.max.x, lMin.x);
+        lMin.y = Math.min(cBB.min.y, cBB.max.y, lMin.y);
+        lMin.z = Math.min(cBB.min.z, cBB.max.z, lMin.z);
+
+        lMax.x = Math.max(cBB.min.x, cBB.max.x, lMax.x);
+        lMax.y = Math.max(cBB.min.y, cBB.max.y, lMax.y);
+        lMax.z = Math.max(cBB.min.z, cBB.max.z, lMax.z);
+      }
+
+      return { min: lMin.clone(), max: lMax.clone() };
+    }
+
+    var bi = this.node.getBoundingInfo();
+    var bb = getLocalBB(this.node, this.node);
+
+    var mini = bi.boundingBox.minimum.clone();
+    var maxi = bi.boundingBox.maximum.clone();
+
+    mini.x = Math.min(bb.min.x, bb.max.x, mini.x);
+    mini.y = Math.min(bb.min.y, bb.max.y, mini.y);
+    mini.z = Math.min(bb.min.z, bb.max.z, mini.z);
+
+    maxi.x = Math.max(bb.min.x, bb.max.x, maxi.x);
+    maxi.y = Math.max(bb.min.y, bb.max.y, maxi.y);
+    maxi.z = Math.max(bb.min.z, bb.max.z, maxi.z);
+
+    //bi.reConstruct(bb.min, bb.max, this.node.getWorldMatrix());
+    bi.reConstruct(mini, maxi, this.node.getWorldMatrix());
+    this.boundingInfos = bi;
+    return this.boundingInfos;
+  }
+
+  getBoundingInfos() {
+    return this.boundingInfos;
   }
 
   _updateAutoCollider() {
     var colliderShape = this.body.shape;
     if (this.auto_collider_mode == 0) {
-      var bb = this.node.getBoundingInfo().boundingBox;
-      var bv = this.node.getHierarchyBoundingVectors();
-
-      var sz = new BABYLON.Vector3(bv.max.x-bv.min.x, bv.max.y-bv.min.y,bv.max.z-bv.min.z)
-      var center = new BABYLON.Vector3((bv.max.x+bv.min.x)*0.5, (bv.max.y+bv.min.y)*0.5,(bv.max.z+bv.min.z)*0.5)
+      var bb = this.getBoundingInfos().boundingBox;
       colliderShape = new BABYLON.PhysicsShapeBox(
-        center,//bb.center,
+        //center,
+        bb.center,
         this.node.rotationQuaternion,
-        //new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
-        sz,
+        new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
+        //sz,
         scene
       );
     } else if (this.auto_collider_mode == 1) {
       colliderShape = new BABYLON.PhysicsShapeConvexHull(this.node, scene);
     }
+    this.body.shape = colliderShape;
     return colliderShape;
   }
 
   setEnabled(b, bPhys = undefined) {
-    if(this.node) this.node.setEnabled(b);
-    this.physicsEnabled = bPhys !==undefined ? bPhys : b;
-    if(this.body) this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, this.physicsEnabled);
+    if (this.node) this.node.setEnabled(b);
+    this.physicsEnabled = bPhys !== undefined ? bPhys : b;
+    if (this.body) this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, this.physicsEnabled);
   }
 
   startAnimationMode() {
-    if(!this.body) return; 
+    if (!this.body) return;
     this.body.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     this.body.disablePreStep = false;
     this.body.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
@@ -110,7 +178,7 @@ class PhysicObject {
   }
 
   animateRotation(targetQuaternion, angularspeed = 270) {
-    if(!this.node) return;
+    if (!this.node) return;
     var vecUp = this.node.up;
     var destUp = new BABYLON.Vector3(0, 1, 0);
     new BABYLON.Vector3(0, 1, 0).rotateByQuaternionToRef(targetQuaternion, destUp);
@@ -169,14 +237,14 @@ class PhysicObject {
   }
 
   stopAnimationMode() {
-    if(!this.body) return;
+    if (!this.body) return;
     // TODO: Clear all current animations
     this.body.disablePreStep = true;
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
   }
 
   orientUpTo(destUp = BABYLON.Vector3.Up()) {
-    if(!this.node) return;
+    if (!this.node) return;
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     var addrot = computeVectortoVectorRotationQuaternion(this.node.up, destUp);
     addrot.multiplyToRef(this.node.rotationQuaternion, destRot);
@@ -184,7 +252,7 @@ class PhysicObject {
   }
 
   animateFlip(worldAxis) {
-    if(!this.node) return;
+    if (!this.node) return;
     var curAngle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
 
     var dstUp = curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
@@ -196,8 +264,8 @@ class PhysicObject {
   }
 
   flip() {
-    if(!this.node) return;
-    if (!this.isFlipable) return;
+    if (!this.node) return;
+    if (!this.isFlippable) return;
 
     if (!this.node.dragged) return; // For now only if handled
 
@@ -212,84 +280,9 @@ class PhysicObject {
 
   onRelease() {}
 
-
   static GetTopMost(node) {
-    if(node.plateauObj && (!node.parent || !node.parent.plateauObj))
-      return node;
-    return PhysicObject.GetTopMost(node.parent);
-  }
-}
-
-
-class Dice extends PhysicObject {
-  static {
-    registerPreload(async () => {
-      {
-        Dice.createDiceMaterial();
-        await Dice.loadMeshes();
-      }
-    });
-  }
-
-  static async createDiceMaterial() {
-    // Texture
-    BABYLON.Effect.ShadersStore["LinesPixelShader"] =
-      "#ifdef GL_ES\n" +
-      "precision highp float;\n" +
-      "#endif\n\n" +
-      "varying vec2 vUV; \n" +
-      "void main(void) {\n" +
-      " gl_FragColor = vec4(vUV.x,vUV.y,-vUV.x, 1.0);\n" +
-      "}\n" +
-      "";
-    //const customProcText = new BABYLON.CustomProceduralTexture("customtext", "Lines", 1024, scene);
-    const customProcText = new BABYLON.CustomProceduralTexture("dice_dynamic_texture", "textures/dice", 256, scene);
-    console.log(customProcText._uniforms);
-    const pbr = new BABYLON.PBRMaterial("diceMaterial", scene);
-
-    pbr.metallic = 0;
-    pbr.roughness = 1.0;
-
-    pbr.clearCoat.isEnabled = true;
-    pbr.clearCoat.intensity = 1.0;
-
-    const textureNorm = new BABYLON.Texture("textures/dice/D6_N.jpg", scene, true, false);
-    pbr.albedoTexture = customProcText;
-    pbr.bumpTexture = textureNorm;
-    pbr.bumpTexture.level = 1;
-    pbr.clearCoat.bumpTexture = textureNorm;
-    pbr.clearCoat.bumpTexture.level = 2;
-
-    this.diceMaterial = pbr;
-    return pbr;
-  }
-
-  static async loadMeshes() {
-    var modelNameAndExtension = "dice.glb";
-    const container = await BABYLON.loadAssetContainerAsync("models/" + modelNameAndExtension, scene);
-    this.diceMesh = container.meshes[1];
-    this.diceColliderMesh = container.meshes[2];
-  }
-
-  static diceMaterial = null;
-  static diceMesh = null;
-  static diceColliderMesh = null;
-
-  constructor(position = null, size = 0.14) {
-    var dice = Dice.diceMesh.clone("dice");
-    dice.material = Dice.diceMaterial;
-    dice.scaling = new BABYLON.Vector3(size * 0.05, size * 0.05, size * 0.05);
-    if (position) dice.position.copyFrom(position);
-
-    Dice.diceColliderMesh.scaling.copyFrom(dice.scaling);
-    var diceShape = new BABYLON.PhysicsShapeConvexHull(
-      Dice.diceColliderMesh, // mesh from which to produce the convex hull
-      scene // scene of the shape
-    );
-
-    super(dice, diceShape);
-
-    this.straightenAtPickup = false;
-    this.isFlipable = false;
+    if (!node) return null;
+    if (node.plateauObj && (!node.parent || !node.parent.plateauObj)) return node.plateauObj;
+    return PlateauObject.GetTopMost(node.parent);
   }
 }
