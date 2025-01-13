@@ -69,7 +69,6 @@ class Card extends PhysicObject {
 
     planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), uvFromAtlas(numBack, atlas.cols, atlas.rows));
 
-    if (position) box.position.copyFrom(position);
     box.material = atlas.material; //scene.getMaterialByName("default_material");
 
     super(box);
@@ -78,8 +77,14 @@ class Card extends PhysicObject {
     this.num = num;
     this.back = numBack;
 
+    if (position) box.position.copyFrom(position);
+
     //this.straightenAtPickup = false;
   }
+
+  // _updateAutoCollider() {
+  //   return null;
+  // }
 
   onPickup() {
     if (this.straightenAtPickup) {
@@ -97,6 +102,17 @@ class Deck extends PhysicObject {
   cards = [];
 
   constructor(name = "deck", position) {
+
+    // var box = BABYLON.Mesh.CreateBox("box", 6.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+
+    // const options = {
+    //   width: 1,
+    //   height: 1,
+    //   depth: 1,
+    // };
+
+    // var.box = BABYLON.MeshBuilder.CreateBox("selection_box", options);
+
     var node = new BABYLON.Mesh(name, scene);
     if(position)
       node.position.copyFrom(position);
@@ -108,7 +124,7 @@ class Deck extends PhysicObject {
     var deck = new Deck(name, null);
 
     for (var i = 0; i < atlas.nb; i++) {
-      var c = new Card(position, atlas, i, atlas.back);
+      var c = new Card(null, atlas, i, atlas.back);
       deck.addCard(c);
     }
     deck._updateCardsPhysics();
@@ -125,6 +141,8 @@ class Deck extends PhysicObject {
     card.startAnimationMode();
     card.setEnabled(true, false);
     card.pickable = false;
+    card.body.dispose();
+    card.body = null;
     this.cards.push(card);
     this.node.addChild(card.node);
   }

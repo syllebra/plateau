@@ -22,7 +22,8 @@ class PhysicObject {
     if (!colliderShape) {
       colliderShape = this._updateAutoCollider();
     }
-    colliderShape.material = physicsMaterial;
+    if(colliderShape)
+      colliderShape.material = physicsMaterial;
     this.body.shape = colliderShape;
     this.body.disablePreStep = false;
     //}, spawnPosition = null, spawnRotation = null) {
@@ -41,17 +42,21 @@ class PhysicObject {
     gizmoManager.attachToMesh(this.node);
   }
 
+  dispose(){
+    if(this.body) {this.body.dispose(); this.body = null; }
+    if(this.node) {this.node.dispose(); this.node = null; }
+  }
+
   _updateAutoCollider() {
     var colliderShape = this.body.shape;
     if (this.auto_collider_mode == 0) {
       var bb = this.node.getBoundingInfo().boundingBox;
       var bv = this.node.getHierarchyBoundingVectors();
-      console.log(bb);
+
       var sz = new BABYLON.Vector3(bv.max.x-bv.min.x, bv.max.y-bv.min.y,bv.max.z-bv.min.z)
-      // console.log(this.node.name,"BB:",bb.extendSizeWorld,"SZ:", sz)
-      // console.log(bb);
+      var center = new BABYLON.Vector3((bv.max.x+bv.min.x)*0.5, (bv.max.y+bv.min.y)*0.5,(bv.max.z+bv.min.z)*0.5)
       colliderShape = new BABYLON.PhysicsShapeBox(
-        bb.center,
+        center,//bb.center,
         this.node.rotationQuaternion,
         //new BABYLON.Vector3(bb.extendSize.x * 2.0, bb.extendSize.y * 2.0, bb.extendSize.z * 2.0),
         sz,
@@ -64,13 +69,13 @@ class PhysicObject {
   }
 
   setEnabled(b, bPhys = undefined) {
-    this.node.setEnabled(b);
+    if(this.node) this.node.setEnabled(b);
     this.physicsEnabled = bPhys !==undefined ? bPhys : b;
-    this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, this.physicsEnabled);
+    if(this.body) this.body._physicsPlugin.setPhysicsBodyEnabled(this.body, this.physicsEnabled);
   }
 
   startAnimationMode() {
-    //camera.detachControl(canvas);
+    if(!this.body) return; 
     this.body.setMotionType(BABYLON.PhysicsMotionType.ANIMATED);
     this.body.disablePreStep = false;
     this.body.setLinearVelocity(new BABYLON.Vector3(0, 0, 0));
@@ -105,6 +110,7 @@ class PhysicObject {
   }
 
   animateRotation(targetQuaternion, angularspeed = 270) {
+    if(!this.node) return;
     var vecUp = this.node.up;
     var destUp = new BABYLON.Vector3(0, 1, 0);
     new BABYLON.Vector3(0, 1, 0).rotateByQuaternionToRef(targetQuaternion, destUp);
@@ -163,12 +169,14 @@ class PhysicObject {
   }
 
   stopAnimationMode() {
+    if(!this.body) return;
     // TODO: Clear all current animations
     this.body.disablePreStep = true;
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
   }
 
   orientUpTo(destUp = BABYLON.Vector3.Up()) {
+    if(!this.node) return;
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     var addrot = computeVectortoVectorRotationQuaternion(this.node.up, destUp);
     addrot.multiplyToRef(this.node.rotationQuaternion, destRot);
@@ -176,6 +184,7 @@ class PhysicObject {
   }
 
   animateFlip(worldAxis) {
+    if(!this.node) return;
     var curAngle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
 
     var dstUp = curAngle < 90 ? BABYLON.Vector3.Down() : BABYLON.Vector3.Up();
@@ -187,6 +196,7 @@ class PhysicObject {
   }
 
   flip() {
+    if(!this.node) return;
     if (!this.isFlipable) return;
 
     if (!this.node.dragged) return; // For now only if handled
@@ -201,6 +211,13 @@ class PhysicObject {
   }
 
   onRelease() {}
+
+
+  static GetTopMost(node) {
+    if(node.plateauObj && (!node.parent || !node.parent.plateauObj))
+      return node;
+    return PhysicObject.GetTopMost(node.parent);
+  }
 }
 
 

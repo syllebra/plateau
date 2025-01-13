@@ -242,42 +242,47 @@ var createScene = async function () {
   // body/shape on box
   var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 10, viewer, shadowGen);
 
-//  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
+  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
 
-  // BABYLON.SceneLoader.LoadAssetContainer(
-  //   "models/",
-  //   "stairs_01.glb",
-  //   scene,
-  //   function (
-  //     container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
-  //   ) {
-  //     // clear out the mesh object and array
-  //     //meshes = container.meshes;
-  //     var mesh = container.meshes[1].clone();
-  //     mesh.createNormals();
-  //     mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-  //     console.log(mesh.material);
-  //     // mesh.material.clearCoat.isEnabled = true;
-  //     // mesh.material.clearCoat.intensity = 1.0;
+  BABYLON.SceneLoader.LoadAssetContainer(
+    "models/",
+    "stairs_01.glb",
+    scene,
+    function (
+      container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+    ) {
+      // clear out the mesh object and array
+      //meshes = container.meshes;
+      console.log(container.meshes);
+      var mesh = container.meshes[1].clone();
+      mesh.createNormals();
+      mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+      console.log(mesh.material);
+      // mesh.material.clearCoat.isEnabled = true;
+      // mesh.material.clearCoat.intensity = 1.0;
 
-  //     mesh.material.metallic = 0.0;
-  //     mesh.material.roughness = 0;
+      mesh.material.metallic = 0.0;
+      mesh.material.roughness = 0;
 
-  //     mesh.material.subSurface.isTranslucencyEnabled = true;
-  //     mesh.material.subSurface.tintColor = BABYLON.Color3.White();
+      mesh.material.subSurface.isTranslucencyEnabled = true;
+      mesh.material.subSurface.tintColor = BABYLON.Color3.White();
 
-  //     const instance = new PhysicObject(
-  //       mesh,
-  //       null,
-  //       { friction: 0.6, restitution: 0.3 },
-  //       new BABYLON.Vector3(0, 1.6, 0),
-  //       1
-  //     );
+      const instance = new PhysicObject(
+        mesh,
+        null,
+        { friction: 0.6, restitution: 0.3 },
+        new BABYLON.Vector3(0, 1.6, 0),
+        1
+      );
 
-  //     // pathTracedMesh = null;
-  //     // containerMeshes = [];
-  //   }
-  // );
+      var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+      box.material = bodyRenderingMaterial;
+      instance.node.addChild(box);
+      box.position = new BABYLON.Vector3(0,0.3,0);
+      // pathTracedMesh = null;
+      // containerMeshes = [];
+    }
+  );
 
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
@@ -312,7 +317,7 @@ var createScene = async function () {
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
 
     function isDragged(mesh) {
-      return mesh.dragged;
+      return mesh.dragged || (mesh.parent ? isDragged(mesh.parent) : true);
       //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
     }
     var height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh)));
@@ -407,17 +412,20 @@ var createScene = async function () {
         } else if (pointerInfo.pickInfo.pickedMesh != ground) {
           MouseSpeed.reset();
 
-          if (!pointerInfo.pickInfo.pickedMesh.physicsBody) break;
-          if(pointerInfo.pickInfo.pickedMesh.plateauObj && !pointerInfo.pickInfo.pickedMesh.plateauObj.pickable) break;
+          picked = PhysicObject.GetTopMost(pointerInfo.pickInfo.pickedMesh);
+          if(!picked) break;
+          if (!picked.physicsBody) {
+            picked=null;
+            break;
+          }
+          if(picked.plateauObj && !picked.plateauObj.pickable) break;
 
           if (controlKeyDown) {
-            SelectionHandler.toggleSelection(pointerInfo.pickInfo.pickedMesh);
+            SelectionHandler.toggleSelection(picked);
             break;
           } else {
-            if (!SelectionHandler.isSelected(pointerInfo.pickInfo.pickedMesh)) SelectionHandler.removeAll();
+            if (!SelectionHandler.isSelected(picked)) SelectionHandler.removeAll();
           }
-
-          picked = pointerInfo.pickInfo.pickedMesh;
 
           picked_ground_pos.copyFrom(picked.position);
           picked_ray_hit_ground.copyFrom(
@@ -461,12 +469,15 @@ var createScene = async function () {
               m.plateauObj.stopAnimationMode();
               m.plateauObj.onRelease();
 
-              var power = m.physicsBody.getMassProperties().mass * 1.5 * MouseSpeed.value;
-              var forceVector = new BABYLON.Vector3();
-              forceVector.copyFrom(dir_speed);
-              forceVector.x *= power;
-              forceVector.z *= power;
-              m.physicsBody.applyForce(forceVector, pos);
+              if(m.plateauObj.body)
+              {
+                var power = m.plateauObj.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
+                var forceVector = new BABYLON.Vector3();
+                forceVector.copyFrom(dir_speed);
+                forceVector.x *= power;
+                forceVector.z *= power;
+                m.plateauObj.body.applyForce(forceVector, pos);
+              }
             }
 
           picked = null;
@@ -495,6 +506,9 @@ var createScene = async function () {
 
           for (var m of scene.meshes) {
             if (SelectionHandler.isExcluded(m)) continue;
+
+            m = PhysicObject.GetTopMost(m);
+            if( !m) continue;
             var m_bb = m.getBoundingInfo().boundingBox;
 
             if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb)) {

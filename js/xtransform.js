@@ -15,7 +15,6 @@ class XTransform {
   // }
   static FromNode(node) {
     var result = new XTransform();
-    console.log("Node:", node, "result:", result);
     result.position.copyFrom(node.position);
     result.rotation.copyFrom(node.rotationQuaternion);
     return result;
