@@ -278,7 +278,7 @@ var createScene = async function () {
       var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
       box.material = bodyRenderingMaterial;
       instance.node.addChild(box);
-      box.position = new BABYLON.Vector3(0,0.3,0);
+      box.position = new BABYLON.Vector3(0, 0.3, 0);
       // pathTracedMesh = null;
       // containerMeshes = [];
     }
@@ -288,8 +288,8 @@ var createScene = async function () {
   ui.setup(scene, hk, viewer);
 
   var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1,0.4,0));
-  console.log("DECK:", deck)
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  console.log("DECK:", deck);
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
@@ -413,12 +413,12 @@ var createScene = async function () {
           MouseSpeed.reset();
 
           picked = PhysicObject.GetTopMost(pointerInfo.pickInfo.pickedMesh);
-          if(!picked) break;
+          if (!picked) break;
           if (!picked.physicsBody) {
-            picked=null;
+            picked = null;
             break;
           }
-          if(picked.plateauObj && !picked.plateauObj.pickable) break;
+          if (picked.plateauObj && !picked.plateauObj.pickable) break;
 
           if (controlKeyDown) {
             SelectionHandler.toggleSelection(picked);
@@ -469,8 +469,7 @@ var createScene = async function () {
               m.plateauObj.stopAnimationMode();
               m.plateauObj.onRelease();
 
-              if(m.plateauObj.body)
-              {
+              if (m.plateauObj.body) {
                 var power = m.plateauObj.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
                 var forceVector = new BABYLON.Vector3();
                 forceVector.copyFrom(dir_speed);
@@ -508,7 +507,7 @@ var createScene = async function () {
             if (SelectionHandler.isExcluded(m)) continue;
 
             m = PhysicObject.GetTopMost(m);
-            if( !m) continue;
+            if (!m) continue;
             var m_bb = m.getBoundingInfo().boundingBox;
 
             if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb)) {
@@ -542,8 +541,8 @@ var createScene = async function () {
         if (picked) {
           const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;
 
-          var world_H_axisRot = new XTransform(picked.position);
-          var axisRot_H_world = world_H_axisRot.inverse();
+          var world_H_axisRot = new XTransform(picked.absolutePosition);
+          var axisRot_H_world = world_H_axisRot.inversed();
           var /* The code seems to be a comment in JavaScript. The text "picked_h_new" and " */
             axisRot_H_newAxisRot = new XTransform(
               new BABYLON.Vector3.Zero(),
@@ -553,10 +552,10 @@ var createScene = async function () {
           if (!SelectionHandler.isSelected(picked)) meshes.push(picked);
           for (var m of meshes)
             if (m.plateauObj) {
-              var world_H_obj = XTransform.FromNode(m);
+              var world_H_obj = XTransform.FromNodeWorld(m);
               var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
               var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
-              world_h_objnew.applyToNode(m);
+              world_h_objnew.applyToNodeWorld(m);
             }
         }
         break;
@@ -588,8 +587,6 @@ var createScene = async function () {
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
   var tile = createTileTest(0.4, 0.4, 0.02, 0.005, 4, 0.01, 3);
-  tile.position = new BABYLON.Vector3(0, 0.6, 0);
-
   var mat = new BABYLON.PBRMaterial("cardBoard", scene);
   mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
   mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
@@ -597,7 +594,7 @@ var createScene = async function () {
   mat.roughness = 0.13;
   tile.material = mat;
   new PhysicObject(tile);
-
+  tile.position = new BABYLON.Vector3(0, 0.6, 0);
   return scene;
 };
 

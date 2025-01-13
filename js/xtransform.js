@@ -13,7 +13,14 @@ class XTransform {
   //     vec.addInPlace(this.position);
   //     return vec;
   // }
-  static FromNode(node) {
+  static FromNodeWorld(node) {
+    var result = new XTransform();
+    result.position.copyFrom(node.absolutePosition);
+    result.rotation.copyFrom(node.absoluteRotationQuaternion);
+    return result;
+  }
+
+  static FromNodeLocal(node) {
     var result = new XTransform();
     result.position.copyFrom(node.position);
     result.rotation.copyFrom(node.rotationQuaternion);
@@ -28,7 +35,7 @@ class XTransform {
     return result;
   }
 
-  inverse() {
+  inversed() {
     var rot = new BABYLON.Quaternion();
     BABYLON.Quaternion.InverseToRef(this.rotation, rot);
     var position = new BABYLON.Vector3();
@@ -39,9 +46,19 @@ class XTransform {
     return new XTransform(position, rot);
   }
 
-  applyToNode(node) {
+  applyToNodeLocal(node) {
     node.position.copyFrom(this.position);
     node.rotationQuaternion.copyFrom(this.rotation);
+  }
+
+  applyToNodeWorld(node) {
+    //node.setAbsolutePosition(this.position);
+
+    var world_H_res = this;
+    var parent_H_world = node.parent ? XTransform.FromNodeWorld(node.parent).inversed() : new XTransform();
+    var parent_H_res = parent_H_world.multiply(world_H_res);
+    node.position.copyFrom(parent_H_res.position);
+    node.rotationQuaternion.copyFrom(parent_H_res.rotation);
   }
 }
 
