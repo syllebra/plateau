@@ -171,6 +171,14 @@ class Deck extends PlateauObject {
     setTimeout(this._updateCardsPhysics(), 1000);
   }
 
+  popCard() {
+    var card  = this.cards.pop();
+    card.node.parent = null;
+    //card.dispose();
+    console.log(this.cards.length);
+    this._updateCardsPhysics();
+  }
+
   _updateCardsPhysics() {
     // Update cards positions inside deck according to list
     var y = 0;
@@ -192,6 +200,11 @@ class Deck extends PlateauObject {
       case "S":
         this.shuffle();
         break;
+
+      case "p":
+        case "P":
+          this.popCard();
+          break;        
     }
   }
 
