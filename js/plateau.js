@@ -351,7 +351,6 @@ var createScene = async function () {
           case "Control":
             controlKeyDown = true;
             break;
-
           case "f":
           case "F":
             var objects = SelectionHandler.getPlateauObjects();
@@ -360,7 +359,8 @@ var createScene = async function () {
 
             break;
         }
-        if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
+        if (pickedObject) pickedObject.onKeyDown(kbInfo.event.key);
+        else if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
         break;
       case BABYLON.KeyboardEventTypes.KEYUP:
         switch (kbInfo.event.key) {
@@ -376,7 +376,8 @@ var createScene = async function () {
               });
             break;
         }
-        if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
+        if (pickedObject) pickedObject.onKeyUp(kbInfo.event.key);
+        else if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
         break;
     }
   });
