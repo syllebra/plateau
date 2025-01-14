@@ -308,11 +308,14 @@ var createScene = async function () {
 
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
 
-    function isDragged(mesh) {
-      return mesh.dragged || (mesh.parent ? isDragged(mesh.parent) : true);
+    function includeMesh(mesh) {
+      var po = PlateauObject.GetTopMost(mesh);
+      var isDragged = po && po.node.dragged;
+      return mesh != avoid && !isDragged;
+      //return mesh.dragged || (mesh.parent ? isDragged(mesh.parent) : true);
       //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
     }
-    var height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh)));
+    var height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => includeMesh(mesh)));
 
     max_height = height_pick_info.hit ? height_pick_info.pickedPoint.y : 0;
 
@@ -322,7 +325,7 @@ var createScene = async function () {
         var dy = Math.sin(a) * test_radius;
         var ray_start = new BABYLON.Vector3(position.x + dx, position.y, position.z + dy);
         ray = new BABYLON.Ray(ray_start, new BABYLON.Vector3(0, -10000, 0));
-        height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh != avoid && !isDragged(mesh)));
+        height_pick_info = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => includeMesh(mesh)));
         if (height_pick_info.hit && height_pick_info.pickedPoint.y > max_height)
           max_height = height_pick_info.pickedPoint.y;
       }
