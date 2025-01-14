@@ -3,6 +3,9 @@ let camera;
 let scene, shadowGen;
 let gizmoManager;
 
+let controlKeyDown = false;
+let shiftKeyDown = false;
+
 let rotationIncrement = 45;
 
 let preloadFunctions = [];

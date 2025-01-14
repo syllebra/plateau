@@ -9,9 +9,10 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Other dices (D4, D8, D10, D20, ...)
 - [ ] Automatic dice count after throw
 - [ ] Dice value on hover
+- [ ] Dices gathering system when dragging only dices
 - [x] Selection Outline (customized shader)
 - [x] Selection box
-- [x] Hover vizualisation (simple highlight)
+- [x] Hover visualization (simple highlight)
 - [x] Simple lifting animation
 - [x] Throwing interaction (drag/drop while lifting)
 - [x] Multiple objects manipulation
@@ -26,7 +27,12 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Contextual menu
 - [ ] File save/restore system
 - [ ] external http textures
+- [ ] Object dropping onto another events system
+- [ ] Long/Short click system and associated events
 
 # Todo
 
 - [x] Refactoring animations
+- [ ] Deck deletion on emptying ?
+- [ ] Deck creation on cards gathering ?
+- [ ] Draw Top or down cards

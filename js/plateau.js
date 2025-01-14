@@ -342,8 +342,6 @@ var createScene = async function () {
   var last_base_hit = new BABYLON.Vector3();
   var last_base_hit_time = performance.now();
 
-  let controlKeyDown = false;
-
   // Handle keyboard events
   // UP/DOWN arrows with SHIFT key modifier
   scene.onKeyboardObservable.add((kbInfo) => {
@@ -353,6 +351,9 @@ var createScene = async function () {
         switch (kbInfo.event.key) {
           case "Control":
             controlKeyDown = true;
+            break;
+          case "Shift":
+            shiftKeyDown = true;
             break;
           case "f":
           case "F":
@@ -369,6 +370,9 @@ var createScene = async function () {
         switch (kbInfo.event.key) {
           case "Control":
             controlKeyDown = false;
+            break;
+          case "Shift":
+            shiftKeyDown = false;
             break;
           case "I":
           case "i":
@@ -415,7 +419,7 @@ var createScene = async function () {
             pickedObject = null;
             break;
           }
-          pickedObject = po;
+          pickedObject = po.checkSubPick();
           SelectionHandler.updateHover(null);
 
           if (controlKeyDown) {

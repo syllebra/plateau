@@ -184,6 +184,7 @@ class Deck extends PlateauObject {
     console.log(card);
     card.stopAnimationMode();
     card.pickable = true;
+    return card;
   }
 
   _updateCardsPhysics() {
@@ -217,5 +218,9 @@ class Deck extends PlateauObject {
 
   onKeyUp(key) {
     super.onKeyUp(key);
+  }
+
+  checkSubPick() {
+    return shiftKeyDown ? this : this.popCard();
   }
 }

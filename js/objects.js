@@ -294,4 +294,8 @@ class PlateauObject {
     if (node.plateauObj && (!node.parent || !node.parent.plateauObj)) return node.plateauObj;
     return PlateauObject.GetTopMost(node.parent);
   }
+
+  checkSubPick() {
+    return this;
+  }
 }
