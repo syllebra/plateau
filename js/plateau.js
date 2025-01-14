@@ -519,6 +519,10 @@ var createScene = async function () {
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
           }
+        } else {
+          var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
+          var po = PlateauObject.GetTopMost(pi.pickedMesh);
+          SelectionHandler.updateHover(po);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERWHEEL:
