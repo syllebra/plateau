@@ -118,6 +118,7 @@ class PlateauObject {
   }
 
   _updateAutoCollider() {
+    if (!this.body) this.body = new BABYLON.PhysicsBody(this.node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
     var colliderShape = this.body.shape;
     if (this.auto_collider_mode == 0) {
       var bb = this.getBoundingInfos().boundingBox;

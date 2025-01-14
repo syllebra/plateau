@@ -58,7 +58,7 @@ class XTransform {
     var parent_H_world = node.parent ? XTransform.FromNodeWorld(node.parent).inversed() : new XTransform();
     var parent_H_res = parent_H_world.multiply(world_H_res);
     node.position.copyFrom(parent_H_res.position);
-    node.rotationQuaternion.copyFrom(parent_H_res.rotation);
+    node.rotationQuaternion = parent_H_res.rotation.clone();
   }
 }
 

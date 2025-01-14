@@ -172,11 +172,18 @@ class Deck extends PlateauObject {
   }
 
   popCard() {
-    var card  = this.cards.pop();
+    var card = this.cards.pop();
+    var world_H_card = XTransform.FromNodeWorld(card.node);
+    console.log(world_H_card);
+    card.deck = null;
     card.node.parent = null;
-    //card.dispose();
-    console.log(this.cards.length);
+    world_H_card.applyToNodeWorld(card.node);
+    card._updateAutoCollider();
     this._updateCardsPhysics();
+    card.setEnabled(true, true);
+    console.log(card);
+    card.stopAnimationMode();
+    card.pickable = true;
   }
 
   _updateCardsPhysics() {
@@ -184,13 +191,13 @@ class Deck extends PlateauObject {
     var y = 0;
     for (var c of this.cards) {
       c.node.position = new BABYLON.Vector3(0, y, 0);
-      var angle = BABYLON.Tools.ToRadians(c.flippedInDeck ? 0 : 180); //TODO: flip?
-      var rnda = BABYLON.Tools.ToRadians(this.randomness*(Math.random()-0.5));
+      var angle = BABYLON.Tools.ToRadians(c.flippedInDeck ? 0 : 180);
+      var rnda = BABYLON.Tools.ToRadians(this.randomness * (Math.random() - 0.5));
       c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, rnda, angle);
       y += c.thickness;
     }
     this.updateBoundingInfos();
-    this.body.shape = this._updateAutoCollider();
+    this._updateAutoCollider();
   }
 
   onKeyDown(key) {
@@ -202,9 +209,9 @@ class Deck extends PlateauObject {
         break;
 
       case "p":
-        case "P":
-          this.popCard();
-          break;        
+      case "P":
+        this.popCard();
+        break;
     }
   }
 
