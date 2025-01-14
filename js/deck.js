@@ -171,8 +171,20 @@ class Deck extends PlateauObject {
     setTimeout(this._updateCardsPhysics(), 1000);
   }
 
-  popCard() {
-    var card = this.cards.pop();
+  popCard(picked = null) {
+    console.log("Looking for:", picked, "in ", this.cards);
+    var card = null;
+    var id = this.cards.findIndex((e) => e == picked);
+    console.log("ID:", id);
+
+    if (id < 0) card = this.cards.pop();
+    else {
+      card = picked;
+      this.cards.splice(id, 1);
+    }
+
+    console.log("AFTER: ", this.cards);
+
     var world_H_card = XTransform.FromNodeWorld(card.node);
     console.log(world_H_card);
     card.deck = null;
@@ -220,7 +232,8 @@ class Deck extends PlateauObject {
     super.onKeyUp(key);
   }
 
-  checkSubPick() {
-    return shiftKeyDown ? this : this.popCard();
+  checkSubPick(node = null) {
+    if (shiftKeyDown) return this;
+    return this.popCard(node && node.plateauObj ? node.plateauObj : null);
   }
 }

@@ -419,8 +419,8 @@ var createScene = async function () {
             pickedObject = null;
             break;
           }
-          pickedObject = po.checkSubPick();
           SelectionHandler.updateHover(null);
+          pickedObject = po.checkSubPick(pointerInfo.pickInfo.pickedMesh);
 
           if (controlKeyDown) {
             SelectionHandler.toggleSelection(pickedObject);

@@ -295,7 +295,7 @@ class PlateauObject {
     return PlateauObject.GetTopMost(node.parent);
   }
 
-  checkSubPick() {
+  checkSubPick(node = null) {
     return this;
   }
 }
