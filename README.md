@@ -11,6 +11,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Dice value on hover
 - [x] Selection Outline (customized shader)
 - [x] Selection box
+- [x] Hover vizualisation (simple highlight)
 - [x] Simple lifting animation
 - [x] Throwing interaction (drag/drop while lifting)
 - [x] Multiple objects manipulation

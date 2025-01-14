@@ -280,6 +280,10 @@ class PlateauObject {
 
   onRelease() {}
 
+  onKeyDown(key) {}
+
+  onKeyUp(key) {}
+
   static GetTopMost(node) {
     if (!node) return null;
     if (node.plateauObj && (!node.parent || !node.parent.plateauObj)) return node.plateauObj;

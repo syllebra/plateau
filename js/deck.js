@@ -54,6 +54,11 @@ class Card extends PlateauObject {
   num = 32;
   back = 54;
 
+  deck = null;
+  flippedInDeck = false;
+
+  thickness = 0.002;
+
   constructor(
     position = null,
     atlas = null,
@@ -61,7 +66,7 @@ class Card extends PlateauObject {
     numBack = 54,
     width = 0.572,
     height = 0.889,
-    thickness = 0.004,
+    thickness = 0.0024,
     cornerRadius = 0.05,
     cornerSegments = 4
   ) {
@@ -78,6 +83,8 @@ class Card extends PlateauObject {
     this.back = numBack;
 
     if (position) box.position.copyFrom(position);
+
+    this.thickness = thickness;
 
     //this.straightenAtPickup = false;
   }
@@ -141,23 +148,45 @@ class Deck extends PlateauObject {
     card.pickable = false;
     card.body.dispose();
     card.body = null;
+
+    card.deck = this;
+    card.flippedInDeck = flip;
+
     //card.node.showBoundingBox = false;
     this.cards.push(card);
     this.node.addChild(card.node);
   }
 
-  shuffle() {}
+  shuffle() {
+    console.log("Shuffling " + this.node.id);
+    shuffle(this.cards);
+    this._updateCardsPhysics();
+  }
 
   _updateCardsPhysics() {
     // Update cards positions inside deck according to list
     var y = 0;
     for (var c of this.cards) {
       c.node.position = new BABYLON.Vector3(0, y, 0);
-      var angle = BABYLON.Tools.ToRadians(180); //TODO: flip?
+      var angle = BABYLON.Tools.ToRadians(c.flippedInDeck ? 0 : 180); //TODO: flip?
       c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, 0, angle);
-      y += 0.004; // TODO: bounding box
+      y += c.thickness;
     }
     this.updateBoundingInfos();
     this.body.shape = this._updateAutoCollider();
+  }
+
+  onKeyDown(key) {
+    super.onKeyDown(key);
+    switch (key) {
+      case "s":
+      case "S":
+        this.shuffle();
+        break;
+    }
+  }
+
+  onKeyUp(key) {
+    super.onKeyUp(key);
   }
 }

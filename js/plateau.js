@@ -360,6 +360,7 @@ var createScene = async function () {
 
             break;
         }
+        if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
         break;
       case BABYLON.KeyboardEventTypes.KEYUP:
         switch (kbInfo.event.key) {
@@ -375,6 +376,7 @@ var createScene = async function () {
               });
             break;
         }
+        if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
         break;
     }
   });
@@ -410,6 +412,7 @@ var createScene = async function () {
             break;
           }
           pickedObject = po;
+          SelectionHandler.updateHover(null);
 
           if (controlKeyDown) {
             SelectionHandler.toggleSelection(pickedObject);
