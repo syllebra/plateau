@@ -233,7 +233,7 @@ class Deck extends PlateauObject {
   }
 
   checkSubPick(node = null) {
-    if (shiftKeyDown) return this;
+    if (shiftKeyDown || controlKeyDown || SelectionHandler.isSelected(this)) return this;
     return this.popCard(node && node.plateauObj ? node.plateauObj : null);
   }
 }
