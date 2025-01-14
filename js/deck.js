@@ -107,7 +107,7 @@ class Card extends PlateauObject {
 
 class Deck extends PlateauObject {
   cards = [];
-
+  randomness = 2; // Angle randomness
   constructor(name = "deck", position) {
     // var box = BABYLON.Mesh.CreateBox("box", 6.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
 
@@ -160,7 +160,15 @@ class Deck extends PlateauObject {
   shuffle() {
     console.log("Shuffling " + this.node.id);
     shuffle(this.cards);
-    this._updateCardsPhysics();
+    for (var c of this.cards) {
+      var anim = c.animateRotation(
+        c.node.rotationQuaternion.multiply(BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0)),
+        100 + Math.floor(Math.random() * 100)
+      );
+
+      //anim.complete = () => {c.rotationAnimation = null; this._updateCardsPhysics();}
+    }
+    setTimeout(this._updateCardsPhysics(), 1000);
   }
 
   _updateCardsPhysics() {
@@ -169,7 +177,8 @@ class Deck extends PlateauObject {
     for (var c of this.cards) {
       c.node.position = new BABYLON.Vector3(0, y, 0);
       var angle = BABYLON.Tools.ToRadians(c.flippedInDeck ? 0 : 180); //TODO: flip?
-      c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, 0, angle);
+      var rnda = BABYLON.Tools.ToRadians(this.randomness*(Math.random()-0.5));
+      c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, rnda, angle);
       y += c.thickness;
     }
     this.updateBoundingInfos();

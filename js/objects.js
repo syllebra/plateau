@@ -177,7 +177,7 @@ class PlateauObject {
     };
   }
 
-  animateRotation(targetQuaternion, angularspeed = 270) {
+  animateRotationTo(targetQuaternion, angularspeed = 270) {
     if (!this.node) return;
     var vecUp = this.node.up;
     var destUp = new BABYLON.Vector3(0, 1, 0);
@@ -197,15 +197,18 @@ class PlateauObject {
     var dist = BABYLON.Tools.ToDegrees(angleRad);
 
     var nbf = (dist * 600) / angularspeed;
+    return this.animateRotation(targetQuaternion, nbf);
+  }
 
+  animateRotation(quat, nbf) {
     if (this.rotationAnimation) {
       let toRotate = this.rotationAnimation.animatables[0].target;
       toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
-      toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
+      toRotate.rotateAnimTarget.copyFrom(quat);
       this.rotationAnimation.animations[0].currentValue = 0;
       this.rotationAnimation.animations[0].duration = nbf;
       this.rotationAnimation.restart();
-      return;
+      return this.rotationAnimation;
     }
 
     let toRotate = this.node;
@@ -213,7 +216,7 @@ class PlateauObject {
     toRotate.rotateAnimStart = new BABYLON.Quaternion();
     toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
     toRotate.rotateAnimTarget = new BABYLON.Quaternion();
-    toRotate.rotateAnimTarget.copyFrom(targetQuaternion);
+    toRotate.rotateAnimTarget.copyFrom(quat);
 
     this.rotationAnimation = anime({
       targets: toRotate,
@@ -234,6 +237,7 @@ class PlateauObject {
     this.rotationAnimation.complete = function () {
       toRotate.plateauObj.rotationAnimation = null;
     };
+    return this.rotationAnimation;
   }
 
   stopAnimationMode() {
@@ -248,7 +252,7 @@ class PlateauObject {
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     var addrot = computeVectortoVectorRotationQuaternion(this.node.up, destUp);
     addrot.multiplyToRef(this.node.rotationQuaternion, destRot);
-    this.animateRotation(destRot);
+    this.animateRotationTo(destRot);
   }
 
   animateFlip(worldAxis) {
@@ -260,7 +264,7 @@ class PlateauObject {
     var quat = computeVectortoVectorRotationQuaternion(this.node.up, dstUp, worldAxis);
     var destRot = new BABYLON.Quaternion(0, 0, 0, 1);
     quat.multiplyToRef(this.node.rotationQuaternion, destRot);
-    this.animateRotation(destRot);
+    this.animateRotationTo(destRot);
   }
 
   flip() {
