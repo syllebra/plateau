@@ -435,7 +435,7 @@ var createScene = async function () {
             pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
 
-          DropZone.ShowInRadius(picked_ground_pos, showDropZoneInRadius);
+          DropZone.ShowInRadius(picked_ground_pos, showDropZoneInRadius, (m) => PlateauObject.GetTopMost(m.node) != pickedObject);
 
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
@@ -538,7 +538,7 @@ var createScene = async function () {
             dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
-            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius);
+            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius, (m) => PlateauObject.GetTopMost(m.node) != pickedObject);
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);

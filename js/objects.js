@@ -341,9 +341,9 @@ class PlateauObject {
     // tr.applyToNodeWorld(this.node);
     // return;
 
-    this.animateRotationTo(destNode.absoluteRotationQuaternion);
+    this.animateRotation(destNode.absoluteRotationQuaternion, 300);
     var dstPos = destNode.absolutePosition.clone();
-    this.animatePosition(dstPos, 600);
+    this.animatePosition(dstPos, 300);
     // this.updateAnimationModeTarget(
     //   { targets: this.node.position, x: dstPos.x },
     //   this.node.absolutePosition.x,

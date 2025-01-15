@@ -24,8 +24,13 @@ class DropZone {
     return pbr;
   }
 
-  static ShowInRadius(position, radius) {
+  static ShowInRadius(position, radius, predicate = null) {
     for (var z of this.all) {
+      if(predicate) console.log("TOPMOST:",PlateauObject.GetTopMost(z))
+      if(predicate && !predicate(z)) {
+        if(z.isEnabled()) z.setEnabled(false);
+        continue;
+      }
       var p0 = z.node.absolutePosition.clone();
       var p1 = position.clone();
       p0.y = 0;
@@ -79,7 +84,7 @@ class DropZone {
   static GetHovered(position) {
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
 
-    var pi = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh.dropZone));
+    var pi = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled()));
     if (!pi.hit) return null;
     return pi.pickedMesh.dropZone;
   }
