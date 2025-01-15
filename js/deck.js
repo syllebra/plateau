@@ -122,7 +122,9 @@ class Deck extends PlateauObject {
     var sz = bi.boundingBox.extendSize;
     deck.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
     //deck.topDropZone.node.id = deck.topDropZone.node.name = deck.id+"_topZone"
+    deck.topDropZone.acceptedClasses.add(Card);
     deck.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
+    deck.bottomDropZone.acceptedClasses.add(Card);
     //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
     console.log(sz);
     deck._updateCardsPhysics();

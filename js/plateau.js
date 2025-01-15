@@ -479,7 +479,7 @@ var createScene = async function () {
             }
           }
 
-          var dz = DropZone.GetHovered(pickedObject.node.absolutePosition);
+          var dz = DropZone.GetHovered(pickedObject.node.absolutePosition, pickedObject);
           if (dz) {
             var plateauParent = PlateauObject.GetTopMost(dz.node);
             var cb = null;
@@ -545,7 +545,8 @@ var createScene = async function () {
             dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
-            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius, (m) => PlateauObject.GetTopMost(m.node) != pickedObject);
+            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius,
+              (m) => (PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)));
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);

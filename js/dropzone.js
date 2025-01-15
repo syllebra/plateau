@@ -26,8 +26,8 @@ class DropZone {
 
   static ShowInRadius(position, radius, predicate = null) {
     for (var z of this.all) {
-      if(predicate && !predicate(z)) {
-        if(z.isEnabled()) z.setEnabled(false);
+      if (predicate && !predicate(z)) {
+        if (z.isEnabled()) z.setEnabled(false);
         continue;
       }
       var p0 = z.node.absolutePosition.clone();
@@ -48,6 +48,7 @@ class DropZone {
 
   static all = new Set();
   canReceive = true;
+  acceptedClasses = new Set();
   forceOrientation = false;
   node = null;
 
@@ -81,10 +82,13 @@ class DropZone {
     return this.FromNode(plane);
   }
 
-  static GetHovered(position) {
+  static GetHovered(position, obj = null) {
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
 
-    var pi = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled()));
+    var pi = scene.pickWithRay(
+      (ray = ray),
+      (predicate = (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && mesh.dropZone.accept(obj))
+    );
     if (!pi.hit) return null;
     return pi.pickedMesh.dropZone;
   }
@@ -95,5 +99,12 @@ class DropZone {
 
   isEnabled(b) {
     return this.node && this.node.isEnabled();
+  }
+
+  accept(obj) {
+    if (!this.canReceive) return false;
+    if (this.acceptedClasses.size == 0) return true;
+    for (var cl of this.acceptedClasses) if (obj instanceof cl) return true;
+    return false;
   }
 }
