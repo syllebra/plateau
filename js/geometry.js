@@ -136,3 +136,23 @@ function uvFromAtlas(num, cols, rows) {
   var dy = 1.0 / rows;
   return new BABYLON.Vector4(dx * col, dy * row, dx * (col + 1), dy * (row + 1));
 }
+
+function createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
+  var shape = createRoundedRectangleShape(w, h, cRad, cN);
+
+  var path = [new BABYLON.Vector3(0, thickness * 0.5, 0), new BABYLON.Vector3(0, -thickness * 0.5, 0)];
+  const options = {
+    shape: shape, //vec3 array with z = 0,
+    path: path, //vec3 array
+    // rotationFunction: rotFn,
+    // scaleFunction: scaleFn,
+    updatable: true,
+    closeShape: true,
+    cap: BABYLON.Mesh.CAP_ALL,
+    //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+  };
+
+  let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom("card", options, scene); //scene is
+
+  return extruded;
+}

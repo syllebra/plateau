@@ -434,6 +434,8 @@ var createScene = async function () {
             pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
 
+          DropZone.ShowInRadius(picked_ground_pos, showDropZoneInRadius);
+
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
           for (var o of objects) {
@@ -477,6 +479,7 @@ var createScene = async function () {
           }
           pickedObject = null;
           camera.inputs.add(mouseWheelHandler);
+          DropZone.HideAll();
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
@@ -529,6 +532,7 @@ var createScene = async function () {
             dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
+            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius);
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
@@ -565,15 +569,18 @@ var createScene = async function () {
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
-  var tile = createTileTest(0.4, 0.4, 0.02, 0.005, 4, 0.01, 3);
+  var tile = createTileTest(0.4, 0.4, 0.001, 0.005, 4, 0.01, 3);
   var mat = new BABYLON.PBRMaterial("cardBoard", scene);
   mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
   mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
   mat.metallic = 0.0;
-  mat.roughness = 0.13;
+  mat.roughness = 0.05;
   tile.material = mat;
   new PlateauObject(tile);
   tile.position = new BABYLON.Vector3(0, 0.6, 0);
+
+  DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
+
   return scene;
 };
 

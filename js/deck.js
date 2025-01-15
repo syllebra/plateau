@@ -30,26 +30,6 @@ class CardAtlas {
 }
 
 class Card extends PlateauObject {
-  static createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
-    var shape = createRoundedRectangleShape(w, h, cRad, cN);
-
-    var path = [new BABYLON.Vector3(0, thickness * 0.5, 0), new BABYLON.Vector3(0, -thickness * 0.5, 0)];
-    const options = {
-      shape: shape, //vec3 array with z = 0,
-      path: path, //vec3 array
-      // rotationFunction: rotFn,
-      // scaleFunction: scaleFn,
-      updatable: true,
-      closeShape: true,
-      cap: BABYLON.Mesh.CAP_ALL,
-      //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-    };
-
-    let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom("ext", options, scene); //scene is
-
-    return extruded;
-  }
-
   atlas = null;
   num = 32;
   back = 54;
@@ -70,7 +50,7 @@ class Card extends PlateauObject {
     cornerRadius = 0.05,
     cornerSegments = 4
   ) {
-    var box = Card.createCardShape(width, height, thickness, cornerRadius, cornerSegments);
+    var box = createCardShape(width, height, thickness, cornerRadius, cornerSegments);
 
     planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), uvFromAtlas(numBack, atlas.cols, atlas.rows));
 
@@ -108,6 +88,10 @@ class Card extends PlateauObject {
 class Deck extends PlateauObject {
   cards = [];
   randomness = 2; // Angle randomness
+
+  topDropZone = null;
+  bottomDropZone = null;
+
   constructor(name = "deck", position) {
     // var box = BABYLON.Mesh.CreateBox("box", 6.0, scene, false, BABYLON.Mesh.DEFAULTSIDE);
 
@@ -132,6 +116,13 @@ class Deck extends PlateauObject {
       var c = new Card(null, atlas, i, atlas.back);
       deck.addCard(c);
     }
+
+    deck.updateBoundingInfos();
+    var bi = deck.getBoundingInfos();
+    var sz = bi.boundingBox.extendSize;
+    deck.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
+    deck.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
+    console.log(sz);
     deck._updateCardsPhysics();
     if (position) deck.node.position.copyFrom(position);
 
@@ -172,18 +163,14 @@ class Deck extends PlateauObject {
   }
 
   popCard(picked = null) {
-    console.log("Looking for:", picked, "in ", this.cards);
     var card = null;
     var id = this.cards.findIndex((e) => e == picked);
-    console.log("ID:", id);
 
     if (id < 0) card = this.cards.pop();
     else {
       card = picked;
       this.cards.splice(id, 1);
     }
-
-    console.log("AFTER: ", this.cards);
 
     var world_H_card = XTransform.FromNodeWorld(card.node);
     console.log(world_H_card);
@@ -209,8 +196,17 @@ class Deck extends PlateauObject {
       c.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(0, rnda, angle);
       y += c.thickness;
     }
+
     this.updateBoundingInfos();
     this._updateAutoCollider();
+
+    if (this.topDropZone) {
+      this.topDropZone.node.position = new BABYLON.Vector3(0, y, 0);
+    }
+    if (this.bottomDropZone) {
+      this.bottomDropZone.node.position = new BABYLON.Vector3(0, 0, 0);
+      this.bottomDropZone.node.rotationQuaternion = new BABYLON.Quaternion.FromEulerAngles(Math.PI, 0, 0);
+    }
   }
 
   onKeyDown(key) {
