@@ -214,10 +214,8 @@ class PlateauObject {
 
     let toRotate = this.node;
     toRotate.rotateAnimValue = 0.0;
-    toRotate.rotateAnimStart = new BABYLON.Quaternion();
-    toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
-    toRotate.rotateAnimTarget = new BABYLON.Quaternion();
-    toRotate.rotateAnimTarget.copyFrom(quat);
+    toRotate.rotateAnimStart = toRotate.rotationQuaternion.clone();
+    toRotate.rotateAnimTarget = quat.clone();
 
     this.rotationAnimation = anime({
       targets: toRotate,
@@ -239,6 +237,43 @@ class PlateauObject {
       toRotate.plateauObj.rotationAnimation = null;
     };
     return this.rotationAnimation;
+  }
+
+  animatePosition(pos, nbf) {
+    if (this.positionAnimation) {
+      let toMove = this.positionAnimation.animatables[0].target;
+      toMove.toMoveAnimStart.copyFrom(toMove.position);
+      toMove.toMoveAnimTarget.copyFrom(pos);
+      this.positionAnimation.animations[0].currentValue = 0;
+      this.positionAnimation.animations[0].duration = nbf;
+      this.positionAnimation.restart();
+      return this.positionAnimation;
+    }
+
+    let toMove = this.node;
+    toMove.positionAnimValue = 0.0;
+    toMove.positionAnimStart = toMove.position.clone();
+    toMove.positionAnimTarget = pos.clone();
+
+    this.positionAnimation = anime({
+      targets: toMove,
+      positionAnimValue: 1.0,
+      easing: "linear",
+      duration: nbf,
+      update: function (v) {
+        BABYLON.Vector3.SlerpToRef(
+          toMove.positionAnimStart,
+          toMove.positionAnimTarget,
+          toMove.positionAnimValue,
+          toMove.position
+        );
+      },
+    });
+
+    this.positionAnimation.complete = function () {
+      toMove.plateauObj.positionAnimation = null;
+    };
+    return this.positionAnimation;
   }
 
   stopAnimationMode() {
@@ -297,5 +332,35 @@ class PlateauObject {
 
   checkSubPick(node = null) {
     return this;
+  }
+
+  dropOn(destNode) {
+    console.log(this.animations);
+    this.startAnimationMode();
+    // var tr = XTransform.FromNodeWorld(destNode);
+    // tr.applyToNodeWorld(this.node);
+    // return;
+
+    this.animateRotationTo(destNode.absoluteRotationQuaternion);
+    var dstPos = destNode.absolutePosition.clone();
+    this.animatePosition(dstPos, 600);
+    // this.updateAnimationModeTarget(
+    //   { targets: this.node.position, x: dstPos.x },
+    //   this.node.absolutePosition.x,
+    //   dstPos.x,
+    //   0.6
+    // );
+    // this.updateAnimationModeTarget(
+    //   { targets: this.node.position, y: dstPos.y },
+    //   this.node.absolutePosition.y,
+    //   dstPos.y,
+    //   0.6
+    // );
+    // this.updateAnimationModeTarget(
+    //   { targets: this.node.position, z: dstPos.z },
+    //   this.node.absolutePosition.z,
+    //   dstPos.z,
+    //   0.6
+    // );
   }
 }

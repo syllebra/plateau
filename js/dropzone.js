@@ -31,8 +31,8 @@ class DropZone {
       p0.y = 0;
       p1.y = 0;
       var inRadius = BABYLON.Vector3.Distance(p0, p1) < radius;
-      if (inRadius && !z.node.isEnabled()) z.setEnabled(true);
-      if (!inRadius && z.node.isEnabled()) z.setEnabled(false);
+      if (inRadius && !z.isEnabled()) z.setEnabled(true);
+      if (!inRadius && z.isEnabled()) z.setEnabled(false);
     }
   }
 
@@ -53,7 +53,7 @@ class DropZone {
   static FromNode(node) {
     var z = new DropZone();
     z.node = node;
-    z.node.dropZone = this;
+    z.node.dropZone = z;
     z.setEnabled(false);
     return z;
   }
@@ -76,7 +76,19 @@ class DropZone {
     return this.FromNode(plane);
   }
 
+  static GetHovered(position) {
+    var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
+
+    var pi = scene.pickWithRay((ray = ray), (predicate = (mesh, i) => mesh.dropZone));
+    if (!pi.hit) return null;
+    return pi.pickedMesh.dropZone;
+  }
+
   setEnabled(b) {
     if (this.node) this.node.setEnabled(b);
+  }
+
+  isEnabled(b) {
+    return this.node && this.node.isEnabled();
   }
 }

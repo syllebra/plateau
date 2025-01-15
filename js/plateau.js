@@ -395,7 +395,8 @@ var createScene = async function () {
       getSceneHeight(scene, obj.node.position, 0.1, obj.node) +
       obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
-    obj.updateAnimationModeTarget({ targets: obj.node.position, y: target_height }, obj.node.position.y, target_height);
+    obj.node.position.y = target_height;
+    //obj.updateAnimationModeTarget({ targets: obj.node.position, y: target_height }, obj.node.position.y, target_height);
   }
 
   var panning = false;
@@ -477,9 +478,14 @@ var createScene = async function () {
               o.body.applyForce(forceVector, pos);
             }
           }
+
+          var dz = DropZone.GetHovered(pickedObject.node.absolutePosition);
+          if (dz) pickedObject.dropOn(dz.node);
+          console.log(dz);
+          DropZone.HideAll();
+
           pickedObject = null;
           camera.inputs.add(mouseWheelHandler);
-          DropZone.HideAll();
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
