@@ -121,7 +121,9 @@ class Deck extends PlateauObject {
     var bi = deck.getBoundingInfos();
     var sz = bi.boundingBox.extendSize;
     deck.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
+    //deck.topDropZone.node.id = deck.topDropZone.node.name = deck.id+"_topZone"
     deck.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
+    //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
     console.log(sz);
     deck._updateCardsPhysics();
     if (position) deck.node.position.copyFrom(position);
@@ -231,5 +233,12 @@ class Deck extends PlateauObject {
   checkSubPick(node = null) {
     if (shiftKeyDown || controlKeyDown || SelectionHandler.isSelected(this)) return this;
     return this.popCard(node && node.plateauObj ? node.plateauObj : null);
+  }
+
+  objectDropedOnZone(obj, zone) {
+    if(obj instanceof Card)
+      console.log("Card ", obj.node.id, " dropped on ", zone == this.topDropZone ? "top" : "bottom");
+      this.addCard(obj); // TODO: position, flip
+      this._updateCardsPhysics();
   }
 }

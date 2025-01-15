@@ -178,7 +178,7 @@ class PlateauObject {
     };
   }
 
-  animateRotationTo(targetQuaternion, angularspeed = 270) {
+  animateRotationTo(targetQuaternion, angularspeed = 270, finishedCB = null) {
     if (!this.node) return;
     var vecUp = this.node.up;
     var destUp = new BABYLON.Vector3(0, 1, 0);
@@ -198,17 +198,19 @@ class PlateauObject {
     var dist = BABYLON.Tools.ToDegrees(angleRad);
 
     var nbf = (dist * 600) / angularspeed;
-    return this.animateRotation(targetQuaternion, nbf);
+    return this.animateRotation(targetQuaternion, nbf, finishedCB);
   }
 
-  animateRotation(quat, nbf) {
+  animateRotation(quat, nbf, finishedCB = null) {
     if (this.rotationAnimation) {
       let toRotate = this.rotationAnimation.animatables[0].target;
       toRotate.rotateAnimStart.copyFrom(toRotate.rotationQuaternion);
       toRotate.rotateAnimTarget.copyFrom(quat);
+      toRotate.rotationAnimationFinishedCB = finishedCB;
       this.rotationAnimation.animations[0].currentValue = 0;
       this.rotationAnimation.animations[0].duration = nbf;
       this.rotationAnimation.restart();
+      
       return this.rotationAnimation;
     }
 
@@ -216,6 +218,7 @@ class PlateauObject {
     toRotate.rotateAnimValue = 0.0;
     toRotate.rotateAnimStart = toRotate.rotationQuaternion.clone();
     toRotate.rotateAnimTarget = quat.clone();
+    toRotate.rotationAnimationFinishedCB = finishedCB;
 
     this.rotationAnimation = anime({
       targets: toRotate,
@@ -235,18 +238,21 @@ class PlateauObject {
 
     this.rotationAnimation.complete = function () {
       toRotate.plateauObj.rotationAnimation = null;
+      if(toRotate.rotationAnimationFinishedCB ) toRotate.rotationAnimationFinishedCB ();
     };
     return this.rotationAnimation;
   }
 
-  animatePosition(pos, nbf) {
+  animatePosition(pos, nbf, finishedCB = null) {
     if (this.positionAnimation) {
       let toMove = this.positionAnimation.animatables[0].target;
       toMove.toMoveAnimStart.copyFrom(toMove.position);
       toMove.toMoveAnimTarget.copyFrom(pos);
+      toMove.positionAnimationFinishedCB = finishedCB;
       this.positionAnimation.animations[0].currentValue = 0;
       this.positionAnimation.animations[0].duration = nbf;
       this.positionAnimation.restart();
+      
       return this.positionAnimation;
     }
 
@@ -254,6 +260,7 @@ class PlateauObject {
     toMove.positionAnimValue = 0.0;
     toMove.positionAnimStart = toMove.position.clone();
     toMove.positionAnimTarget = pos.clone();
+    toMove.positionAnimationFinishedCB = finishedCB;
 
     this.positionAnimation = anime({
       targets: toMove,
@@ -272,6 +279,7 @@ class PlateauObject {
 
     this.positionAnimation.complete = function () {
       toMove.plateauObj.positionAnimation = null;
+      if(toMove.positionAnimationFinishedCB) toMove.positionAnimationFinishedCB();
     };
     return this.positionAnimation;
   }
@@ -334,33 +342,25 @@ class PlateauObject {
     return this;
   }
 
-  dropOn(destNode) {
+  dropOn(destNode, animateRotation = true, finishedCB = null) {
     console.log(this.animations);
     this.startAnimationMode();
+    this.setEnabled(true, false);
     // var tr = XTransform.FromNodeWorld(destNode);
     // tr.applyToNodeWorld(this.node);
     // return;
 
-    this.animateRotation(destNode.absoluteRotationQuaternion, 300);
+    if(animateRotation)
+      this.animateRotation(destNode.absoluteRotationQuaternion, 280);
     var dstPos = destNode.absolutePosition.clone();
-    this.animatePosition(dstPos, 300);
-    // this.updateAnimationModeTarget(
-    //   { targets: this.node.position, x: dstPos.x },
-    //   this.node.absolutePosition.x,
-    //   dstPos.x,
-    //   0.6
-    // );
-    // this.updateAnimationModeTarget(
-    //   { targets: this.node.position, y: dstPos.y },
-    //   this.node.absolutePosition.y,
-    //   dstPos.y,
-    //   0.6
-    // );
-    // this.updateAnimationModeTarget(
-    //   { targets: this.node.position, z: dstPos.z },
-    //   this.node.absolutePosition.z,
-    //   dstPos.z,
-    //   0.6
-    // );
+
+    var bb = this.getBoundingInfos().boundingBox;
+    dstPos.y -= bb.minimum.y * this.node.scaling.y;
+
+    this.animatePosition(dstPos, 300, () => {
+      this.setEnabled(true, true);
+      this.stopAnimationMode();
+      if(finishedCB) finishedCB();
+    });
   }
 }

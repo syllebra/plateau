@@ -26,7 +26,6 @@ class DropZone {
 
   static ShowInRadius(position, radius, predicate = null) {
     for (var z of this.all) {
-      if(predicate) console.log("TOPMOST:",PlateauObject.GetTopMost(z))
       if(predicate && !predicate(z)) {
         if(z.isEnabled()) z.setEnabled(false);
         continue;
@@ -49,6 +48,7 @@ class DropZone {
 
   static all = new Set();
   canReceive = true;
+  forceOrientation = false;
   node = null;
 
   constructor() {

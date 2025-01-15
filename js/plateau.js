@@ -480,8 +480,15 @@ var createScene = async function () {
           }
 
           var dz = DropZone.GetHovered(pickedObject.node.absolutePosition);
-          if (dz) pickedObject.dropOn(dz.node);
-          console.log(dz);
+          if (dz) {
+            var plateauParent = PlateauObject.GetTopMost(dz.node);
+            var cb = null;
+            if( plateauParent instanceof Deck) {
+              var objectToDrop = pickedObject;
+              cb = () => { plateauParent.objectDropedOnZone(objectToDrop, dz);}
+            }
+            pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
+          }
           DropZone.HideAll();
 
           pickedObject = null;
