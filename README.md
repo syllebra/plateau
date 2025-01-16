@@ -36,3 +36,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Deck deletion on emptying ?
 - [ ] Deck creation on cards gathering ?
 - [ ] Draw Top or down cards
+
+# Bugs
+
+- [ ] Error when dragging if ray does not intersect ground
