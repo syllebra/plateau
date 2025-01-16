@@ -1,3 +1,6 @@
+var a = [0,1,2,3,4]
+console.log(a)
+
 canvas = document.getElementById("renderCanvas");
 engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
@@ -485,7 +488,7 @@ var createScene = async function () {
             var cb = null;
             if( plateauParent instanceof Deck) {
               var objectToDrop = pickedObject;
-              cb = () => { plateauParent.objectDropedOnZone(objectToDrop, dz);}
+              cb = () => { plateauParent.objectDroppedOnZone(objectToDrop, dz);}
             }
             pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
           }

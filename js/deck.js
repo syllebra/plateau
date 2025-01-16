@@ -107,7 +107,16 @@ class Deck extends PlateauObject {
     if (position) node.position.copyFrom(position);
 
     super(node);
+
+    scene.onKeyboardObservable.add((kbInfo) => {
+      if (
+        kbInfo.event.key == "Shift" &&
+        (kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN || kbInfo.type == BABYLON.KeyboardEventTypes.KEYUP)
+      )
+        this.checkDropZonesUpdate(kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN);
+    });
   }
+
 
   static BuildFromCardsAtlas(name, atlas, position) {
     var deck = new Deck(name, null);
@@ -137,7 +146,7 @@ class Deck extends PlateauObject {
 
   addCard(card, flip = false, position = -1) {
     // Add a card inside the deck, at a given position, flipped or not
-    // TODO: position and flip
+    // TODO: flip
     card.startAnimationMode();
     card.setEnabled(true, false);
     card.pickable = false;
@@ -147,8 +156,8 @@ class Deck extends PlateauObject {
     card.deck = this;
     card.flippedInDeck = flip;
 
-    //card.node.showBoundingBox = false;
-    this.cards.push(card);
+    position = position >=0 ? position : this.cards.length;
+    this.cards.splice(position,0,card);
     this.node.addChild(card.node);
   }
 
@@ -237,10 +246,25 @@ class Deck extends PlateauObject {
     return this.popCard(node && node.plateauObj ? node.plateauObj : null);
   }
 
-  objectDropedOnZone(obj, zone) {
-    if(obj instanceof Card)
+  checkDropZonesUpdate(b) {
+    console.log("Drop Zones update");
+    // Check wich way the deck is currently facing (flipped for example?)
+    var angle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up())
+    var upz = angle < 90 ? this.topDropZone : this.bottomDropZone;
+    var downz = angle < 90 ? this.bottomDropZone : this.topDropZone;
+
+    upz.node.position.x = 0.0;
+    downz.node.position.x = 0.3;
+
+    upz.canReceive = !b;
+    downz.canReceive = b;
+  }
+
+  objectDroppedOnZone(obj, zone) {
+    if (obj instanceof Card)
       console.log("Card ", obj.node.id, " dropped on ", zone == this.topDropZone ? "top" : "bottom");
-      this.addCard(obj); // TODO: position, flip
-      this._updateCardsPhysics();
+    var flip = false;
+    this.addCard(obj,flip,zone == this.bottomDropZone?0 :-1); // TODO: flip
+    this._updateCardsPhysics();
   }
 }
