@@ -1,0 +1,197 @@
+:root {
+    --panel-width: 350px;
+    --transition-speed: 0.4s;
+    --card-color-light: #f8f8f8;
+    --card-color-dark: #1a1a1a;
+    --accent-color: #6bbcff;
+    --gradient-start: #1f1c2c;
+    --gradient-end: #928dab;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: var(--card-color-light);
+}
+
+.toggle-panel-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: var(--card-color-light);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 100;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.toggle-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.card-panel {
+    position: fixed;
+    top: 0;
+    right: calc(-1 * var(--panel-width));
+    width: var(--panel-width);
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.3);
+    transition: right var(--transition-speed) ease-in-out;
+    z-index: 200;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-panel.open {
+    right: 0;
+}
+
+.card-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.card-panel-header h2 {
+    margin: 0;
+    color: var(--card-color-light);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--card-color-light);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.close-panel-btn:hover {
+    opacity: 1;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 20px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    user-select: none;
+}
+
+.card {
+    width: 100%;
+    height: 120px;
+    /* Fixed height */
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card[data-color="red"] {
+    color: #ff4d4d;
+}
+
+.card[data-color="black"] {
+    color: var(--card-color-dark);
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card.selected {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+    transform: scale(1.05);
+    opacity: 0.9;
+    box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+}
+
+.validate-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4bacfc;
+    backdrop-filter: blur(10px);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    z-index: 300;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.validate-btn:hover {
+    background: #6ab7f7;
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.validate-btn:active {
+    transform: translateX(-50%) translateY(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.validate-btn:disabled {
+    background: rgba(204, 204, 204, 0.7);
+    cursor: not-allowed;
+    transform: translateX(-50%);
+    box-shadow: none;
+}
+
+/* Custom scrollbar */
+.cards-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.cards-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.cards-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.cards-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

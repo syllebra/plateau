@@ -117,7 +117,6 @@ class Deck extends PlateauObject {
     });
   }
 
-
   static BuildFromCardsAtlas(name, atlas, position) {
     var deck = new Deck(name, null);
 
@@ -156,8 +155,8 @@ class Deck extends PlateauObject {
     card.deck = this;
     card.flippedInDeck = flip;
 
-    position = position >=0 ? position : this.cards.length;
-    this.cards.splice(position,0,card);
+    position = position >= 0 ? position : this.cards.length;
+    this.cards.splice(position, 0, card);
     this.node.addChild(card.node);
   }
 
@@ -232,7 +231,8 @@ class Deck extends PlateauObject {
 
       case "p":
       case "P":
-        this.popCard();
+        //this.popCard();
+        document.querySelector(".card-panel").classList.add("open");
         break;
     }
   }
@@ -249,7 +249,7 @@ class Deck extends PlateauObject {
   checkDropZonesUpdate(b) {
     console.log("Drop Zones update");
     // Check wich way the deck is currently facing (flipped for example?)
-    var angle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up())
+    var angle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
     var upz = angle < 90 ? this.topDropZone : this.bottomDropZone;
     var downz = angle < 90 ? this.bottomDropZone : this.topDropZone;
 
@@ -264,7 +264,7 @@ class Deck extends PlateauObject {
     if (obj instanceof Card)
       console.log("Card ", obj.node.id, " dropped on ", zone == this.topDropZone ? "top" : "bottom");
     var flip = false;
-    this.addCard(obj,flip,zone == this.bottomDropZone?0 :-1); // TODO: flip
+    this.addCard(obj, flip, zone == this.bottomDropZone ? 0 : -1); // TODO: flip
     this._updateCardsPhysics();
   }
 }

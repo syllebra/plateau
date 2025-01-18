@@ -178,8 +178,10 @@ class SelectionHandler {
           m.material = m.material.clone();
           m.material.emissiveColor = color;
         } else {
-          m.material.dispose();
-          m.material = m.savedMaterial;
+          if (m.savedMaterial) {
+            m.material.dispose();
+            m.material = m.savedMaterial;
+          }
         }
       }
 
