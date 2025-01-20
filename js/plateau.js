@@ -191,10 +191,9 @@ var createScene = async function () {
   camera.inputs.attached.mouse.buttons = [2];
 
   //camera.inputs.removeMouse();
-  camera.inputs.addMouseWheel();
+  delete camera.inputs.attached.touch.detachControl();
 
-  var mouseWheelHandler = camera.inputs.attached.mousewheel;
-  mouseWheelHandler.wheelPrecisionX = mouseWheelHandler.wheelPrecisionY = mouseWheelHandler.wheelPrecisionZ = 0.2;
+  console.log(camera.inputs);
 
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
@@ -402,6 +401,66 @@ var createScene = async function () {
     //obj.updateAnimationModeTarget({ targets: obj.node.position, y: target_height }, obj.node.position.y, target_height);
   }
 
+  function panCamera(x, y) {
+    var dx = camera.getDirection(new BABYLON.Vector3(1, 0, 0));
+    var dy = camera.getDirection(new BABYLON.Vector3(0, 1, 0));
+    dx = dx.multiplyByFloats(x, x, x);
+    dy = dy.multiplyByFloats(y, y, y);
+    camera.position.addInPlace(dx);
+    camera.position.addInPlace(dy);
+  }
+
+  function rotateCamera(x, y) {
+    camera.cameraRotation = new BABYLON.Vector2(-y, -x);
+  }
+
+  function zoomCamera(amount) {
+    var dz = camera.getDirection(new BABYLON.Vector3(0, 0, 1));
+    dz = dz.multiplyByFloats(amount, amount, amount);
+    camera.position.addInPlace(dz);
+  }
+
+  function rotateSelectionAround(object, angle) {
+    if (!object) return;
+
+    var world_H_axisRot = new XTransform(object.node.absolutePosition);
+    var axisRot_H_world = world_H_axisRot.inversed();
+    var /* The code seems to be a comment in JavaScript. The text "picked_h_new" and " */
+      axisRot_H_newAxisRot = new XTransform(
+        new BABYLON.Vector3.Zero(),
+        BABYLON.Quaternion.FromEulerAngles(0, BABYLON.Tools.ToRadians(angle), 0)
+      );
+    var objects = SelectionHandler.getPlateauObjects();
+    if (!SelectionHandler.isSelected(object)) objects.push(object);
+    for (var o of objects) {
+      var world_H_obj = XTransform.FromNodeWorld(o.node);
+      var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
+      var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
+      world_h_objnew.applyToNodeWorld(o.node);
+    }
+  }
+
+  {
+    const touchArea = document.getElementById("renderCanvas");
+    const handler = new GestureHandler(touchArea);
+
+    handler.onGestureStart((data) => {
+      console.log("Gesture started", data);
+    });
+
+    handler.onGestureUpdate((data) => {
+      if (data.type == "drag") {
+        if (data.number == 2) panCamera(data.delta.x * 0.01, -data.delta.y * 0.01);
+        else rotateCamera(data.delta.x * 0.03, -data.delta.y * 0.03);
+      } else if (data.type == "pinch") zoomCamera(data.deltaScale * -3);
+    });
+
+    handler.onGestureEnd((data) => {
+      info.textContent = "Gesture ended. Touch with two fingers to start new gesture";
+      console.log("Gesture ended", data);
+    });
+  }
+
   var panning = false;
   scene.onPointerObservable.add((pointerInfo) => {
     switch (pointerInfo.type) {
@@ -452,8 +511,6 @@ var createScene = async function () {
             o.onPickup();
             updateDraggedNodeHeight(o);
           }
-
-          camera.inputs.remove(mouseWheelHandler);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -501,7 +558,6 @@ var createScene = async function () {
           DropZone.HideAll();
 
           pickedObject = null;
-          camera.inputs.add(mouseWheelHandler);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
@@ -509,12 +565,7 @@ var createScene = async function () {
           const delta = 0.01; // Amount of change in movement
           let x = delta * pointerInfo.event.movementX;
           let y = -delta * pointerInfo.event.movementY;
-          var dx = camera.getDirection(new BABYLON.Vector3(1, 0, 0));
-          var dy = camera.getDirection(new BABYLON.Vector3(0, 1, 0));
-          dx = dx.multiplyByFloats(x, x, x);
-          dy = dy.multiplyByFloats(y, y, y);
-          camera.position.addInPlace(dx);
-          camera.position.addInPlace(dy);
+          panCamera(x, y);
         }
 
         MouseSpeed.update(pointerInfo.event);
@@ -569,23 +620,8 @@ var createScene = async function () {
       case BABYLON.PointerEventTypes.POINTERWHEEL:
         if (pickedObject) {
           const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;
-
-          var world_H_axisRot = new XTransform(pickedObject.node.absolutePosition);
-          var axisRot_H_world = world_H_axisRot.inversed();
-          var /* The code seems to be a comment in JavaScript. The text "picked_h_new" and " */
-            axisRot_H_newAxisRot = new XTransform(
-              new BABYLON.Vector3.Zero(),
-              BABYLON.Quaternion.FromEulerAngles(0, BABYLON.Tools.ToRadians(angle), 0)
-            );
-          var objects = SelectionHandler.getPlateauObjects();
-          if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
-          for (var o of objects) {
-            var world_H_obj = XTransform.FromNodeWorld(o.node);
-            var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
-            var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
-            world_h_objnew.applyToNodeWorld(o.node);
-          }
-        }
+          rotateSelectionAround(pickedObject, angle);
+        } else zoomCamera(pointerInfo.event.deltaY * 0.002);
         break;
     }
   });
@@ -644,30 +680,4 @@ createScene().then((scene) => {
 // Resize
 window.addEventListener("resize", function () {
   engine.resize();
-});
-
-const touchArea = document.getElementById("renderCanvas");
-const handler = new GestureHandler(touchArea);
-
-// Create info element for displaying gesture data
-const info = document.createElement("div");
-info.className = "info";
-document.body.appendChild(info);
-
-handler.onGestureStart((data) => {
-  info.textContent = `Gesture started: ${data.type}`;
-  console.log("Gesture started", data);
-});
-
-handler.onGestureUpdate((data) => {
-  info.textContent = `Gesture: ${data.type}
-Center: (${data.center.x.toFixed(1)}, ${data.center.y.toFixed(1)})
-Delta: (${data.delta.x.toFixed(1)}, ${data.delta.y.toFixed(1)})
-Scale: ${data.scale.toFixed(2)}`;
-  console.log("Gesture updated", data);
-});
-
-handler.onGestureEnd((data) => {
-  info.textContent = "Gesture ended. Touch with two fingers to start new gesture";
-  console.log("Gesture ended", data);
 });

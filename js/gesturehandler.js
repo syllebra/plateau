@@ -12,6 +12,7 @@ class GestureHandler {
     this.isGestureActive = false;
     this.initialDistance = null;
     this.initialCenter = null;
+    this.lastCenter = null;
 
     // Bind event handlers
     this.handleTouchStart = this.handleTouchStart.bind(this);
@@ -160,6 +161,7 @@ class GestureHandler {
       // Reset state
       this.initialDistance = null;
       this.initialCenter = null;
+      this.lastCenter = null;
     }
   }
 
@@ -206,6 +208,8 @@ class GestureHandler {
   getGestureData(type) {
     const currentDistance = this.calculateDistance();
     const currentCenter = this.calculateCenter();
+    const currentScale = currentDistance / (this.initialDistance || 1);
+
     // Adjust threshold based on number of touches
     const touchCount = this.touches.size;
     const distanceThreshold = this.initialDistance * (touchCount > 2 ? 0.08 : 0.05); // 8% for >2 touches, 5% for 2 touches
@@ -215,15 +219,25 @@ class GestureHandler {
       this.gestureType = Math.abs(currentDistance - this.initialDistance) > distanceThreshold ? "pinch" : "drag";
     }
 
-    return {
+    var ret = {
       type: this.gestureType,
       center: currentCenter,
-      delta: {
+      deltaInitial: {
         x: currentCenter.x - (this.initialCenter?.x || 0),
         y: currentCenter.y - (this.initialCenter?.y || 0),
       },
-      scale: currentDistance / (this.initialDistance || 1),
+      delta: {
+        x: currentCenter.x - (this.lastCenter?.x || 0),
+        y: currentCenter.y - (this.lastCenter?.y || 0),
+      },
+      scale: currentScale,
+      deltaScale: currentScale - (this.lastScale ? this.lastScale : 1),
+      number: this.touches.size,
     };
+
+    this.lastCenter = currentCenter;
+    this.lastScale = ret.scale;
+    return ret;
   }
 
   onGestureStart(callback) {
