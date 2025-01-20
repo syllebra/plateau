@@ -340,6 +340,7 @@ var createScene = async function () {
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
   var box_selection = false;
+  var gestureOn = false;
   var dir_speed = new BABYLON.Vector3();
   var last_base_hit = new BABYLON.Vector3();
   var last_base_hit_time = performance.now();
@@ -445,28 +446,29 @@ var createScene = async function () {
     const handler = new GestureHandler(touchArea);
 
     handler.onGestureStart((data) => {
-      console.log("Gesture started", data);
+      gestureOn = true;
     });
 
     handler.onGestureUpdate((data) => {
       if (data.type == "drag") {
-        if (data.number == 2) panCamera(data.delta.x * 0.01, -data.delta.y * 0.01);
-        else rotateCamera(data.delta.x * 0.03, -data.delta.y * 0.03);
-      } else if (data.type == "pinch") zoomCamera(data.deltaScale * -3);
+        if (data.number == 2) panCamera(data.delta.x * 0.015, -data.delta.y * 0.015);
+        else rotateCamera(data.delta.x * 0.01, -data.delta.y * 0.01);
+      } else if (data.type == "pinch") zoomCamera(data.deltaScale * -2);
     });
 
     handler.onGestureEnd((data) => {
-      info.textContent = "Gesture ended. Touch with two fingers to start new gesture";
-      console.log("Gesture ended", data);
+      gestureOn = false;
     });
   }
 
   var panning = false;
   scene.onPointerObservable.add((pointerInfo) => {
+    if (gestureOn) return;
     switch (pointerInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN:
         if (pointerInfo.event.button == 1) panning = true;
         if (pointerInfo.event.button != 0) break;
+
         if (!pointerInfo.pickInfo.hit) break;
         if (pointerInfo.pickInfo.pickedMesh == ground) {
           if (!controlKeyDown) SelectionHandler.removeAll();
