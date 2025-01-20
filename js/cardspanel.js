@@ -50,7 +50,7 @@ closePanelBtn.addEventListener("click", () => {
 });
 
 // Configuration
-const maxSelectableCards = -1; // Can be adjusted as needed
+const maxSelectableCards = 1; // Can be adjusted as needed, -1 = infinite
 
 function setupCardSelection() {
   cards.forEach((card) => {
@@ -61,7 +61,10 @@ function setupCardSelection() {
       } else {
         // Check if max selection reached
         const selectedCards = document.querySelectorAll(".card.selected");
-        if (maxSelectableCards == -1 || selectedCards.length < maxSelectableCards) {
+        if (maxSelectableCards == -1 || selectedCards.length < maxSelectableCards || selectedCards.length == 1) {
+          
+          if(selectedCards.length == 1)
+            cards.forEach((c) => {c.classList.remove("selected");});
           card.classList.add("selected");
         } else {
           console.log(`Maximum of ${maxSelectableCards} cards selected`);
