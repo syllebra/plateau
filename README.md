@@ -30,6 +30,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Object dropping onto another events system
 - [ ] Long/Short click system and associated events
 - [ ] Multiple touches interactions
+- [ ] XR and XR interactions
 
 # Todo
 

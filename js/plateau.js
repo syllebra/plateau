@@ -1,5 +1,5 @@
-var a = [0,1,2,3,4]
-console.log(a)
+var a = [0, 1, 2, 3, 4];
+console.log(a);
 
 canvas = document.getElementById("renderCanvas");
 engine = new BABYLON.Engine(canvas, true, { stencil: true });
@@ -438,7 +438,11 @@ var createScene = async function () {
             pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );
 
-          DropZone.ShowInRadius(picked_ground_pos, showDropZoneInRadius, (m) => PlateauObject.GetTopMost(m.node) != pickedObject);
+          DropZone.ShowInRadius(
+            picked_ground_pos,
+            showDropZoneInRadius,
+            (m) => PlateauObject.GetTopMost(m.node) != pickedObject
+          );
 
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
@@ -486,9 +490,11 @@ var createScene = async function () {
           if (dz) {
             var plateauParent = PlateauObject.GetTopMost(dz.node);
             var cb = null;
-            if( plateauParent instanceof Deck) {
+            if (plateauParent instanceof Deck) {
               var objectToDrop = pickedObject;
-              cb = () => { plateauParent.objectDroppedOnZone(objectToDrop, dz);}
+              cb = () => {
+                plateauParent.objectDroppedOnZone(objectToDrop, dz);
+              };
             }
             pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
           }
@@ -548,8 +554,11 @@ var createScene = async function () {
             dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
             last_base_hit.copyFrom(base_hit.pickedPoint);
             last_base_hit_time = performance.now();
-            DropZone.ShowInRadius(pickedObject.node.absolutePosition, showDropZoneInRadius,
-              (m) => (PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)));
+            DropZone.ShowInRadius(
+              pickedObject.node.absolutePosition,
+              showDropZoneInRadius,
+              (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
+            );
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
@@ -635,4 +644,30 @@ createScene().then((scene) => {
 // Resize
 window.addEventListener("resize", function () {
   engine.resize();
+});
+
+const touchArea = document.getElementById("renderCanvas");
+const handler = new GestureHandler(touchArea);
+
+// Create info element for displaying gesture data
+const info = document.createElement("div");
+info.className = "info";
+document.body.appendChild(info);
+
+handler.onGestureStart((data) => {
+  info.textContent = `Gesture started: ${data.type}`;
+  console.log("Gesture started", data);
+});
+
+handler.onGestureUpdate((data) => {
+  info.textContent = `Gesture: ${data.type}
+Center: (${data.center.x.toFixed(1)}, ${data.center.y.toFixed(1)})
+Delta: (${data.delta.x.toFixed(1)}, ${data.delta.y.toFixed(1)})
+Scale: ${data.scale.toFixed(2)}`;
+  console.log("Gesture updated", data);
+});
+
+handler.onGestureEnd((data) => {
+  info.textContent = "Gesture ended. Touch with two fingers to start new gesture";
+  console.log("Gesture ended", data);
 });
