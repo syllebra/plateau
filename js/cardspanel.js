@@ -155,26 +155,23 @@ function onDragMove(e) {
         cardsGrid.insertBefore(ghostCard, targetCard);
       }
       
-      // Animate only immediate neighbors
-      const prevCard = cards[targetIndex - direction];
-      const nextCard = cards[targetIndex + direction];
+      // Animate cards with cascading effect
+      const distance = Math.abs(targetIndex - dragStartIndex);
+      const maxOffset = 30;
       
-      if (prevCard && prevCard !== dragCard && prevCard !== ghostCard) {
-        prevCard.style.transition = 'transform 0.15s ease-out';
-        prevCard.style.transform = `translateX(${direction * -30}px)`;
-      }
-      
-      if (nextCard && nextCard !== dragCard && nextCard !== ghostCard) {
-        nextCard.style.transition = 'transform 0.15s ease-out';
-        nextCard.style.transform = `translateX(${direction * -30}px)`;
-      }
-      
-      // Reset other cards
       cards.forEach((card, i) => {
-        if (card !== dragCard && card !== ghostCard && 
-            card !== prevCard && card !== nextCard) {
-          card.style.transition = 'transform 0.15s ease-out';
-          card.style.transform = '';
+        if (card !== dragCard && card !== ghostCard) {
+          const cardDistance = Math.abs(i - dragStartIndex);
+          const offset = Math.min(maxOffset, maxOffset * (1 - (cardDistance / distance)));
+          
+          if (i >= Math.min(dragStartIndex, targetIndex) && 
+              i <= Math.max(dragStartIndex, targetIndex)) {
+            card.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+            card.style.transform = `translateX(${direction * offset}px)`;
+          } else {
+            card.style.transition = 'transform 0.2s ease';
+            card.style.transform = '';
+          }
         }
       });
       
