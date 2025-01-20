@@ -340,6 +340,7 @@ var createScene = async function () {
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
   var box_selection = false;
+  var mousePanning = false;
   var gestureOn = false;
   var dir_speed = new BABYLON.Vector3();
   var last_base_hit = new BABYLON.Vector3();
@@ -446,6 +447,7 @@ var createScene = async function () {
     const handler = new GestureHandler(touchArea);
 
     handler.onGestureStart((data) => {
+      stopCurrentInteraction();
       gestureOn = true;
     });
 
@@ -461,12 +463,56 @@ var createScene = async function () {
     });
   }
 
-  var panning = false;
+  function stopCurrentInteraction() {
+    if (box_selection) {
+      box_selection = false;
+      SelectionHandler.selbox.setVisiblity(false);
+    } else if (pickedObject) {
+      dir_speed = dir_speed.normalize();
+
+      var objects = SelectionHandler.getPlateauObjects();
+      if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+      for (var o of objects) {
+        o.node.dragged = false;
+        var pos = new BABYLON.Vector3();
+        pos.copyFrom(o.node.absolutePosition);
+        pos.y += 0.03; // slightly up to induce some moment (angular velocity)
+        o.stopAnimationMode();
+        o.onRelease();
+
+        if (o.body) {
+          var power = o.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
+          var forceVector = new BABYLON.Vector3();
+          forceVector.copyFrom(dir_speed);
+          forceVector.x *= power;
+          forceVector.z *= power;
+          o.body.applyForce(forceVector, pos);
+        }
+      }
+
+      var dz = DropZone.GetHovered(pickedObject.node.absolutePosition, pickedObject);
+      if (dz) {
+        var plateauParent = PlateauObject.GetTopMost(dz.node);
+        var cb = null;
+        if (plateauParent instanceof Deck) {
+          var objectToDrop = pickedObject;
+          cb = () => {
+            plateauParent.objectDroppedOnZone(objectToDrop, dz);
+          };
+        }
+        pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
+      }
+      DropZone.HideAll();
+
+      pickedObject = null;
+    }
+  }
+
   scene.onPointerObservable.add((pointerInfo) => {
     if (gestureOn) return;
     switch (pointerInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN:
-        if (pointerInfo.event.button == 1) panning = true;
+        if (pointerInfo.event.button == 1) mousePanning = true;
         if (pointerInfo.event.button != 0) break;
 
         if (!pointerInfo.pickInfo.hit) break;
@@ -516,54 +562,13 @@ var createScene = async function () {
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
-        if (pointerInfo.event.button == 1 && panning) panning = false;
+        if (pointerInfo.event.button == 1 && mousePanning) mousePanning = false;
         if (pointerInfo.event.button != 0) break;
 
-        if (box_selection) {
-          box_selection = false;
-          SelectionHandler.selbox.setVisiblity(false);
-        } else if (pickedObject) {
-          dir_speed = dir_speed.normalize();
-
-          var objects = SelectionHandler.getPlateauObjects();
-          if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
-          for (var o of objects) {
-            o.node.dragged = false;
-            var pos = new BABYLON.Vector3();
-            pos.copyFrom(o.node.absolutePosition);
-            pos.y += 0.03; // slightly up to induce some moment (angular velocity)
-            o.stopAnimationMode();
-            o.onRelease();
-
-            if (o.body) {
-              var power = o.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
-              var forceVector = new BABYLON.Vector3();
-              forceVector.copyFrom(dir_speed);
-              forceVector.x *= power;
-              forceVector.z *= power;
-              o.body.applyForce(forceVector, pos);
-            }
-          }
-
-          var dz = DropZone.GetHovered(pickedObject.node.absolutePosition, pickedObject);
-          if (dz) {
-            var plateauParent = PlateauObject.GetTopMost(dz.node);
-            var cb = null;
-            if (plateauParent instanceof Deck) {
-              var objectToDrop = pickedObject;
-              cb = () => {
-                plateauParent.objectDroppedOnZone(objectToDrop, dz);
-              };
-            }
-            pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
-          }
-          DropZone.HideAll();
-
-          pickedObject = null;
-        }
+        stopCurrentInteraction();
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
-        if (panning) {
+        if (mousePanning) {
           const delta = 0.01; // Amount of change in movement
           let x = delta * pointerInfo.event.movementX;
           let y = -delta * pointerInfo.event.movementY;
