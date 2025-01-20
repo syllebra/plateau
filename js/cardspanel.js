@@ -35,7 +35,246 @@ document.addEventListener("DOMContentLoaded", () => {
   generateCards();
   setupCardSelection();
   setupValidationButton();
+  setupDragAndDrop();
 });
+
+// Drag and Drop functionality
+let isDragging = false;
+let dragCard = null;
+let ghostCard = null;
+let dragStartIndex = -1;
+
+function setupDragAndDrop() {
+  const longPressDuration = 500; // milliseconds
+  const dragThreshold = 5; // pixels
+  let longPressTimer;
+  let startX, startY;
+
+  cards.forEach((card, index) => {
+    // Add touch/pointer event listeners
+    card.addEventListener('pointerdown', (e) => {
+      startX = e.clientX;
+      startY = e.clientY;
+      longPressTimer = setTimeout(() => {
+        startDrag(card, index);
+      }, longPressDuration);
+    });
+
+    card.addEventListener('pointerup', (e) => {
+      clearTimeout(longPressTimer);
+      if (isDragging) {
+        stopDrag();
+      }
+    });
+
+    card.addEventListener('pointermove', (e) => {
+      if (!isDragging && longPressTimer) {
+        // Check if movement exceeds threshold
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx > dragThreshold || dy > dragThreshold) {
+          clearTimeout(longPressTimer);
+        }
+      }
+      
+      if (isDragging) {
+        e.preventDefault();
+        onDragMove(e);
+      }
+    });
+
+    card.addEventListener('pointerleave', () => {
+      clearTimeout(longPressTimer);
+    });
+  });
+}
+
+function startDrag(card, index) {
+  isDragging = true;
+  dragCard = card;
+  dragStartIndex = index;
+  
+  // Create ghost card with enhanced styling
+  ghostCard = card.cloneNode(true);
+  ghostCard.classList.add('ghost');
+  ghostCard.style.opacity = '0.7';
+  ghostCard.style.pointerEvents = 'none';
+  ghostCard.style.transform = 'scale(1.05)';
+  ghostCard.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+  ghostCard.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+  card.parentNode.insertBefore(ghostCard, card);
+  
+  // Remove dragged card from normal flow
+  const rect = card.getBoundingClientRect();
+  card.style.position = 'absolute';
+  card.style.width = `${rect.width}px`;
+  card.style.height = `${rect.height}px`;
+  card.style.left = `${rect.left}px`;
+  card.style.top = `${rect.top}px`;
+  card.style.margin = '0';
+  
+  // Style dragged card with enhanced feedback
+  card.classList.add('dragging');
+  card.style.zIndex = 1000;
+  card.style.transition = 'none';
+  card.style.transform = 'scale(1.1) rotate(2deg)';
+  card.style.boxShadow = '0 8px 30px rgba(0,0,0,0.3)';
+  
+  // Add document-wide listeners
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup', stopDrag);
+  
+  // Temporarily disable scrolling
+  cardsGrid.style.overflowY = 'hidden';
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  
+  // Move dragged card
+  const rect = dragCard.getBoundingClientRect();
+  dragCard.style.position = 'fixed';
+  dragCard.style.left = `${e.clientX - rect.width/2}px`;
+  dragCard.style.top = `${e.clientY - rect.height/2}px`;
+  
+  // Find hovered card
+  const elements = document.elementsFromPoint(e.clientX, e.clientY);
+  const targetCard = elements.find(el => el.classList.contains('card') && el !== dragCard);
+  
+  if (targetCard) {
+    const targetIndex = Array.from(cards).indexOf(targetCard);
+    if (targetIndex !== -1 && targetIndex !== dragStartIndex) {
+      // Calculate direction
+      const direction = targetIndex > dragStartIndex ? 1 : -1;
+      
+      // Move ghost card to new position
+      if (direction === 1) {
+        cardsGrid.insertBefore(ghostCard, targetCard.nextSibling);
+      } else {
+        cardsGrid.insertBefore(ghostCard, targetCard);
+      }
+      
+      // Animate other cards
+      cards.forEach((card, i) => {
+        if (card !== dragCard && card !== ghostCard) {
+          card.style.transition = 'transform 0.2s ease';
+          card.style.transform = i >= Math.min(dragStartIndex, targetIndex) && 
+                               i <= Math.max(dragStartIndex, targetIndex) ?
+                               `translateX(${direction * -50}px)` : '';
+        }
+      });
+      
+      dragStartIndex = targetIndex;
+    }
+  }
+}
+
+function stopDrag() {
+  if (!isDragging) return;
+  
+  // Store references
+  const currentGhost = ghostCard;
+  const currentDrag = dragCard;
+  
+  if (currentGhost && currentGhost.parentNode) {
+    // Get target position before removing ghost
+    const targetPosition = currentGhost.getBoundingClientRect();
+    
+    // Calculate the correct insertion point
+    const cardsArray = Array.from(cardsGrid.children);
+    const ghostIndex = cardsArray.indexOf(currentGhost);
+    
+    // Remove ghost card first
+    currentGhost.remove();
+    
+    // Calculate final position relative to grid
+    const gridRect = cardsGrid.getBoundingClientRect();
+    const finalLeft = targetPosition.left - gridRect.left;
+    const finalTop = targetPosition.top - gridRect.top;
+    
+    // Animate dragged card to final position
+    currentDrag.style.transition = 'all 0.3s ease';
+    currentDrag.style.left = `${finalLeft}px`;
+    currentDrag.style.top = `${finalTop}px`;
+    currentDrag.style.transform = 'scale(1) rotate(0deg)';
+    currentDrag.style.opacity = '0.7';
+    
+    setTimeout(() => {
+      // Reset positioning and insert at correct location
+      currentDrag.style.position = '';
+      currentDrag.style.left = '';
+      currentDrag.style.top = '';
+      currentDrag.style.width = '';
+      currentDrag.style.height = '';
+      currentDrag.style.margin = '';
+      
+      // Safely insert dragged card at correct position
+      try {
+        if (ghostIndex >= 0 && ghostIndex < cardsArray.length) {
+          // Get the correct insertion point based on ghost position
+          const insertionPoint = ghostIndex < cardsArray.length - 1 ? 
+            cardsArray[ghostIndex + 1] : 
+            null;
+          
+          if (insertionPoint && insertionPoint.parentNode === cardsGrid) {
+            cardsGrid.insertBefore(currentDrag, insertionPoint);
+          } else {
+            cardsGrid.appendChild(currentDrag);
+          }
+        } else {
+          cardsGrid.appendChild(currentDrag);
+        }
+      } catch (error) {
+        console.error('Error inserting card:', error);
+        cardsGrid.appendChild(currentDrag); // Fallback to append
+      }
+      
+      // Finalize animation
+      currentDrag.style.transition = '';
+      currentDrag.style.transform = '';
+      currentDrag.style.opacity = '1';
+    }, 300);
+  } else {
+    // Fallback: Append to end if no ghost
+    cardsGrid.appendChild(currentDrag);
+  }
+  
+  // Final cleanup
+  if (currentGhost && currentGhost.parentNode) {
+    currentGhost.remove();
+  }
+  
+  // Reset styles
+  dragCard.classList.remove('dragging');
+  dragCard.style.position = '';
+  dragCard.style.left = '';
+  dragCard.style.top = '';
+  dragCard.style.zIndex = '';
+  dragCard.style.transition = '';
+  dragCard.style.boxShadow = '';
+  
+  // Reset other cards with animation
+  cards.forEach(card => {
+    if (card !== dragCard) {
+      card.style.transition = 'transform 0.3s ease';
+      card.style.transform = '';
+    }
+  });
+  
+  // Clean up
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup', stopDrag);
+  isDragging = false;
+  dragCard = null;
+  ghostCard = null;
+  dragStartIndex = -1;
+  
+  // Re-enable scrolling
+  cardsGrid.style.overflowY = 'auto';
+  
+  // Update cards array
+  cards = document.querySelectorAll('.card');
+}
 
 // Toggle panel visibility
 togglePanelBtn.addEventListener("click", () => {
@@ -93,57 +332,57 @@ function setupValidationButton() {
 }
 
 // Proper momentum scrolling implementation
-let isDragging = false;
-let startY, scrollTop;
-let velocity = 0;
-let lastTime = 0;
-let lastY = 0;
-let animationFrame;
+let isScrolling = false;
+let scrollStartY, scrollTop;
+let scrollVelocity = 0;
+let scrollLastTime = 0;
+let scrollLastY = 0;
+let scrollAnimationFrame;
 const friction = 0.92;
 const minVelocity = 0.5;
 
 const startScroll = (clientY) => {
-  isDragging = true;
-  startY = clientY;
+  isScrolling = true;
+  scrollStartY = clientY;
   scrollTop = cardsGrid.scrollTop;
-  lastY = clientY;
-  lastTime = Date.now();
-  cancelAnimationFrame(animationFrame);
+  scrollLastY = clientY;
+  scrollLastTime = Date.now();
+  cancelAnimationFrame(scrollAnimationFrame);
 };
 
 const stopScroll = () => {
-  isDragging = false;
+  isScrolling = false;
   startMomentum();
 };
 
 const doScroll = (clientY) => {
-  if (!isDragging) return;
+  if (!isScrolling) return;
 
   // Calculate time delta
   const now = Date.now();
-  const deltaTime = now - lastTime;
+  const deltaTime = now - scrollLastTime;
 
   // Calculate velocity
   if (deltaTime > 0) {
-    velocity = (clientY - lastY) / deltaTime;
-    lastY = clientY;
-    lastTime = now;
+    scrollVelocity = (clientY - scrollLastY) / deltaTime;
+    scrollLastY = clientY;
+    scrollLastTime = now;
   }
 
   // Apply scroll
-  const deltaY = clientY - startY;
+  const deltaY = clientY - scrollStartY;
   cardsGrid.scrollTop = scrollTop - deltaY;
 };
 
 const startMomentum = () => {
-  if (Math.abs(velocity) > minVelocity) {
-    velocity *= friction;
-    cardsGrid.scrollTop -= velocity * 16; // Adjusted for smoothness
+  if (Math.abs(scrollVelocity) > minVelocity) {
+    scrollVelocity *= friction;
+    cardsGrid.scrollTop -= scrollVelocity * 16; // Adjusted for smoothness
 
     // Continue momentum
-    animationFrame = requestAnimationFrame(startMomentum);
+    scrollAnimationFrame = requestAnimationFrame(startMomentum);
   } else {
-    velocity = 0;
+    scrollVelocity = 0;
   }
 };
 
