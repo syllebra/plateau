@@ -104,14 +104,15 @@ function startDrag(card, index) {
   ghostCard.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
   card.parentNode.insertBefore(ghostCard, card);
   
-  // Remove dragged card from normal flow
+  // Remove dragged card from grid and add to body for smooth dragging
   const rect = card.getBoundingClientRect();
-  card.style.position = 'absolute';
+  card.style.position = 'fixed';
   card.style.width = `${rect.width}px`;
   card.style.height = `${rect.height}px`;
   card.style.left = `${rect.left}px`;
   card.style.top = `${rect.top}px`;
   card.style.margin = '0';
+  document.body.appendChild(card);
   
   // Style dragged card with enhanced feedback
   card.classList.add('dragging');
@@ -154,13 +155,26 @@ function onDragMove(e) {
         cardsGrid.insertBefore(ghostCard, targetCard);
       }
       
-      // Animate other cards
+      // Animate only immediate neighbors
+      const prevCard = cards[targetIndex - direction];
+      const nextCard = cards[targetIndex + direction];
+      
+      if (prevCard && prevCard !== dragCard && prevCard !== ghostCard) {
+        prevCard.style.transition = 'transform 0.15s ease-out';
+        prevCard.style.transform = `translateX(${direction * -30}px)`;
+      }
+      
+      if (nextCard && nextCard !== dragCard && nextCard !== ghostCard) {
+        nextCard.style.transition = 'transform 0.15s ease-out';
+        nextCard.style.transform = `translateX(${direction * -30}px)`;
+      }
+      
+      // Reset other cards
       cards.forEach((card, i) => {
-        if (card !== dragCard && card !== ghostCard) {
-          card.style.transition = 'transform 0.2s ease';
-          card.style.transform = i >= Math.min(dragStartIndex, targetIndex) && 
-                               i <= Math.max(dragStartIndex, targetIndex) ?
-                               `translateX(${direction * -50}px)` : '';
+        if (card !== dragCard && card !== ghostCard && 
+            card !== prevCard && card !== nextCard) {
+          card.style.transition = 'transform 0.15s ease-out';
+          card.style.transform = '';
         }
       });
       
@@ -184,8 +198,9 @@ function stopDrag() {
     const cardsArray = Array.from(cardsGrid.children);
     const ghostIndex = cardsArray.indexOf(currentGhost);
     
-    // Remove ghost card first
-    currentGhost.remove();
+    // Fade out ghost card after animation
+    currentGhost.style.transition = 'opacity 0.2s ease';
+    currentGhost.style.opacity = '0';
     
     // Calculate final position relative to grid
     const gridRect = cardsGrid.getBoundingClientRect();
@@ -197,16 +212,19 @@ function stopDrag() {
     currentDrag.style.left = `${finalLeft}px`;
     currentDrag.style.top = `${finalTop}px`;
     currentDrag.style.transform = 'scale(1) rotate(0deg)';
-    currentDrag.style.opacity = '0.7';
+    currentDrag.style.opacity = '1';
     
     setTimeout(() => {
-      // Reset positioning and insert at correct location
+      // Reset positioning and reinsert into grid
       currentDrag.style.position = '';
       currentDrag.style.left = '';
       currentDrag.style.top = '';
       currentDrag.style.width = '';
       currentDrag.style.height = '';
       currentDrag.style.margin = '';
+      
+      // Remove from body and reinsert into grid
+      currentDrag.remove();
       
       // Safely insert dragged card at correct position
       try {
@@ -239,10 +257,12 @@ function stopDrag() {
     cardsGrid.appendChild(currentDrag);
   }
   
-  // Final cleanup
-  if (currentGhost && currentGhost.parentNode) {
-    currentGhost.remove();
-  }
+  // Remove ghost card after animation completes
+  setTimeout(() => {
+    if (currentGhost && currentGhost.parentNode) {
+      currentGhost.remove();
+    }
+  }, 300);
   
   // Reset styles
   dragCard.classList.remove('dragging');
