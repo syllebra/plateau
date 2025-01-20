@@ -442,23 +442,23 @@ var createScene = async function () {
     }
   }
 
-  {
-    const touchArea = document.getElementById("renderCanvas");
-    const handler = new GestureHandler(touchArea);
+  const touchArea = document.getElementById("renderCanvas");
+  const gestureHandler = new GestureHandler(touchArea);
 
-    handler.onGestureStart((data) => {
+  {
+    gestureHandler.onGestureStart((data) => {
       stopCurrentInteraction();
       gestureOn = true;
     });
 
-    handler.onGestureUpdate((data) => {
+    gestureHandler.onGestureUpdate((data) => {
       if (data.type == "drag") {
         if (data.number == 2) panCamera(data.delta.x * 0.015, -data.delta.y * 0.015);
         else rotateCamera(data.delta.x * 0.01, -data.delta.y * 0.01);
       } else if (data.type == "pinch") zoomCamera(data.deltaScale * -2);
     });
 
-    handler.onGestureEnd((data) => {
+    gestureHandler.onGestureEnd((data) => {
       gestureOn = false;
     });
   }
@@ -509,7 +509,7 @@ var createScene = async function () {
   }
 
   scene.onPointerObservable.add((pointerInfo) => {
-    if (gestureOn) return;
+    if (gestureOn || gestureHandler.touches.size > 1) return;
     switch (pointerInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN:
         if (pointerInfo.event.button == 1) mousePanning = true;
