@@ -35,6 +35,12 @@ class DropZone {
       p0.y = 0;
       p1.y = 0;
       var inRadius = BABYLON.Vector3.Distance(p0, p1) < radius;
+
+      if (inRadius) {
+        var po = PlateauObject.GetTopMost(z.node);
+        if (po) po.updateZones();
+      }
+
       if (inRadius && !z.isEnabled()) z.setEnabled(true);
       if (!inRadius && z.isEnabled()) z.setEnabled(false);
     }

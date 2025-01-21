@@ -191,9 +191,7 @@ var createScene = async function () {
   camera.inputs.attached.mouse.buttons = [2];
 
   //camera.inputs.removeMouse();
-  delete camera.inputs.attached.touch.detachControl();
-
-  console.log(camera.inputs);
+  camera.inputs.attached.touch.detachControl();
 
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
@@ -271,11 +269,11 @@ var createScene = async function () {
         1
       );
 
-      var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
-      box.material = bodyRenderingMaterial;
-      instance.node.addChild(box);
-      box.position = new BABYLON.Vector3(0, 0.3, 0);
-      instance.updateBoundingInfos();
+      // var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+      // box.material = bodyRenderingMaterial;
+      // instance.node.addChild(box);
+      // box.position = new BABYLON.Vector3(0, 0.3, 0);
+      // instance.updateBoundingInfos();
       // pathTracedMesh = null;
       // containerMeshes = [];
     }

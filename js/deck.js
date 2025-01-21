@@ -107,14 +107,10 @@ class Deck extends PlateauObject {
     if (position) node.position.copyFrom(position);
 
     super(node);
+  }
 
-    scene.onKeyboardObservable.add((kbInfo) => {
-      if (
-        kbInfo.event.key == "Shift" &&
-        (kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN || kbInfo.type == BABYLON.KeyboardEventTypes.KEYUP)
-      )
-        this.checkDropZonesUpdate(kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN);
-    });
+  updateZones() {
+    this.checkDropZonesUpdate();
   }
 
   static BuildFromCardsAtlas(name, atlas, position) {
@@ -134,7 +130,6 @@ class Deck extends PlateauObject {
     deck.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
     deck.bottomDropZone.acceptedClasses.add(Card);
     //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
-    console.log(sz);
     deck._updateCardsPhysics();
     if (position) deck.node.position.copyFrom(position);
 
@@ -247,7 +242,6 @@ class Deck extends PlateauObject {
   }
 
   checkDropZonesUpdate(b) {
-    console.log("Drop Zones update");
     // Check wich way the deck is currently facing (flipped for example?)
     var angle = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up());
     var upz = angle < 90 ? this.topDropZone : this.bottomDropZone;
@@ -256,8 +250,8 @@ class Deck extends PlateauObject {
     upz.node.position.x = 0.0;
     downz.node.position.x = 0.3;
 
-    upz.canReceive = !b;
-    downz.canReceive = b;
+    // upz.canReceive = !b;
+    // downz.canReceive = b;
   }
 
   objectDroppedOnZone(obj, zone) {

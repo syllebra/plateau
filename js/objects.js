@@ -210,7 +210,7 @@ class PlateauObject {
       this.rotationAnimation.animations[0].currentValue = 0;
       this.rotationAnimation.animations[0].duration = nbf;
       this.rotationAnimation.restart();
-      
+
       return this.rotationAnimation;
     }
 
@@ -238,7 +238,7 @@ class PlateauObject {
 
     this.rotationAnimation.complete = function () {
       toRotate.plateauObj.rotationAnimation = null;
-      if(toRotate.rotationAnimationFinishedCB ) toRotate.rotationAnimationFinishedCB ();
+      if (toRotate.rotationAnimationFinishedCB) toRotate.rotationAnimationFinishedCB();
     };
     return this.rotationAnimation;
   }
@@ -252,7 +252,7 @@ class PlateauObject {
       this.positionAnimation.animations[0].currentValue = 0;
       this.positionAnimation.animations[0].duration = nbf;
       this.positionAnimation.restart();
-      
+
       return this.positionAnimation;
     }
 
@@ -279,7 +279,7 @@ class PlateauObject {
 
     this.positionAnimation.complete = function () {
       toMove.plateauObj.positionAnimation = null;
-      if(toMove.positionAnimationFinishedCB) toMove.positionAnimationFinishedCB();
+      if (toMove.positionAnimationFinishedCB) toMove.positionAnimationFinishedCB();
     };
     return this.positionAnimation;
   }
@@ -350,8 +350,7 @@ class PlateauObject {
     // tr.applyToNodeWorld(this.node);
     // return;
 
-    if(animateRotation)
-      this.animateRotation(destNode.absoluteRotationQuaternion, 280);
+    if (animateRotation) this.animateRotation(destNode.absoluteRotationQuaternion, 280);
     var dstPos = destNode.absolutePosition.clone();
 
     var bb = this.getBoundingInfos().boundingBox;
@@ -360,7 +359,9 @@ class PlateauObject {
     this.animatePosition(dstPos, 300, () => {
       this.setEnabled(true, true);
       this.stopAnimationMode();
-      if(finishedCB) finishedCB();
+      if (finishedCB) finishedCB();
     });
   }
+
+  updateZones() {}
 }
