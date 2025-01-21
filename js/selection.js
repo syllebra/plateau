@@ -136,11 +136,11 @@ class SelectionHandler {
     return false;
   }
 
-  static addPlateauObject(obj) {
+  static addPlateauObject(obj, color = new BABYLON.Color3(0, 1, 1), justHighlight = false) {
     if (!this.hl || !obj.node) return;
     //console.log("Selecting ", obj.node.id);
-    this._addMeshesRecursive(obj.node);
-    this.selected.add(obj);
+    this._addMeshesRecursive(obj.node, null, color);
+    if (!justHighlight) this.selected.add(obj);
   }
 
   static removePlateauObject(obj) {
@@ -171,24 +171,12 @@ class SelectionHandler {
   }
 
   static _updateHover(obj, enter = true, color = new BABYLON.Color3(0.2, 0.2, 0.2)) {
-    function _highlightRecursive(m, enter) {
-      if (m.material) {
-        if (enter) {
-          m.savedMaterial = m.material;
-          m.material = m.material.clone();
-          m.material.emissiveColor = color;
-        } else {
-          if (m.savedMaterial) {
-            m.material.dispose();
-            m.material = m.savedMaterial;
-          }
-        }
-      }
-
-      for (var c of m.getChildren()) _highlightRecursive(c, enter);
+    if (!obj) return;
+    if (enter) SelectionHandler.addPlateauObject(obj, new BABYLON.Color3(1, 0.6, 0.0), true);
+    else {
+      if (SelectionHandler.isSelected(obj)) SelectionHandler.addPlateauObject(obj);
+      else SelectionHandler.removePlateauObject(obj);
     }
-
-    if (obj) _highlightRecursive(obj.node, enter);
   }
 
   static hoveredObject = null;
