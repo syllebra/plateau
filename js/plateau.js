@@ -548,6 +548,7 @@ var createScene = async function () {
             showDropZoneInRadius,
             (m) => PlateauObject.GetTopMost(m.node) != pickedObject
           );
+          DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
 
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
@@ -615,6 +616,7 @@ var createScene = async function () {
               showDropZoneInRadius,
               (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
             );
+            DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);

@@ -14,7 +14,7 @@ class DropZone {
     pbr.roughness = 1.0;
 
     var txt = new BABYLON.Texture("textures/others/selection.png", scene, true, false);
-    pbr.albedoColor = new BABYLON.Color3(1, 0, 0);
+    pbr.albedoColor = new BABYLON.Color3(1, 0, 1);
     pbr.albedoTexture = txt;
     pbr.alpha = 0.6;
     // pbr.emissiveColor = new BABYLON.Color3(1, 0.5, 0.5);
@@ -43,6 +43,14 @@ class DropZone {
 
       if (inRadius && !z.isEnabled()) z.setEnabled(true);
       if (!inRadius && z.isEnabled()) z.setEnabled(false);
+    }
+  }
+
+  static CheckCurrentDrop(position, obj = null) {
+    var dz = DropZone.GetHovered(position, obj);
+    for (var z of this.all) {
+      if (z.node && z.node.material)
+        z.node.material.albedoColor = z == dz ? new BABYLON.Color3(0.5, 1, 0.5) : new BABYLON.Color3(0.5, 0.0, 0.5);
     }
   }
 
@@ -84,7 +92,7 @@ class DropZone {
     plane.parent = parent;
     plane.position = localPosition;
     plane.rotationQuaternion = localRotation;
-    plane.material = this.defaultMaterial;
+    plane.material = this.defaultMaterial.clone();
     return this.FromNode(plane);
   }
 
@@ -92,8 +100,8 @@ class DropZone {
     var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
 
     var pi = scene.pickWithRay(
-      (ray = ray),
-      (predicate = (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && mesh.dropZone.accept(obj))
+      ray,
+      (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && mesh.dropZone.accept(obj)
     );
     if (!pi.hit) return null;
     return pi.pickedMesh.dropZone;
