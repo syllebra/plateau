@@ -170,9 +170,9 @@ class SelectionHandler {
     return this.selected.has(obj);
   }
 
-  static _updateHover(obj, enter = true, color = new BABYLON.Color3(0.2, 0.2, 0.2)) {
+  static _updateHover(obj, enter = true, color = new BABYLON.Color3(1, 0.6, 0.0)) {
     if (!obj) return;
-    if (enter) SelectionHandler.addPlateauObject(obj, new BABYLON.Color3(1, 0.6, 0.0), true);
+    if (enter) SelectionHandler.addPlateauObject(obj, color, true);
     else {
       if (SelectionHandler.isSelected(obj)) SelectionHandler.addPlateauObject(obj);
       else SelectionHandler.removePlateauObject(obj);

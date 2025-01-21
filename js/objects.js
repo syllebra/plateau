@@ -79,6 +79,7 @@ class PlateauObject {
       lMax.z *= n.scaling.z;
 
       for (var c of n.getChildren()) {
+        if (c.dropZone) continue;
         var cBB = getLocalBB(c, dst);
 
         lMin.x = Math.min(cBB.min.x, cBB.max.x, lMin.x);
