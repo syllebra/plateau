@@ -7,6 +7,7 @@ class DropZone {
     });
   }
   static defaultMaterial = null;
+  static hoveredMaterial = null;
   static async createDropZoneMaterial() {
     const pbr = new BABYLON.PBRMaterial("dropZoneMaterial", scene);
 
@@ -14,13 +15,15 @@ class DropZone {
     pbr.roughness = 1.0;
 
     var txt = new BABYLON.Texture("textures/others/selection.png", scene, true, false);
-    pbr.albedoColor = new BABYLON.Color3(1, 0, 1);
+    pbr.albedoColor = new BABYLON.Color3(0.5, 0.0, 0.5);
     pbr.albedoTexture = txt;
     pbr.alpha = 0.6;
     // pbr.emissiveColor = new BABYLON.Color3(1, 0.5, 0.5);
     // pbr.emissiveTexture = txt;
     pbr.backFaceCulling = true;
     this.defaultMaterial = pbr;
+    this.hoveredMaterial = pbr.clone();
+    this.hoveredMaterial.albedoColor = new BABYLON.Color3(0.5, 1, 0.5);
     return pbr;
   }
 
@@ -49,8 +52,7 @@ class DropZone {
   static CheckCurrentDrop(position, obj = null) {
     var dz = DropZone.GetHovered(position, obj);
     for (var z of this.all) {
-      if (z.node && z.node.material)
-        z.node.material.albedoColor = z == dz ? new BABYLON.Color3(0.5, 1, 0.5) : new BABYLON.Color3(0.5, 0.0, 0.5);
+      if (z.node) z.node.material = z == dz ? this.hoveredMaterial : this.defaultMaterial;
     }
   }
 
@@ -92,7 +94,7 @@ class DropZone {
     plane.parent = parent;
     plane.position = localPosition;
     plane.rotationQuaternion = localRotation;
-    plane.material = this.defaultMaterial.clone();
+    plane.material = this.defaultMaterial;
     return this.FromNode(plane);
   }
 
