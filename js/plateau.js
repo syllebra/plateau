@@ -37,6 +37,8 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   // pbr.clearCoat.intensity = 0.2;
 
   pbr.albedoTexture = new BABYLON.Texture("textures/table/37_Old table top_DIFF.jpg", scene);
+  //pbr.albedoTexture = new BABYLON.Texture("https://github.com/Tencent/Hunyuan3D-1/blob/main/assets/teaser.png?raw=true", scene);
+  
   pbr.bumpTexture = new BABYLON.Texture("textures/table/37_Old table top_NORM.jpg", scene);
   pbr.bumpTexture.level = 2;
   pbr.ambientTexture = new BABYLON.Texture("textures/table/37_Old table top-AO.jpg", scene);
@@ -688,3 +690,9 @@ createScene().then((scene) => {
 window.addEventListener("resize", function () {
   engine.resize();
 });
+
+var json = null
+fetch('https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json')
+.then(response => response.text())
+.then(data => {json= JSON.parse(data); console.log(json);})
+.catch(error => console.error(error));
