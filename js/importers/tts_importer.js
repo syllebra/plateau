@@ -1,6 +1,7 @@
 class TTSImporter {
   static SNAP_POINT_SIZE = 0.1;
   static UNIT_MULTIPLIER = 0.1;
+  static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
 
   static textures = new Map();
   static meshes = new Map();
@@ -56,35 +57,50 @@ class TTSImporter {
   }
 
   static async importObject(o) {
+    var plateauObj = null;
     switch (o.Name) {
       case "Custom_Model":
-        await this.importCustomModel(o);
+        //plateauObj = await this.importCustomModel(o);
+        break;
+      case "Custom_Dice":
+        plateauObj = await this.importCustomDice(o);
         break;
     }
+
+    if (plateauObj) {
+      // TODO: common parameters
+    }
+
+    return plateauObj;
+  }
+
+  static _tts_transform_to_node(tr, node = null) {
+    var pos = new BABYLON.Vector3(tr.posX, tr.posY, tr.posZ);
+    pos = pos.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
+    var scale = new BABYLON.Vector3(tr.scaleX, tr.scaleY, tr.scaleZ);
+    scale = scale.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
+    var rot = BABYLON.Quaternion.FromEulerAngles(
+      BABYLON.Tools.ToRadians(tr.rotX),
+      BABYLON.Tools.ToRadians(tr.rotY),
+      BABYLON.Tools.ToRadians(tr.rotZ)
+    );
+    if (node) {
+      node.position = pos;
+      node.rotationQuaternion = rot;
+      node.scaling = scale;
+    }
+
+    return { pos: pos, rot: rot, scale: scale };
   }
 
   static async importCustomModel(o) {
-    console.log(o);
     var cmr = await this.importCustomMeshResources(o.CustomMesh);
-    console.log("CMR:", cmr);
     if (cmr.mesh) {
       var name = o.GUID + "_" + o.Nickname;
       try {
-        var pos = new BABYLON.Vector3(o.Transform.posX, o.Transform.posY, o.Transform.posZ);
-        pos = pos.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
-        var scale = new BABYLON.Vector3(o.Transform.scaleX, o.Transform.scaleY, o.Transform.scaleZ);
-        scale = scale.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
-        var rot = BABYLON.Quaternion.FromEulerAngles(
-          BABYLON.Tools.ToRadians(o.Transform.rotX),
-          BABYLON.Tools.ToRadians(o.Transform.rotY),
-          BABYLON.Tools.ToRadians(o.Transform.rotZ)
-        );
-
         var mesh = cmr.mesh.clone();
+        this._tts_transform_to_node(o.Transform, mesh);
         console.log(mesh);
-        mesh.position = pos;
-        mesh.rotationQuaternion = rot;
-        mesh.scaling = scale;
 
         const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
         pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
@@ -96,13 +112,10 @@ class TTSImporter {
         var meshCol = null;
         // var meshCol = cmr.colliderMesh?.clone();
         // if (meshCol) {
-        //   meshCol.position = pos;
-        //   meshCol.rotationQuaternion = rot; // TODO: from rot
-        //   meshCol.scaling = scale;
+        // this._tts_transform_to_node(o.Transform, meshCol);
         // }
-        var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, pos, 1);
+        var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
         cm.node.id = cm.node.name = name;
-        console.log("NEW OBJECT:", cm.node);
         return cm;
       } catch (e) {
         console.warn("Error occurred while creating ", name, e);
@@ -122,9 +135,44 @@ class TTSImporter {
     return cmr;
   }
 
-  static importTexture(url) {
+  static async importCustomDice(o) {
+    console.log(o);
+    var texture = null;
+    if (o.CustomImage?.ImageURL) texture = await this.importTexture(o.CustomImage.ImageURL, true);
+    var name = o.GUID + "_" + o.Nickname;
+    try {
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 1.0;
+      pbr.clearCoat.isEnabled = true;
+      pbr.clearCoat.intensity = 1.0;
+      console.log(texture);
+      if (texture) pbr.albedoTexture = texture;
+
+      var tr = this._tts_transform_to_node(o.Transform);
+      // TODO: physics material?
+      // TODO: Face orientations?
+      // Note: for now does ot support non cubic dices...
+      var po = new Dice(tr.pos, tr.scale.x);
+      po.node.rotationQuaternion = tr.rot;
+      po.node.material = pbr;
+      po.node.id = po.node.name = name;
+
+      console.log("NEW OBJECT:", po.node);
+      return po;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
+    return null;
+  }
+
+  static importTexture(url, flip = false) {
     if (!this.textures.has(url)) {
-      var tex = new BABYLON.Texture(url, scene); //, true, false);
+      var tex = null;
+      if (flip) tex = new BABYLON.Texture(url, scene, true, false);
+      else tex = new BABYLON.Texture(url, scene);
       this.textures.set(url, tex);
     }
     return this.textures.get(url);

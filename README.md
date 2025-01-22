@@ -32,6 +32,21 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Multiple touches interactions
 - [ ] XR and XR interactions
 
+## TTS Import
+
+- [x] Custom Models
+- [ ] Custom Models Stacks ?
+- [/] Custom Dices
+  - [x] D6
+  - [x] Texture
+  - [ ] Custom Mesh ?
+  - [ ] Face orientations
+- [ ] Custom Tiles
+- [ ] Custom Tokens
+- [ ] Custom Tokens Stacks ?
+- [ ] Cards
+- [ ] Custom Boards
+
 # Todo
 
 - [x] Refactoring animations
