@@ -240,52 +240,52 @@ var createScene = async function () {
   // body/shape on box
   var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 10, viewer, shadowGen);
 
-  const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
-
-  BABYLON.SceneLoader.LoadAssetContainer(
-    "models/",
-    "stairs_01.glb",
-    scene,
-    function (
-      container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
-    ) {
-      // clear out the mesh object and array
-      //meshes = container.meshes;
-      var mesh = container.meshes[1].clone();
-      mesh.createNormals();
-      mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-      // mesh.material.clearCoat.isEnabled = true;
-      // mesh.material.clearCoat.intensity = 1.0;
-
-      mesh.material.metallic = 0.0;
-      mesh.material.roughness = 0;
-
-      mesh.material.subSurface.isTranslucencyEnabled = true;
-      mesh.material.subSurface.tintColor = BABYLON.Color3.White();
-
-      const instance = new PlateauObject(
-        mesh,
-        null,
-        { friction: 0.6, restitution: 0.3 },
-        new BABYLON.Vector3(0, 1.6, 0),
-        1
-      );
-
-      // var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
-      // box.material = bodyRenderingMaterial;
-      // instance.node.addChild(box);
-      // box.position = new BABYLON.Vector3(0, 0.3, 0);
-      // instance.updateBoundingInfos();
-      // pathTracedMesh = null;
-      // containerMeshes = [];
-    }
-  );
-
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
 
-  var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  // const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
+
+  // BABYLON.SceneLoader.LoadAssetContainer(
+  //   "models/",
+  //   "stairs_01.glb",
+  //   scene,
+  //   function (
+  //     container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+  //   ) {
+  //     // clear out the mesh object and array
+  //     //meshes = container.meshes;
+  //     var mesh = container.meshes[1].clone();
+  //     mesh.createNormals();
+  //     mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+  //     // mesh.material.clearCoat.isEnabled = true;
+  //     // mesh.material.clearCoat.intensity = 1.0;
+
+  //     mesh.material.metallic = 0.0;
+  //     mesh.material.roughness = 0;
+
+  //     mesh.material.subSurface.isTranslucencyEnabled = true;
+  //     mesh.material.subSurface.tintColor = BABYLON.Color3.White();
+
+  //     const instance = new PlateauObject(
+  //       mesh,
+  //       null,
+  //       { friction: 0.6, restitution: 0.3 },
+  //       new BABYLON.Vector3(0, 1.6, 0),
+  //       1
+  //     );
+
+  //     // var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+  //     // box.material = bodyRenderingMaterial;
+  //     // instance.node.addChild(box);
+  //     // box.position = new BABYLON.Vector3(0, 0.3, 0);
+  //     // instance.updateBoundingInfos();
+  //     // pathTracedMesh = null;
+  //     // containerMeshes = [];
+  //   }
+  // );
+
+  // var french_deck_atlas = new CardAtlas();
+  // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
@@ -640,15 +640,17 @@ var createScene = async function () {
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
-  var tile = createTileTest(0.4, 0.4, 0.001, 0.005, 4, 0.01, 3);
+  //var tile = ShapedObject.Circle(null, 0.4, 0.1, 60, 0.01, 3);
+  //var tile = ShapedObject.RoundedSquare(null, 0.4, 0.4, 0.1, 0.05, 4, 0.01, 3);
+  var tile = ShapedObject.Hexagon(null, 0.4, 0.1, 0.01, 3);
+  //var tile = ShapedObject.Square(null, 0.4, 0.4, 0.1, 4, 0.01, 3);
   var mat = new BABYLON.PBRMaterial("cardBoard", scene);
   mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
   mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
   mat.metallic = 0.0;
   mat.roughness = 0.05;
-  tile.material = mat;
-  new PlateauObject(tile);
-  tile.position = new BABYLON.Vector3(0, 0.6, 0);
+  tile.node.material = mat;
+  tile.node.position = new BABYLON.Vector3(0, 0.6, 0);
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 

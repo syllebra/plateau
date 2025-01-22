@@ -59,16 +59,23 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      case "Custom_Model":
-        //plateauObj = await this.importCustomModel(o);
+      // case "Custom_Model":
+      //   plateauObj = await this.importCustomModel(o);
+      //   break;
+      // case "Custom_Dice":
+      //   plateauObj = await this.importCustomDice(o);
+      //   break;
+      case "Custom_Tile":
+        console.log(o.CustomImage.CustomTile);
         break;
-      case "Custom_Dice":
-        plateauObj = await this.importCustomDice(o);
-        break;
+      // case "Custom_Token":
+      //   console.log(o.Value);
+      //   break;
     }
 
     if (plateauObj) {
       // TODO: common parameters
+      plateauObj.description = o.Description;
     }
 
     return plateauObj;
@@ -100,7 +107,6 @@ class TTSImporter {
       try {
         var mesh = cmr.mesh.clone();
         this._tts_transform_to_node(o.Transform, mesh);
-        console.log(mesh);
 
         const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
         pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
@@ -136,7 +142,6 @@ class TTSImporter {
   }
 
   static async importCustomDice(o) {
-    console.log(o);
     var texture = null;
     if (o.CustomImage?.ImageURL) texture = await this.importTexture(o.CustomImage.ImageURL, true);
     var name = o.GUID + "_" + o.Nickname;
@@ -147,7 +152,7 @@ class TTSImporter {
       pbr.roughness = 1.0;
       pbr.clearCoat.isEnabled = true;
       pbr.clearCoat.intensity = 1.0;
-      console.log(texture);
+
       if (texture) pbr.albedoTexture = texture;
 
       var tr = this._tts_transform_to_node(o.Transform);
@@ -159,7 +164,6 @@ class TTSImporter {
       po.node.material = pbr;
       po.node.id = po.node.name = name;
 
-      console.log("NEW OBJECT:", po.node);
       return po;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);

@@ -35,6 +35,20 @@ function createRoundedRectangleShape(w = 0.572, h = 0.889, cRad = 0.05, cN = 4) 
   return shape;
 }
 
+function createRegularShape(radius = 0.572, cN = 6) {
+  var shape = [];
+
+  var tmp = h;
+  h = w;
+  w = tmp;
+
+  shape.push(new BABYLON.Vector3(-radius, 0.0, 0.0));
+  arcFan(0, 0, radius, Math.PI, Math.PI * 3, cN, shape);
+  //shape.reverse();
+
+  return shape;
+}
+
 function reverseShape(shape) {
   var ret = [];
   for (var i = shape.length - 1; i >= 0; i--) ret.push(shape[i]);
@@ -68,7 +82,8 @@ function createBeveledProfile(thickness, radius, segments) {
 
 function createTileTest(w, h, thickness, cRad, cN, bRad, bN) {
   var profile = createBeveledProfile(thickness, bRad, bN);
-  var topShape = createRoundedRectangleShape(w - cRad * 2, h - cRad * 2, cRad, cN);
+  //var topShape = createRoundedRectangleShape(w - cRad * 2, h - cRad * 2, cRad, cN);
+  var topShape = createRegularShape(w * 0.5, 60);
   var bottomShape = expandShape(topShape, bRad);
 
   const options = {
