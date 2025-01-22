@@ -284,8 +284,8 @@ var createScene = async function () {
   //   }
   // );
 
-  // var french_deck_atlas = new CardAtlas();
-  // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  var french_deck_atlas = new CardAtlas();
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);
@@ -640,17 +640,20 @@ var createScene = async function () {
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
-  //var tile = ShapedObject.Circle(null, 0.4, 0.1, 60, 0.01, 3);
-  //var tile = ShapedObject.RoundedSquare(null, 0.4, 0.4, 0.1, 0.05, 4, 0.01, 3);
-  var tile = ShapedObject.Hexagon(null, 0.4, 0.1, 0.01, 3);
-  //var tile = ShapedObject.Square(null, 0.4, 0.4, 0.1, 4, 0.01, 3);
+  //var tile = ShapedObject.Circle(null, 0.4, 0.1, 60, 0.01, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
+  //var tile = ShapedObject.RoundedSquare(null, 0.4, 0.4, 0.1, 0.05, 4, 0.01, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
+  var tile = ShapedObject.Hexagon(null, 0.4, 0.1, 0.01, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
+
   var mat = new BABYLON.PBRMaterial("cardBoard", scene);
   mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
   mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
   mat.metallic = 0.0;
   mat.roughness = 0.05;
-  tile.node.material = mat;
-  tile.node.position = new BABYLON.Vector3(0, 0.6, 0);
+  var mat2 = mat.clone();
+  mat2.albedoColor = BABYLON.Color3.Red();
+
+  tile.setMaterial(mat, mat2)
+  // tile.node.position = new BABYLON.Vector3(0, 0.6, 0);
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 

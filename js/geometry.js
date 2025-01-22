@@ -116,27 +116,38 @@ function createTileTest(w, h, thickness, cRad, cN, bRad, bN) {
 function planarUVProjectXZ(
   mesh,
   frontUvs = new BABYLON.Vector4(0, 0, 1, 1),
-  backUvs = new BABYLON.Vector4(0, 0, 1, 1)
+  backUvs = null
 ) {
   const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
   const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind);
+  const norms = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
   const numVertices = positions.length / 3;
 
   var bb = mesh.getBoundingInfo().boundingBox;
+
+  if(!backUvs)
+    backUvs = frontUvs.clone();
+
+  const eps = 0.001;
+  const minx = bb.minimum.x - eps;
+  const minz = bb.minimum.z - eps;
+  const maxx = bb.maximum.x + eps;
+  const maxz = bb.maximum.z + eps;
 
   for (let i = 0; i < numVertices; i++) {
     const x = positions[i * 3 + 0];
     const y = positions[i * 3 + 1];
     const z = positions[i * 3 + 2];
 
-    var uv = y > 0 ? frontUvs : backUvs;
-    // TODO: borders (use normals)
+    const ny = norms[i * 3 + 1];
 
-    uvs[i * 2] = (x - bb.minimum.x) / (bb.maximum.x - bb.minimum.x);
-    if (y < 0) uvs[i * 2] = 1.0 - uvs[i * 2];
+    var uv = ny >= -eps ? frontUvs : backUvs;
+
+    uvs[i * 2] = (x - minx) / (maxx - minx);
+    if (ny < -eps) uvs[i * 2] = 1.0 - uvs[i * 2];
     uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x) + uv.x;
 
-    uvs[i * 2 + 1] = (z - bb.minimum.z) / (bb.maximum.z - bb.minimum.z);
+    uvs[i * 2 + 1] = (z - minz) / (maxz - minz);
     //if (y < 0) uvs[i * 2 + 1] = 1.0 - uvs[i * 2 + 1];
     uvs[i * 2 + 1] = uvs[i * 2 + 1] * (uv.w - uv.y) + uv.y;
   }
