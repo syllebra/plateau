@@ -7,7 +7,7 @@ let controlKeyDown = false;
 let shiftKeyDown = false;
 
 let rotationIncrement = 45;
-let showDropZoneInRadius = 1.1;
+let showDropZoneInRadius = 100.1;
 
 let preloadFunctions = [];
 

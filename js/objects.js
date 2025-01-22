@@ -344,7 +344,6 @@ class PlateauObject {
   }
 
   dropOn(destNode, animateRotation = true, finishedCB = null) {
-    console.log(this.animations);
     this.startAnimationMode();
     this.setEnabled(true, false);
     // var tr = XTransform.FromNodeWorld(destNode);
