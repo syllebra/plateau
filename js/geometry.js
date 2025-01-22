@@ -9,10 +9,6 @@ function arcFan(cx, cy, r, start, end, nb, shape) {
 function createRoundedRectangleShape(w = 0.572, h = 0.889, cRad = 0.05, cN = 4) {
   var shape = [];
 
-  var tmp = h;
-  h = w;
-  w = tmp;
-
   shape.push(new BABYLON.Vector3(-w * 0.5, h * 0.5 - cRad, 0.0));
   shape.push(new BABYLON.Vector3(-w * 0.5, -h * 0.5 + cRad, 0.0));
 
@@ -61,12 +57,16 @@ function expandShape(shape, amount = 0.05) {
     var p0 = shape[i];
     var ii = i == shape.length - 1 ? 0 : i + 1;
     var p1 = shape[ii];
-    var d = new BABYLON.Vector3(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
+    var jj = i == 0 ? shape.length-1 : i - 1;
+    var p2 = shape[jj];
+    var d = new BABYLON.Vector3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
     d.normalize();
     var t = d.cross(BABYLON.Vector3.Forward());
     t.normalize();
-    var p = new BABYLON.Vector3(shape[i].x + t.x * amount, shape[i].y + t.y * amount, shape[i].z + t.z * amount);
+    var p = new BABYLON.Vector3(p0.x + t.x * amount, p0.y + t.y * amount, p0.z + t.z * amount);
     ret.push(p);
+
+    console.log(shape)
   }
   return ret;
 }
@@ -78,39 +78,6 @@ function createBeveledProfile(thickness, radius, segments) {
   shape.push(new BABYLON.Vector3(-radius, -radius, 0.0));
   shape.push(new BABYLON.Vector3(-radius, -thickness, 0.0));
   return shape;
-}
-
-function createTileTest(w, h, thickness, cRad, cN, bRad, bN) {
-  var profile = createBeveledProfile(thickness, bRad, bN);
-  //var topShape = createRoundedRectangleShape(w - cRad * 2, h - cRad * 2, cRad, cN);
-  var topShape = createRegularShape(w * 0.5, 60);
-  var bottomShape = expandShape(topShape, bRad);
-
-  const options = {
-    shape: profile, //vec3 array with z = 0,
-    path: topShape, //vec3 array
-    // rotationFunction: rotFn,
-    // scaleFunction: scaleFn,
-    updatable: true,
-    closeShape: false,
-    closePath: true,
-    //cap: BABYLON.Mesh.CAP_ALL,
-    //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-    firstNormal: BABYLON.Vector3.Right(),
-  };
-
-  var bevels = BABYLON.MeshBuilder.ExtrudeShapeCustom("ext", options, scene); //scene is
-  var top = new BABYLON.PolygonMeshBuilder("", topShape, scene).build();
-  var bottom = new BABYLON.PolygonMeshBuilder("", bottomShape, scene).build();
-  bottom.flipFaces();
-
-  bevels.position = new BABYLON.Vector3(0, thickness, 0);
-  top.position = new BABYLON.Vector3(0, thickness, 0);
-
-  bevels.rotationQuaternion = new BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(-90), 0, 0);
-  const newMesh = BABYLON.Mesh.MergeMeshes([bottom, bevels, top], true);
-  planarUVProjectXZ(newMesh, uvFromAtlas(2, 4, 2), uvFromAtlas(0, 4, 2));
-  return newMesh;
 }
 
 function planarUVProjectXZ(
@@ -163,10 +130,10 @@ function uvFromAtlas(num, cols, rows) {
   return new BABYLON.Vector4(dx * col, dy * row, dx * (col + 1), dy * (row + 1));
 }
 
-function createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
-  var shape = createRoundedRectangleShape(w, h, cRad, cN);
-
-  var path = [new BABYLON.Vector3(0, thickness * 0.5, 0), new BABYLON.Vector3(0, -thickness * 0.5, 0)];
+function extrudeShape(shape, thickness, center = false, capOpt = BABYLON.Mesh.CAP_ALL) {
+  const minE = center ? -thickness * 0.5 : 0.0;
+  const maxE = center ? thickness * 0.5 : thickness;
+  var path = [new BABYLON.Vector3(0, maxE, 0), new BABYLON.Vector3(0, minE, 0)];
   const options = {
     shape: shape, //vec3 array with z = 0,
     path: path, //vec3 array
@@ -174,11 +141,15 @@ function createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, c
     // scaleFunction: scaleFn,
     updatable: true,
     closeShape: true,
-    cap: BABYLON.Mesh.CAP_ALL,
+    cap: capOpt,
     //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
+    firstNormal: BABYLON.Vector3.Right()
   };
 
-  let extruded = BABYLON.MeshBuilder.ExtrudeShapeCustom("card", options, scene); //scene is
+  return BABYLON.MeshBuilder.ExtrudeShapeCustom("extrudedShape", options, scene); //scene is
+}
 
-  return extruded;
+function createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
+  var shape = createRoundedRectangleShape(w, h, cRad, cN);
+  return extrudeShape(shape, thickness, true);
 }
