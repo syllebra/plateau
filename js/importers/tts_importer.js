@@ -59,18 +59,21 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      // case "Custom_Model":
-      //   plateauObj = await this.importCustomModel(o);
-      //   break;
-      // case "Custom_Dice":
-      //   plateauObj = await this.importCustomDice(o);
-      //   break;
+      case "Custom_Model":
+        plateauObj = await this.importCustomModel(o);
+        break;
+      case "Custom_Dice":
+        plateauObj = await this.importCustomDice(o);
+        break;
       case "Custom_Tile":
-        console.log(o.CustomImage.CustomTile);
+        plateauObj = await this.importCustomTile(o);
         break;
       // case "Custom_Token":
       //   console.log(o.Value);
       //   break;
+      default:
+        console.warn(o.Name+" import is not implemented yet.")
+        break;
     }
 
     if (plateauObj) {
@@ -165,6 +168,51 @@ class TTSImporter {
       po.node.id = po.node.name = name;
 
       return po;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
+    return null;
+  }
+
+  static async importCustomTile(o) {
+    console.log(o);
+    var frontTex = null;
+    var backTex = null;
+    if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
+      frontTex = this.importTexture(o.CustomImage.ImageURL, true);
+    if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
+      backTex = this.importTexture(o.CustomImage.ImageSecondaryURL, true);
+    var name = o.GUID + "_" + o.Nickname;
+
+    try {
+      var tr = this._tts_transform_to_node(o.Transform);
+      var thickness = o.CustomImage.CustomTile.Thickness * this.UNIT_MULTIPLIER;
+      console.log(tr);
+      var cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+      cm.node.position = tr.pos;
+
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.15;
+      
+      var backMat = null;
+      if(backTex) {
+        backMat = pbr.clone(pbr.name+"_back");
+        backMat.albedoTexture = backTex;
+      }
+      if (frontTex) pbr.albedoTexture = frontTex;
+      cm.setMaterial(pbr, backMat);
+      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+      //var meshCol = null;
+      // var meshCol = cmr.colliderMesh?.clone();
+      // if (meshCol) {
+      // this._tts_transform_to_node(o.Transform, meshCol);
+      // }
+      //var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
+      cm.node.id = cm.node.name = name;
+      return cm;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
       return null;

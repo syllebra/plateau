@@ -65,8 +65,6 @@ function expandShape(shape, amount = 0.05) {
     t.normalize();
     var p = new BABYLON.Vector3(p0.x + t.x * amount, p0.y + t.y * amount, p0.z + t.z * amount);
     ret.push(p);
-
-    console.log(shape)
   }
   return ret;
 }
