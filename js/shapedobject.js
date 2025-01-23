@@ -57,7 +57,7 @@ class ShapedObject extends PlateauObject {
     bottom.flipFaces();
 
     planarUVProjectXZ(topBevel, topUVs);
-    planarUVProjectXZ(bottom, bottomUVs);
+    planarUVProjectXZ(bottom, bottomUVs,bottomUVs, true);
 
     const newMesh = BABYLON.Mesh.MergeMeshes(
       [topBevel, bottom],

@@ -81,7 +81,9 @@ function createBeveledProfile(thickness, radius, segments) {
 function planarUVProjectXZ(
   mesh,
   frontUvs = new BABYLON.Vector4(0, 0, 1, 1),
-  backUvs = null
+  backUvs = null,
+  flipFrontU = false,
+  flipBackU = false,  
 ) {
   const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
   const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind);
@@ -109,8 +111,11 @@ function planarUVProjectXZ(
     var uv = ny >= -eps ? frontUvs : backUvs;
 
     uvs[i * 2] = (x - minx) / (maxx - minx);
-    if (ny < -eps) uvs[i * 2] = 1.0 - uvs[i * 2];
-    uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x) + uv.x;
+    //if (ny < -eps) uvs[i * 2] = 1.0 - uvs[i * 2];
+    var multU = flipFrontU ? -1 : 1;
+    if(ny < -eps)
+      multU = flipBackU ? -1 : 1;
+    uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x)*multU + uv.x;
 
     uvs[i * 2 + 1] = (z - minz) / (maxz - minz);
     //if (y < 0) uvs[i * 2 + 1] = 1.0 - uvs[i * 2 + 1];

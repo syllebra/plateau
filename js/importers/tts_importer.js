@@ -189,7 +189,14 @@ class TTSImporter {
       var tr = this._tts_transform_to_node(o.Transform);
       var thickness = o.CustomImage.CustomTile.Thickness * this.UNIT_MULTIPLIER;
       console.log(tr);
-      var cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+      var cm = null;
+      switch(o.CustomImage.CustomTile.Type) {
+        case 0:
+          cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+          break;
+        default:
+          console.warn("Custom tile type not implemented yet:"+o.CustomImage.CustomTile.Type);
+      }
       cm.node.position = tr.pos;
 
       const pbr = new BABYLON.PBRMaterial(name + " Material", scene);

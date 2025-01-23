@@ -291,11 +291,13 @@ var createScene = async function () {
     tst.setEnabled(true);
   });
   const addDiceBtn = ui.addBtn("Add a dice", () => {
-    var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
+    var target_height =
+      gLiftHeight + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
     const newBody = new Dice(new BABYLON.Vector3(0, target_height, 0), Math.random() * 0.2 + 0.1);
   });
   const addCardBtn = ui.addBtn("Add a card", () => {
-    var target_height = 0.3 + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
+    var target_height =
+      gLiftHeight + getSceneHeight(scene, new BABYLON.Vector3(0, 10, 0), 0.1, SelectionHandler.selbox.box);
     const newBody = new Card(
       new BABYLON.Vector3(0, target_height, 0),
       french_deck_atlas,
@@ -395,7 +397,7 @@ var createScene = async function () {
 
   function updateDraggedNodeHeight(obj) {
     var target_height =
-      0.3 +
+      gLiftHeight +
       getSceneHeight(scene, obj.node.position, 0.1, obj.node) +
       obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
@@ -643,10 +645,9 @@ var createScene = async function () {
   // // //var tile = ShapedObject.Circle(null, 0.4, 0.1, 30, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
   // var tile = ShapedObject.RoundedSquare(null, 0.8, 0.4, 0.1, 0.05, 4, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
   // //var tile = ShapedObject.Hexagon(null, 0.4, 0.1, 0.05, 3);//, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
-  
+
   // var shape = [new BABYLON.Vector3(0,0,0),new BABYLON.Vector3(0,-0.4,0),new BABYLON.Vector3(0.4,-0.4,0),new BABYLON.Vector3(0.8,0,0)]
   // //var tile = new ShapedObject(null, shape, null, 0.1, 0.05,3);//, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
-  
 
   // var mat = new BABYLON.PBRMaterial("cardBoard", scene);
   // mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);

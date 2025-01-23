@@ -9,6 +9,8 @@ let shiftKeyDown = false;
 let rotationIncrement = 45;
 let showDropZoneInRadius = 100.1;
 
+gLiftHeight = 0.3;
+
 let preloadFunctions = [];
 
 function registerPreload(f) {
