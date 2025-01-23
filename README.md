@@ -31,6 +31,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Long/Short click system and associated events
 - [ ] Multiple touches interactions
 - [ ] XR and XR interactions
+- [ ] Measure tools
 
 ## TTS Import
 
@@ -41,8 +42,15 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [x] Texture
   - [ ] Custom Mesh ?
   - [ ] Face orientations
-- [ ] Custom Tiles
-- [ ] Custom Tokens
+- [x] Custom Tiles
+  - [x] Rectangle
+  - [ ] Hexagon
+  - [ ] Circle
+  - [ ] Rounded Rectangle
+- [x] Custom Tokens
+  - [ ] Attached Snap Points
+  - [ ] Multiple States ?
+  - [ ] Multiple Textures
 - [ ] Custom Tokens Stacks ?
 - [ ] Cards
 - [ ] Custom Boards

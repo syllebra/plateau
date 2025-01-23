@@ -238,7 +238,7 @@ var createScene = async function () {
   // bodyRenderingMaterial.ambientColor = new BABYLON.Color3(0.1, 0.1, 0.2);
 
   // body/shape on box
-  var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 10, viewer, shadowGen);
+  var ground = BoxWorld(scene, new BABYLON.Vector3(0, 0, 0), 20, viewer, shadowGen);
 
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
@@ -284,8 +284,8 @@ var createScene = async function () {
   //   }
   // );
 
-  var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  // var french_deck_atlas = new CardAtlas();
+  // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   const tstBtn = ui.addBtn("Test", () => {
     tst.setEnabled(true);

@@ -1,8 +1,18 @@
+async function loadImage(url) {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.crossOrigin = "Anonymous";
+    img.src = url;
+  });
+}
+
 class TTSImporter {
   static SNAP_POINT_SIZE = 0.1;
-  static UNIT_MULTIPLIER = 0.1;
+  static UNIT_MULTIPLIER = (0.1 * 2.54 * 14) / 20; // TODO: parametrizable scaler
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
-
+  static POS_OFFSET = new BABYLON.Vector3(0.0, -0.254, 0.0);
   static textures = new Map();
   static meshes = new Map();
 
@@ -41,19 +51,27 @@ class TTSImporter {
       dz.forceOrientation = rot == null;
     }
 
-    // for (var o of jsonObj.ObjectStates) {
-    //   this.importObject(o);
-    // }
-
     const promises = [];
     for (var o of jsonObj.ObjectStates) {
       promises.push(this.importObject(o));
     }
 
-    await Promise.all(promises);
+    var objects = await Promise.all(promises);
     console.log("LOADING FINISHED !!!");
     console.log(this.textures);
     console.log(this.meshes);
+    var nb = 0;
+    for (var po of objects)
+      if(po) nb++;
+    console.log("LOADED Objects:", nb);
+
+    setTimeout( function () {
+    for (var po of objects) {
+      if (po == null) continue;
+      po.stopAnimationMode();
+    }
+  }, 3000);
+    
   }
 
   static async importObject(o) {
@@ -68,15 +86,22 @@ class TTSImporter {
       case "Custom_Tile":
         plateauObj = await this.importCustomTile(o);
         break;
-      // case "Custom_Token":
-      //   console.log(o.Value);
+      case "Custom_Token":
+        plateauObj = await this.importCustomToken(o);
+        break;
+      // case "Custom_Board":
+      //   console.log(o);
+      //   break;
+      // case "backgammon_piece_white":
+      //   console.log(o);
       //   break;
       default:
-        console.warn(o.Name+" import is not implemented yet.")
+        console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
         break;
     }
 
     if (plateauObj) {
+      plateauObj.startAnimationMode();
       // TODO: common parameters
       plateauObj.description = o.Description;
     }
@@ -85,13 +110,16 @@ class TTSImporter {
   }
 
   static _tts_transform_to_node(tr, node = null) {
-    var pos = new BABYLON.Vector3(tr.posX, tr.posY, tr.posZ);
-    pos = pos.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
     var scale = new BABYLON.Vector3(tr.scaleX, tr.scaleY, tr.scaleZ);
     scale = scale.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER);
+    var pos = new BABYLON.Vector3(tr.posX, tr.posY, tr.posZ);
+    pos = pos.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, -this.UNIT_MULTIPLIER);
+    pos.x += this.POS_OFFSET.x;
+    pos.y += this.POS_OFFSET.y;
+    pos.z += this.POS_OFFSET.z;
     var rot = BABYLON.Quaternion.FromEulerAngles(
       BABYLON.Tools.ToRadians(tr.rotX),
-      BABYLON.Tools.ToRadians(tr.rotY),
+      BABYLON.Tools.ToRadians(-tr.rotY + 180),
       BABYLON.Tools.ToRadians(tr.rotZ)
     );
     if (node) {
@@ -124,6 +152,7 @@ class TTSImporter {
         // this._tts_transform_to_node(o.Transform, meshCol);
         // }
         var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
+        cm.startAnimationMode();
         cm.node.id = cm.node.name = name;
         return cm;
       } catch (e) {
@@ -163,6 +192,7 @@ class TTSImporter {
       // TODO: Face orientations?
       // Note: for now does ot support non cubic dices...
       var po = new Dice(tr.pos, tr.scale.x);
+      po.startAnimationMode();
       po.node.rotationQuaternion = tr.rot;
       po.node.material = pbr;
       po.node.id = po.node.name = name;
@@ -176,7 +206,6 @@ class TTSImporter {
   }
 
   static async importCustomTile(o) {
-    console.log(o);
     var frontTex = null;
     var backTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
@@ -188,14 +217,14 @@ class TTSImporter {
     try {
       var tr = this._tts_transform_to_node(o.Transform);
       var thickness = o.CustomImage.CustomTile.Thickness * this.UNIT_MULTIPLIER;
-      console.log(tr);
       var cm = null;
-      switch(o.CustomImage.CustomTile.Type) {
+      switch (o.CustomImage.CustomTile.Type) {
         case 0:
           cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+          cm.startAnimationMode();
           break;
         default:
-          console.warn("Custom tile type not implemented yet:"+o.CustomImage.CustomTile.Type);
+          console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
       }
       cm.node.position = tr.pos;
 
@@ -203,10 +232,10 @@ class TTSImporter {
       pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
       pbr.metallic = 0;
       pbr.roughness = 0.15;
-      
+
       var backMat = null;
-      if(backTex) {
-        backMat = pbr.clone(pbr.name+"_back");
+      if (backTex) {
+        backMat = pbr.clone(pbr.name + "_back");
         backMat.albedoTexture = backTex;
       }
       if (frontTex) pbr.albedoTexture = frontTex;
@@ -227,6 +256,82 @@ class TTSImporter {
     return null;
   }
 
+  static async importCustomToken(o) {
+    console.log(o);
+    var frontTex = null;
+    //    var backTex = null;
+    if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
+      frontTex = this.importTexture(o.CustomImage.ImageURL, true);
+
+    var name = o.GUID + "_" + o.Nickname;
+
+    //TODO: simplyfy threshold
+    // polygon is now an array of {x,y} objects. Have fun!
+    try {
+      var image = await loadImage(o.CustomImage.ImageURL);
+
+      var polygon = getImageOutline(image);
+
+      var tr = TTSImporter._tts_transform_to_node(o.Transform);
+      var thickness = o.CustomImage.CustomToken.Thickness * TTSImporter.UNIT_MULTIPLIER;
+      var cm = null;
+      var poly = [];
+
+      // The reversed engineered is that output area should be 88 (in TTS space)
+      var k = Math.sqrt(88 / (image.width * image.height)) / 2.54;
+      for (var p of polygon) {
+        var x = p.x - 0.5 * image.width;
+        x *= tr.scale.x * k;
+        var y = p.y - 0.5 * image.height;
+        y *= tr.scale.z * k;
+        poly.push(new BABYLON.Vector3(x, y, 0.0));
+      }
+
+      cm = new ShapedObject(null, poly, null, thickness, 0, 1);
+      cm.startAnimationMode();
+      cm.node.position = tr.pos;
+      cm.node.rotationQuaternion = tr.rot;
+
+      var sx = cm.getBoundingInfos().boundingBox.extendSizeWorld.x * 2;
+      var sz = cm.getBoundingInfos().boundingBox.extendSizeWorld.z * 2;
+
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.15;
+
+      var backMat = null;
+      // if(backTex) {
+      //   backMat = pbr.clone(pbr.name+"_back");
+      //   backMat.albedoTexture = backTex;
+      // }
+      if (frontTex) pbr.albedoTexture = frontTex;
+      cm.setMaterial(pbr, backMat);
+      //cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+      //var meshCol = null;
+      // var meshCol = cmr.colliderMesh?.clone();
+      // if (meshCol) {
+      // this._tts_transform_to_node(o.Transform, meshCol);
+      // }
+      //var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
+      cm.node.id = cm.node.name = name;
+      return cm;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
+
+    // var frontTex = null;
+    // var backTex = null;
+    // if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
+    //   frontTex = this.importTexture(o.CustomImage.ImageURL, true);
+    // if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
+    //   backTex = this.importTexture(o.CustomImage.ImageSecondaryURL, true);
+    // var name = o.GUID + "_" + o.Nickname;
+
+    return null;
+  }
+
   static importTexture(url, flip = false) {
     if (!this.textures.has(url)) {
       var tex = null;
@@ -243,7 +348,6 @@ class TTSImporter {
       var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
       if (!tst) return null;
 
-      //console.log("tst:", tst.meshes.length);
       this.meshes.set(url, tst.meshes[0]);
       return this.meshes.get(url);
     } catch {
