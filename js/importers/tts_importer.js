@@ -105,12 +105,17 @@ class TTSImporter {
           plateauObj = await this.importCustomToken(o);
         break;
       case "Custom_Board":
-        console.log(o);
         plateauObj = await this.importCustomBoard(o);
         break;
       // case "backgammon_piece_white":
       //   console.log(o);
       //   break;
+      case "Custom_Token_Stack":
+        plateauObj = await this.importCustomTokenStack(o);
+        // //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+        // if (o.Transform.posX < -60)
+        //   plateauObj = await this.importCustomToken(o);
+        break;      
       // default:
       //   console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
       //   break;
@@ -118,18 +123,22 @@ class TTSImporter {
 
     if (!plateauObj) return null;
 
-    plateauObj.startAnimationMode(); // Block physics while loading
+    var objects = plateauObj instanceof Array ? plateauObj : [plateauObj]
 
-    // Common variables
-    plateauObj.description = o.Description;
-    plateauObj.locked = o.Locked ? o.Locked : false;
+    for(var po of objects) {
+      po.startAnimationMode(); // Block physics while loading
 
-    if (o.AttachedSnapPoints) {
-      for (var sp of o.AttachedSnapPoints) {
-        var dz = this.importSnapPoint(sp, plateauObj.node);
+      // Common variables
+      po.description = o.Description;
+      po.locked = o.Locked ? o.Locked : false;
+
+      if (o.AttachedSnapPoints) {
+        for (var sp of o.AttachedSnapPoints) {
+          var dz = this.importSnapPoint(sp, po.node);
+        }
       }
     }
-    return plateauObj;
+    return objects;
   }
 
   static _tts_transform_to_node(tr, node = null) {
@@ -355,6 +364,20 @@ class TTSImporter {
     return null;
   }
 
+  static async importCustomTokenStack(o) {
+    // Simple stack implementation
+    var number = o.Number;
+    var objects = [];
+    var dy = 0;
+    for(var i=0;i<number;i++) {
+      var obj = await this.importCustomToken(o);
+      obj.node.position.y += dy;
+      var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y;
+      dy += dec;
+      objects.push(obj);
+    }
+    return objects;
+  }
 
   static async importCustomBoard(o) {
     var frontTex = null;

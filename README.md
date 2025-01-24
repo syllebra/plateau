@@ -51,7 +51,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [x] Attached Snap Points
   - [ ] Multiple States ?
   - [ ] Multiple Textures
-- [ ] Custom Tokens Stacks ?
+- [x] Custom Tokens Stacks (simple)
 - [ ] Cards
 - [x] Custom Boards
   - [ ] Borders
