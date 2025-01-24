@@ -38,6 +38,7 @@ class PlateauObject {
     this.isFlippable = true;
 
     this.pickable = true;
+    this.locked = false;
 
     this.physicsEnabled = true;
 
@@ -286,7 +287,7 @@ class PlateauObject {
   }
 
   stopAnimationMode() {
-    if (!this.body) return;
+    if (!this.body || this.locked) return;
     // TODO: Clear all current animations
     this.body.disablePreStep = true;
     this.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
@@ -322,7 +323,7 @@ class PlateauObject {
   }
 
   onPickup() {
-    if (this.straightenAtPickup) {
+    if (this.straightenAtPickup && !this.locked) {
       this.orientUpTo();
     }
   }

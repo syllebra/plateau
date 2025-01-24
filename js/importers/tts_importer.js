@@ -104,6 +104,7 @@ class TTSImporter {
       plateauObj.startAnimationMode();
       // TODO: common parameters
       plateauObj.description = o.Description;
+      plateauObj.locked = o.Locked ? o.Locked : false;
     }
 
     return plateauObj;
