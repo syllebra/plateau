@@ -31,24 +31,7 @@ class TTSImporter {
     console.log("LOADING...");
     // TTS SnapPoints > Plateau drop zones
     for (var sp of jsonObj.SnapPoints) {
-      var pos = sp.Position;
-      if (pos) {
-        pos = new BABYLON.Vector3(
-          pos.x * this.UNIT_MULTIPLIER,
-          pos.y * this.UNIT_MULTIPLIER,
-          pos.z * this.UNIT_MULTIPLIER
-        );
-      }
-      var rot = sp.Rotation;
-      if (rot) {
-        rot = BABYLON.Quaternion.FromEulerAngles(
-          BABYLON.Tools.ToRadians(rot.x),
-          BABYLON.Tools.ToRadians(rot.y),
-          BABYLON.Tools.ToRadians(rot.z)
-        );
-      }
-      var dz = DropZone.CreateRectangularZone(this.SNAP_POINT_SIZE, this.SNAP_POINT_SIZE, 0.01, null, pos, rot);
-      dz.forceOrientation = rot == null;
+      this.importSnapPoint(sp);
     }
 
     const promises = [];
@@ -74,30 +57,56 @@ class TTSImporter {
     
   }
 
+  static importSnapPoint(sp) {
+    var pos = sp.Position;
+    
+    if (pos) {
+      pos = new BABYLON.Vector3(
+        pos.x * this.UNIT_MULTIPLIER,
+        pos.y * this.UNIT_MULTIPLIER,
+        -pos.z * this.UNIT_MULTIPLIER
+      );
+      pos.x += this.POS_OFFSET.x;
+      pos.y += this.POS_OFFSET.y;
+      pos.z += this.POS_OFFSET.z;
+    }
+    var rot = sp.Rotation;
+    if (rot) {
+      rot = BABYLON.Quaternion.FromEulerAngles(
+        BABYLON.Tools.ToRadians(rot.x),
+        BABYLON.Tools.ToRadians(-rot.y+180),
+        BABYLON.Tools.ToRadians(rot.z)
+      );
+    }
+    var dz = DropZone.CreateRectangularZone(this.SNAP_POINT_SIZE, this.SNAP_POINT_SIZE, 0.01, null, pos, rot);
+    dz.forceOrientation = rot == null;
+    return dz;
+  }
+
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      case "Custom_Model":
-        plateauObj = await this.importCustomModel(o);
-        break;
-      case "Custom_Dice":
-        plateauObj = await this.importCustomDice(o);
-        break;
+      // case "Custom_Model":
+      //   plateauObj = await this.importCustomModel(o);
+      //   break;
+      // case "Custom_Dice":
+      //   plateauObj = await this.importCustomDice(o);
+      //   break;
       case "Custom_Tile":
         plateauObj = await this.importCustomTile(o);
         break;
-      case "Custom_Token":
-        plateauObj = await this.importCustomToken(o);
-        break;
+      // case "Custom_Token":
+      //   plateauObj = await this.importCustomToken(o);
+      //   break;
       // case "Custom_Board":
       //   console.log(o);
       //   break;
       // case "backgammon_piece_white":
       //   console.log(o);
       //   break;
-      default:
-        console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
-        break;
+      // default:
+      //   console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
+      //   break;
     }
 
     if (plateauObj) {
