@@ -48,7 +48,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Circle
   - [ ] Rounded Rectangle
 - [x] Custom Tokens
-  - [ ] Attached Snap Points
+  - [x] Attached Snap Points
   - [ ] Multiple States ?
   - [ ] Multiple Textures
 - [ ] Custom Tokens Stacks ?

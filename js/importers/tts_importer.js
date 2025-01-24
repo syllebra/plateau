@@ -10,7 +10,9 @@ async function loadImage(url) {
 
 class TTSImporter {
   static SNAP_POINT_SIZE = 0.1;
-  static UNIT_MULTIPLIER = (0.1 * 2.54 * 14) / 20; // TODO: parametrizable scaler
+  static UNIT_CONVERTER = 0.1; 
+  static IMPORT_SCALE = (2.54 * 14) / 20;// TODO: parametrizable scaler
+  static UNIT_MULTIPLIER = this.UNIT_CONVERTER * this.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
   static POS_OFFSET = new BABYLON.Vector3(0.0, -0.254, 0.0);
   static textures = new Map();
@@ -44,41 +46,42 @@ class TTSImporter {
     console.log(this.textures);
     console.log(this.meshes);
     var nb = 0;
-    for (var po of objects)
-      if(po) nb++;
+    for (var po of objects) if (po) nb++;
     console.log("LOADED Objects:", nb);
 
-    setTimeout( function () {
-    for (var po of objects) {
-      if (po == null) continue;
-      po.stopAnimationMode();
-    }
-  }, 3000);
-    
+    setTimeout(function () {
+      for (var po of objects) {
+        if (po == null) continue;
+        po.stopAnimationMode();
+      }
+    }, 3000);
   }
 
-  static importSnapPoint(sp) {
+  static importSnapPoint(sp, parent = null) {
     var pos = sp.Position;
-    
+
     if (pos) {
-      pos = new BABYLON.Vector3(
-        pos.x * this.UNIT_MULTIPLIER,
-        pos.y * this.UNIT_MULTIPLIER,
-        -pos.z * this.UNIT_MULTIPLIER
-      );
-      pos.x += this.POS_OFFSET.x;
-      pos.y += this.POS_OFFSET.y;
-      pos.z += this.POS_OFFSET.z;
+      pos = new BABYLON.Vector3(pos.x, pos.y, pos.z);
+      if (!parent) {
+        pos = pos.multiplyByFloats(this.UNIT_MULTIPLIER, this.UNIT_MULTIPLIER, -this.UNIT_MULTIPLIER);
+        pos.x += this.POS_OFFSET.x;
+        pos.y += this.POS_OFFSET.y;
+        pos.z += this.POS_OFFSET.z;
+      }
+      else
+        pos = pos.multiplyByFloats(-1.0/this.IMPORT_SCALE, 1.0/this.IMPORT_SCALE,1.0/this.IMPORT_SCALE);
+
+        
     }
     var rot = sp.Rotation;
     if (rot) {
       rot = BABYLON.Quaternion.FromEulerAngles(
         BABYLON.Tools.ToRadians(rot.x),
-        BABYLON.Tools.ToRadians(-rot.y+180),
+        BABYLON.Tools.ToRadians(-rot.y + 180),
         BABYLON.Tools.ToRadians(rot.z)
       );
     }
-    var dz = DropZone.CreateRectangularZone(this.SNAP_POINT_SIZE, this.SNAP_POINT_SIZE, 0.01, null, pos, rot);
+    var dz = DropZone.CreateRectangularZone(this.SNAP_POINT_SIZE, this.SNAP_POINT_SIZE, 0.01, parent, pos, rot);
     dz.forceOrientation = rot == null;
     return dz;
   }
@@ -92,12 +95,13 @@ class TTSImporter {
       // case "Custom_Dice":
       //   plateauObj = await this.importCustomDice(o);
       //   break;
-      case "Custom_Tile":
-        plateauObj = await this.importCustomTile(o);
-        break;
-      // case "Custom_Token":
-      //   plateauObj = await this.importCustomToken(o);
+      // case "Custom_Tile":
+      //   console.log(o)
+      //   plateauObj = await this.importCustomTile(o);
       //   break;
+      case "Custom_Token":
+        if (o.Nickname.includes("Red") || o.Nickname.includes("Green")) plateauObj = await this.importCustomToken(o);
+        break;
       // case "Custom_Board":
       //   console.log(o);
       //   break;
@@ -109,13 +113,20 @@ class TTSImporter {
       //   break;
     }
 
-    if (plateauObj) {
-      plateauObj.startAnimationMode();
-      // TODO: common parameters
-      plateauObj.description = o.Description;
-      plateauObj.locked = o.Locked ? o.Locked : false;
-    }
+    if (!plateauObj) return null;
 
+    plateauObj.startAnimationMode(); // Block physics while loading
+
+    // Common variables
+    plateauObj.description = o.Description;
+    plateauObj.locked = o.Locked ? o.Locked : false;
+
+    if (o.AttachedSnapPoints) {
+      for (var sp of o.AttachedSnapPoints) {
+        var dz = this.importSnapPoint(sp, plateauObj.node);
+        console.log(dz);
+      }
+    }
     return plateauObj;
   }
 
