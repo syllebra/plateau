@@ -53,7 +53,8 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Multiple Textures
 - [ ] Custom Tokens Stacks ?
 - [ ] Cards
-- [ ] Custom Boards
+- [x] Custom Boards
+  - [ ] Borders
 
 # Todo
 

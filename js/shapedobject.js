@@ -113,6 +113,18 @@ class ShapedObject extends PlateauObject {
     return new ShapedObject(position, topShape, null, thickness, bevelRad, bevelN, topUVs, bottomUVs);
   }
 
+  static Square(
+    position,
+    w,
+    h,
+    thickness,
+    topUVs = new BABYLON.Vector4(0, 0, 1, 1),
+    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
+  ) {
+    var topShape = [new BABYLON.Vector3(-w*0.5,h*0.5,0),new BABYLON.Vector3(-w*0.5,-h*0.5,0), new BABYLON.Vector3(w*0.5,-h*0.5,0), new BABYLON.Vector3(w*0.5,h*0.5,0)]
+    return new ShapedObject(position, topShape, null, thickness, 0, 0, topUVs, bottomUVs);
+  }
+
   static RoundedSquare(
     position,
     w,

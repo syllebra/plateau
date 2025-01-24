@@ -100,11 +100,14 @@ class TTSImporter {
       //   plateauObj = await this.importCustomTile(o);
       //   break;
       case "Custom_Token":
-        if (o.Nickname.includes("Red") || o.Nickname.includes("Green")) plateauObj = await this.importCustomToken(o);
+        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+        if (o.Transform.posX < -60)
+          plateauObj = await this.importCustomToken(o);
         break;
-      // case "Custom_Board":
-      //   console.log(o);
-      //   break;
+      case "Custom_Board":
+        console.log(o);
+        plateauObj = await this.importCustomBoard(o);
+        break;
       // case "backgammon_piece_white":
       //   console.log(o);
       //   break;
@@ -124,7 +127,6 @@ class TTSImporter {
     if (o.AttachedSnapPoints) {
       for (var sp of o.AttachedSnapPoints) {
         var dz = this.importSnapPoint(sp, plateauObj.node);
-        console.log(dz);
       }
     }
     return plateauObj;
@@ -350,6 +352,42 @@ class TTSImporter {
     //   backTex = this.importTexture(o.CustomImage.ImageSecondaryURL, true);
     // var name = o.GUID + "_" + o.Nickname;
 
+    return null;
+  }
+
+
+  static async importCustomBoard(o) {
+    var frontTex = null;
+    if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
+      frontTex = this.importTexture(o.CustomImage.ImageURL, true);
+    var name = o.GUID + "_" + o.Nickname;
+    try {
+      var cm = null;
+
+      var image = await loadImage(o.CustomImage.ImageURL);
+      var h = 0.5 * 67 * this.IMPORT_SCALE / 2.54;
+      var w =  h * image.width  / image.height;
+      //w *= o.CustomImage.WidthScale;
+
+      cm = ShapedObject.Square(null, w,h,2);
+      cm.startAnimationMode();
+      var tr = this._tts_transform_to_node(o.Transform, cm.node);
+      //cm.node.position = tr.pos;
+
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.15;
+
+      if (frontTex) pbr.albedoTexture = frontTex;
+      cm.setMaterial(pbr);
+      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+      cm.node.id = cm.node.name = name;
+      return cm;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
     return null;
   }
 
