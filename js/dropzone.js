@@ -72,6 +72,18 @@ class DropZone {
     DropZone.all.add(this);
   }
 
+  clone(parent = null) {
+    let ret = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    //ret.node = parent;
+    ret.node = this.node.clone();
+    ret.node.dropZone = ret;
+    ret.node.parent = parent;
+    ret.node.position = this.node.position.clone();
+    ret.node.rotationQuaternion = this.node.rotationQuaternion.clone();
+    ret.setEnabled(false);
+    DropZone.all.add(ret);
+  }
+
   static FromNode(node) {
     var z = new DropZone();
     z.node = node;

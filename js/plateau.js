@@ -284,11 +284,15 @@ var createScene = async function () {
   //   }
   // );
 
-  // var french_deck_atlas = new CardAtlas();
-  // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  var french_deck_atlas = new CardAtlas();
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   const tstBtn = ui.addBtn("Test", () => {
-    tst.setEnabled(true);
+    //tst.setEnabled(true);
+    var po = SelectionHandler.getPlateauObjects()[0];
+    console.log(po);
+    var pc = po.clone();
+    console.log(pc);
   });
   const addDiceBtn = ui.addBtn("Add a dice", () => {
     var target_height =
@@ -365,7 +369,7 @@ var createScene = async function () {
           case "F":
             var objects = SelectionHandler.getPlateauObjects();
             if (pickedObject && !SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
-            for (var o of objects) if(! o.locked) o.flip();
+            for (var o of objects) if (!o.locked) o.flip();
 
             break;
         }
@@ -437,7 +441,7 @@ var createScene = async function () {
     var objects = SelectionHandler.getPlateauObjects();
     if (!SelectionHandler.isSelected(object)) objects.push(object);
     for (var o of objects) {
-      if(o.locked) continue;
+      if (o.locked) continue;
       var world_H_obj = XTransform.FromNodeWorld(o.node);
       var axisRot_H_obj = axisRot_H_world.multiply(world_H_obj);
       var world_h_objnew = world_H_axisRot.multiply(axisRot_H_newAxisRot).multiply(axisRot_H_obj);
@@ -558,7 +562,7 @@ var createScene = async function () {
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
           for (var o of objects) {
-            if(o.locked) continue;
+            if (o.locked) continue;
             o.node.dragged = true;
             o.startAnimationMode();
             o.onPickup();
@@ -607,7 +611,7 @@ var createScene = async function () {
             var objects = SelectionHandler.getPlateauObjects();
             if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
             for (var o of objects) {
-              if(o.locked) continue;
+              if (o.locked) continue;
               o.node.position.x += dx;
               o.node.position.z += dz;
               updateDraggedNodeHeight(o);
@@ -669,7 +673,24 @@ var createScene = async function () {
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  var m = BABYLON.MeshBuilder.CreateCylinder("test", {
+    diameter: 0.6,
+    height: 0.1,
+    tessellation: 32,
+  });
+  planarUVProjectXZ(m);
+  var mat = new BABYLON.PBRMaterial("cardBoard", scene);
+  mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
+  mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+  mat.metallic = 0.0;
+  mat.roughness = 0.05;
+  m.material = mat;
+
+  var po = new PlateauObject(m, null);
+
+  // var po2 = po.clone();
+  // po2.node.id = po2.node.node = "test2";
 
   return scene;
 };

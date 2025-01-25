@@ -48,6 +48,22 @@ class PlateauObject {
     gizmoManager.attachToMesh(this.node);
   }
 
+  clone(name = null) {
+    // Avoid recursion
+    var tmp = this.node.plateauObj;
+    delete this.node.plateauObj;
+
+    let ret = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+    ret.node = this.node.clone(name ? name : this.node.name + "_clone");
+    ret.node.plateauObj = ret;
+    this.node.plateauObj = tmp;
+    ret.body = this.body.clone(ret.node);
+    ret.updateBoundingInfos();
+
+    console.log(this, ret instanceof PlateauObject, ret);
+    return ret;
+  }
+
   dispose() {
     if (this.body) {
       this.body.dispose();
