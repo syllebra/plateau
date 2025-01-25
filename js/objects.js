@@ -60,7 +60,6 @@ class PlateauObject {
     ret.body = this.body.clone(ret.node);
     ret.updateBoundingInfos();
 
-    console.log(this, ret instanceof PlateauObject, ret);
     return ret;
   }
 

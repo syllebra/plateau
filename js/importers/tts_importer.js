@@ -41,18 +41,22 @@ class TTSImporter {
       promises.push(TTSImporter.importObject(o));
     }
 
-    var objects = await Promise.all(promises);
+    var results = await Promise.all(promises);
     console.log("LOADING FINISHED !!!");
     console.log(TTSImporter.textures);
     console.log(TTSImporter.meshes);
     var nb = 0;
-    for (var po of objects) if (po) nb++;
+    for (var po of results) if (po) nb++;
     console.log("LOADED Objects:", nb);
 
     setTimeout(function () {
-      for (var po of objects) {
-        if (po == null) continue;
-        po.stopAnimationMode();
+      for (var objects of results) {
+        if (objects == null) continue;
+        for (var po of objects) {
+          if (po == null) continue;
+
+          po.stopAnimationMode();
+        }
       }
     }, 3000);
   }
@@ -116,7 +120,7 @@ class TTSImporter {
         if (o.Transform.posX < -60) plateauObj = await TTSImporter.importCustomToken(o);
         break;
       case "Custom_Board":
-        plateauObj = await TTSImporter.importCustomBoard(o);
+        //plateauObj = await TTSImporter.importCustomBoard(o);
         break;
       // case "backgammon_piece_white":
       //   console.log(o);
@@ -372,20 +376,17 @@ class TTSImporter {
   static async importSimpleStack(o, f) {
     // Simple stack implementation
     var number = o.Number;
-    var objects = [];
     var dy = 0;
-    if(o.Name == "Custom_Model_Stack")
-      console.log(o.Number);
-    for (var i = 0; i < number; i++) {
-      var obj = await f(o);
+    var obj = await f(o);
+    var objects = [obj];
+    var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y * 2;
+    for (var i = 1; i < number; i++) {
       // if(obj == null)
       //   continue;
-      if(o.Name == "Custom_Model_Stack")
-        console.log(obj)
-      obj.node.position.y += dy;
-      var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y;
+      var clonedObj = obj.clone();
+      clonedObj.node.position.y += dy;
       dy += dec;
-      objects.push(obj);
+      objects.push(clonedObj);
     }
     return objects;
   }

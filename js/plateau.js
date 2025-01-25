@@ -673,24 +673,24 @@ var createScene = async function () {
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
-  var m = BABYLON.MeshBuilder.CreateCylinder("test", {
-    diameter: 0.6,
-    height: 0.1,
-    tessellation: 32,
-  });
-  planarUVProjectXZ(m);
-  var mat = new BABYLON.PBRMaterial("cardBoard", scene);
-  mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
-  mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-  mat.metallic = 0.0;
-  mat.roughness = 0.05;
-  m.material = mat;
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  // var m = BABYLON.MeshBuilder.CreateCylinder("test", {
+  //   diameter: 0.6,
+  //   height: 0.1,
+  //   tessellation: 32,
+  // });
+  // planarUVProjectXZ(m);
+  // var mat = new BABYLON.PBRMaterial("cardBoard", scene);
+  // mat.albedoTexture = new BABYLON.Texture("textures/tiles/hand_painted_tiles.png", scene, true, false);
+  // mat.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+  // mat.metallic = 0.0;
+  // mat.roughness = 0.05;
+  // m.material = mat;
 
-  var po = new PlateauObject(m, null);
+  // var po = new PlateauObject(m, null);
 
-  // var po2 = po.clone();
-  // po2.node.id = po2.node.node = "test2";
+  // // var po2 = po.clone();
+  // // po2.node.id = po2.node.node = "test2";
 
   return scene;
 };

@@ -111,8 +111,8 @@ class Deck extends PlateauObject {
 
   clone() {
     var ret = super.clone();
-    ret.topDropZone = this.topDropZone.clone(parent);
-    ret.bottomDropZone = this.topDropZone.clone(parent);
+    ret.topDropZone = this.topDropZone.clone(ret);
+    ret.bottomDropZone = this.topDropZone.clone(ret);
     return ret;
   }
 
