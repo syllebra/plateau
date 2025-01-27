@@ -45,6 +45,7 @@ class TTSImporter {
     console.log("LOADING FINISHED !!!");
     console.log(TTSImporter.textures);
     console.log(TTSImporter.meshes);
+    console.log(CardAtlas.all);
     var nb = 0;
     for (var po of results) if (po) nb++;
     console.log("LOADED Objects:", nb);
@@ -130,6 +131,9 @@ class TTSImporter {
         break;
       case "Custom_Model_Stack":
         plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+        break;
+      case "Card":
+        plateauObj = await TTSImporter.importCard(o);
         break;
       default:
         console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
@@ -219,7 +223,7 @@ class TTSImporter {
     try {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
       var height = 0.04;
-      tr.pos.y -= height*0.5;
+      tr.pos.y -= height * 0.5;
       var cm = ShapedObject.Circle(tr.pos, 0.48 * tr.scale.x, height, 48, 0.006, 3);
       cm.node.position = tr.pos;
       cm.node.rotationQuaternion = tr.rot;
@@ -339,7 +343,7 @@ class TTSImporter {
 
     var name = o.GUID + "_" + o.Nickname;
 
-    //TODO: simplyfy threshold
+    //TODO: simplify threshold
     // polygon is now an array of {x,y} objects. Have fun!
     try {
       var image = await loadImage(o.CustomImage.ImageURL);
@@ -446,6 +450,47 @@ class TTSImporter {
       cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
       cm.node.id = cm.node.name = name;
       return cm;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
+    return null;
+  }
+
+  static async importCard(o) {
+    //console.log(o);
+    var deckName = Object.keys(o.CustomDeck)[0];
+
+    if (!CardAtlas.all.has(deckName)) {
+      var cd = o.CustomDeck ? o.CustomDeck[deckName] : null;
+      if (cd) {
+        if (cd.FaceURL && cd.FaceURL != "") {
+          var nb = cd.NumWidth * cd.NumHeight - 1;
+          // Back texture is last by default
+          var deckAtlas = new CardAtlas(deckName, cd.FaceURL, cd.NumWidth, cd.NumHeight, nb, nb);
+          //frontTex = TTSImporter.importTexture(o.CustomDeck.ImageURL, true);
+          // if (o.CustomDeck?.BackURL && o.CustomDeck.BackURL != "")
+          //   backTex = TTSImporter.importTexture(o.CustomDeck.BackURL, true);
+        }
+      }
+    }
+    var atlas = CardAtlas.all.get(deckName);
+
+    var name = o.GUID + "_" + o.Nickname;
+    try {
+      var tr = TTSImporter._tts_transform_to_node(o.Transform);
+      // tr.pos.x *= 0.1;
+      // tr.pos.y = 0.001;
+      var w = (0.572 * (o.Transform.scaleX * TTSImporter.IMPORT_SCALE)) / 2.54;
+      var h = (0.889 * (o.Transform.scaleZ * TTSImporter.IMPORT_SCALE)) / 2.54;
+      //tr.pos.z *= 0.1;
+      //console.log(tr.pos);
+      var num = parseInt(String(o.CardID).replace(deckName, ""));
+      //console.log(num);
+      var c = new Card(tr.pos, atlas, num, atlas.back, w, h);
+
+      // To keep ref
+      c.CardID = o.CardID;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
       return null;

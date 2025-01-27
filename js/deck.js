@@ -5,6 +5,9 @@ class CardAtlas {
   rows = 1;
   nb = 54;
   back = 55;
+
+  static all = new Map();
+
   constructor(
     name = "French Deck Atlas",
     texturePath = "textures/cards/french_deck.png",
@@ -26,6 +29,8 @@ class CardAtlas {
     pbr.roughness = 0.5;
     pbr.albedoTexture = texture;
     this.material = pbr;
+
+    if (!CardAtlas.all.has(name)) CardAtlas.all.set(name, this);
   }
 }
 
