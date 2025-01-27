@@ -14,7 +14,7 @@ class TTSImporter {
   static IMPORT_SCALE = (2.54 * 14) / 20; // TODO: parametrizable scaler
   static UNIT_MULTIPLIER = TTSImporter.UNIT_CONVERTER * TTSImporter.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
-  static POS_OFFSET = new BABYLON.Vector3(0.0, -0.254, 0.0);
+  static POS_OFFSET = new BABYLON.Vector3(0.0, 0.0, 0.0); // new BABYLON.Vector3(0.0, -0.254, 0.0);
   static textures = new Map();
   static meshes = new Map();
 
@@ -32,9 +32,10 @@ class TTSImporter {
     console.log(jsonObj);
     console.log("LOADING...");
     // TTS SnapPoints > Plateau drop zones
-    for (var sp of jsonObj.SnapPoints) {
-      TTSImporter.importSnapPoint(sp);
-    }
+    if (jsonObj.SnapPoints)
+      for (var sp of jsonObj.SnapPoints) {
+        TTSImporter.importSnapPoint(sp);
+      }
 
     const promises = [];
     for (var o of jsonObj.ObjectStates) {
@@ -106,38 +107,41 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      case "Custom_Model":
-        plateauObj = await TTSImporter.importCustomModel(o);
+      // case "Custom_Model":
+      //   plateauObj = await TTSImporter.importCustomModel(o);
+      //   break;
+      // case "Custom_Dice":
+      //   plateauObj = await TTSImporter.importCustomDice(o);
+      //   break;
+      // case "Custom_Tile":
+      //   plateauObj = await TTSImporter.importCustomTile(o);
+      //   break;
+      // case "Custom_Token":
+      //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+      //   //if (o.Transform.posX < -60)
+      //   plateauObj = await TTSImporter.importCustomToken(o);
+      //   break;
+      // case "Custom_Board":
+      //   plateauObj = await TTSImporter.importCustomBoard(o);
+      //   break;
+      // case "backgammon_piece_white":
+      //   plateauObj = await TTSImporter.importBackgammonPiece(o);
+      //   break;
+      // case "Custom_Token_Stack":
+      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+      //   break;
+      // case "Custom_Model_Stack":
+      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+      //   break;
+      // case "Card":
+      //   plateauObj = await TTSImporter.importCard(o);
+      //   break;
+      case "Deck":
+        plateauObj = await TTSImporter.importDeck(o);
         break;
-      case "Custom_Dice":
-        plateauObj = await TTSImporter.importCustomDice(o);
-        break;
-      case "Custom_Tile":
-        plateauObj = await TTSImporter.importCustomTile(o);
-        break;
-      case "Custom_Token":
-        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
-        //if (o.Transform.posX < -60)
-        plateauObj = await TTSImporter.importCustomToken(o);
-        break;
-      case "Custom_Board":
-        plateauObj = await TTSImporter.importCustomBoard(o);
-        break;
-      case "backgammon_piece_white":
-        plateauObj = await TTSImporter.importBackgammonPiece(o);
-        break;
-      case "Custom_Token_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
-        break;
-      case "Custom_Model_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
-        break;
-      case "Card":
-        plateauObj = await TTSImporter.importCard(o);
-        break;
-      default:
-        console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
-        break;
+      // default:
+      //   console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
+      //   break;
     }
 
     if (!plateauObj) return null;
@@ -304,6 +308,7 @@ class TTSImporter {
           break;
         default:
           console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
+          console.log(o);
       }
       cm.node.position = tr.pos;
 
@@ -491,11 +496,32 @@ class TTSImporter {
 
       // To keep ref
       c.CardID = o.CardID;
+
+      return c;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
       return null;
     }
     return null;
+  }
+
+  static async importDeck(o) {
+    var cards = [];
+    if (o.ContainedObjects)
+      for (var oc of o.ContainedObjects) {
+        var c = await TTSImporter.importCard(oc);
+        cards.push(c);
+      }
+
+    var name = o.GUID + "_" + o.Nickname;
+    var tr = this._tts_transform_to_node(o);
+    var deck = Deck.BuildFromCards(name, cards, tr.pos);
+    deck.position = tr.pos;
+    deck.rotationQuaternion = tr.rot;
+    deck.updateZones();
+    console.log(deck);
+    //cards.push(deck);return cards;
+    return deck;
   }
 
   static importTexture(url, flip = false) {

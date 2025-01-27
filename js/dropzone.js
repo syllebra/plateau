@@ -84,6 +84,11 @@ class DropZone {
     DropZone.all.add(ret);
   }
 
+  dispose() {
+    DropZone.all.delete(this);
+    this.node.dispose();
+  }
+
   static FromNode(node) {
     var z = new DropZone();
     z.node = node;

@@ -132,20 +132,37 @@ class Deck extends PlateauObject {
       var c = new Card(null, atlas, i, atlas.back);
       deck.addCard(c);
     }
-
-    deck.updateBoundingInfos();
-    var bi = deck.getBoundingInfos();
-    var sz = bi.boundingBox.extendSize;
-    deck.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
-    //deck.topDropZone.node.id = deck.topDropZone.node.name = deck.id+"_topZone"
-    deck.topDropZone.acceptedClasses.add(Card);
-    deck.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, deck.node);
-    deck.bottomDropZone.acceptedClasses.add(Card);
-    //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
-    deck._updateCardsPhysics();
+    deck.setupDropZones();
     if (position) deck.node.position.copyFrom(position);
-
     return deck;
+  }
+
+  static BuildFromCards(name, cards, position) {
+    var deck = new Deck(name, null);
+
+    for (var c of cards) {
+      console.log("Adding ", c);
+      deck.addCard(c);
+    }
+    deck.setupDropZones();
+    if (position) deck.node.position.copyFrom(position);
+    return deck;
+  }
+
+  setupDropZones() {
+    this.updateBoundingInfos();
+    var bi = this.getBoundingInfos();
+    var sz = bi.boundingBox.extendSize;
+    if (this.topDropZone) this.topDropZone.dispose();
+    if (this.bottomDropZone) this.bottomDropZone.dispose();
+
+    this.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, this.node);
+    //deck.topDropZone.node.id = deck.topDropZone.node.name = deck.id+"_topZone"
+    this.topDropZone.acceptedClasses.add(Card);
+    this.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, this.node);
+    this.bottomDropZone.acceptedClasses.add(Card);
+    //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
+    this._updateCardsPhysics();
   }
 
   static BuildFromCardsAtlases(name) {}
@@ -158,6 +175,9 @@ class Deck extends PlateauObject {
     card.pickable = false;
     card.body.dispose();
     card.body = null;
+
+    card.node.position = this.node.position;
+    card.node.rotationQuaternion = this.node.rotationQuaternion;
 
     card.deck = this;
     card.flippedInDeck = flip;
