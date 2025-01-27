@@ -112,25 +112,25 @@ class TTSImporter {
       //   plateauObj = await TTSImporter.importCustomDice(o);
       //   break;
       // case "Custom_Tile":
-      //   console.log(o)
       //   plateauObj = await TTSImporter.importCustomTile(o);
       //   break;
-      case "Custom_Token":
-        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
-        if (o.Transform.posX < -60) plateauObj = await TTSImporter.importCustomToken(o);
-        break;
+      // case "Custom_Token":
+      //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+      //   //if (o.Transform.posX < -60)
+      //     plateauObj = await TTSImporter.importCustomToken(o);
+      //   break;
       case "Custom_Board":
-        //plateauObj = await TTSImporter.importCustomBoard(o);
+        plateauObj = await TTSImporter.importCustomBoard(o);
         break;
       // case "backgammon_piece_white":
       //   console.log(o);
       //   break;
-      case "Custom_Token_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
-        break;
-      case "Custom_Model_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
-        break;
+      // case "Custom_Token_Stack":
+      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+      //   break;
+      // case "Custom_Model_Stack":
+      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+      //   break;
       // default:
       // console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
       // break;
@@ -400,14 +400,17 @@ class TTSImporter {
       var cm = null;
 
       var image = await loadImage(o.CustomImage.ImageURL);
-      var h = (0.5 * 67 * TTSImporter.IMPORT_SCALE) / 2.54;
+      var h = (0.5 * 67 * TTSImporter.IMPORT_SCALE * TTSImporter.UNIT_MULTIPLIER) / 2.54;
       var w = (h * image.width) / image.height;
+      w *= o.Transform.scaleX;
+      h *= o.Transform.scaleZ;
       //w *= o.CustomImage.WidthScale;
 
-      cm = ShapedObject.Square(null, w, h, 2);
+      cm = ShapedObject.Square(null, w, h, 0.2);
       cm.startAnimationMode();
-      var tr = TTSImporter._tts_transform_to_node(o.Transform, cm.node);
-      //cm.node.position = tr.pos;
+      var tr = TTSImporter._tts_transform_to_node(o.Transform);
+      cm.node.position = tr.pos;
+      cm.node.rotationQuaternion = tr.rot;
 
       const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
       pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
