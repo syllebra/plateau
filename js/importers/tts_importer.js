@@ -105,35 +105,35 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      // case "Custom_Model":
-      //   plateauObj = await TTSImporter.importCustomModel(o);
-      //   break;
-      // case "Custom_Dice":
-      //   plateauObj = await TTSImporter.importCustomDice(o);
-      //   break;
-      // case "Custom_Tile":
-      //   plateauObj = await TTSImporter.importCustomTile(o);
-      //   break;
-      // case "Custom_Token":
-      //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
-      //   //if (o.Transform.posX < -60)
-      //     plateauObj = await TTSImporter.importCustomToken(o);
-      //   break;
+      case "Custom_Model":
+        plateauObj = await TTSImporter.importCustomModel(o);
+        break;
+      case "Custom_Dice":
+        plateauObj = await TTSImporter.importCustomDice(o);
+        break;
+      case "Custom_Tile":
+        plateauObj = await TTSImporter.importCustomTile(o);
+        break;
+      case "Custom_Token":
+        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+        //if (o.Transform.posX < -60)
+        plateauObj = await TTSImporter.importCustomToken(o);
+        break;
       case "Custom_Board":
         plateauObj = await TTSImporter.importCustomBoard(o);
         break;
-      // case "backgammon_piece_white":
-      //   console.log(o);
-      //   break;
-      // case "Custom_Token_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
-      //   break;
-      // case "Custom_Model_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
-      //   break;
-      // default:
-      // console.warn(o.GUID+" => "+o.Name+" import is not implemented yet.")
-      // break;
+      case "backgammon_piece_white":
+        plateauObj = await TTSImporter.importBackgammonPiece(o);
+        break;
+      case "Custom_Token_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+        break;
+      case "Custom_Model_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+        break;
+      default:
+        console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
+        break;
     }
 
     if (!plateauObj) return null;
@@ -212,6 +212,30 @@ class TTSImporter {
       }
     }
     return null;
+  }
+
+  static async importBackgammonPiece(o) {
+    var name = o.GUID + "_" + o.Nickname;
+    try {
+      var tr = TTSImporter._tts_transform_to_node(o.Transform);
+      var height = 0.04;
+      tr.pos.y -= height*0.5;
+      var cm = ShapedObject.Circle(tr.pos, 0.48 * tr.scale.x, height, 48, 0.006, 3);
+      cm.node.position = tr.pos;
+      cm.node.rotationQuaternion = tr.rot;
+
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.1;
+      cm.node.material = pbr;
+
+      cm.node.id = cm.node.name = name;
+      return cm;
+    } catch (e) {
+      console.warn("Error occurred while creating ", name, e);
+      return null;
+    }
   }
 
   static async importCustomMeshResources(o) {

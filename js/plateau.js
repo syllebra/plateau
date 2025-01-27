@@ -285,7 +285,7 @@ var createScene = async function () {
   // );
 
   var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  //var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   const tstBtn = ui.addBtn("Test", () => {
     //tst.setEnabled(true);
