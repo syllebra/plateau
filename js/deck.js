@@ -267,8 +267,9 @@ class Deck extends PlateauObject {
     super.onKeyUp(key);
   }
 
-  checkSubPick(node = null) {
+  checkSubPick(pickInfo = null) {
     if (shiftKeyDown || controlKeyDown || SelectionHandler.isSelected(this)) return this;
+    var node = pickInfo.pickedMesh;
     return this.popCard(node && node.plateauObj ? node.plateauObj : null);
   }
 

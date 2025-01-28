@@ -542,12 +542,16 @@ var createScene = async function () {
           MouseSpeed.reset();
 
           var po = PlateauObject.GetTopMost(pointerInfo.pickInfo.pickedMesh);
-          if (!po || !po.node || !po.body || !po.pickable || po.locked) {
+          if (!po || !po.node || !po.body) {
             pickedObject = null;
             break;
           }
           SelectionHandler.updateHover(null);
-          pickedObject = po.checkSubPick(pointerInfo.pickInfo.pickedMesh);
+          pickedObject = po.checkSubPick(pointerInfo.pickInfo);
+          if (!pickedObject.pickable || pickedObject.locked) {
+            pickedObject = null;
+            break;
+          }
 
           if (controlKeyDown) {
             SelectionHandler.toggleSelection(pickedObject);
@@ -556,7 +560,7 @@ var createScene = async function () {
             if (!SelectionHandler.isSelected(pickedObject)) SelectionHandler.removeAll();
           }
 
-          picked_ground_pos.copyFrom(pickedObject.node.absolutePosition);
+          picked_ground_pos.copyFrom(pickedObject.node.position);
           picked_ray_hit_ground.copyFrom(
             pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
           );

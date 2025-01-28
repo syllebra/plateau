@@ -54,7 +54,7 @@ class Bag extends PlateauObject {
     var obj = this.objects.pop();
     if (obj) {
       obj.setEnabled(true, true);
-      obj.stopAnimationMode();
+      //      obj.stopAnimationMode();
       obj.pickable = true;
 
       var bs0 = this.getBoundingInfos().boundingSphere;
@@ -67,7 +67,7 @@ class Bag extends PlateauObject {
     return obj;
   }
 
-  checkSubPick(node = null) {
+  checkSubPick(pickInfo = null) {
     if (shiftKeyDown || controlKeyDown || SelectionHandler.isSelected(this)) return this;
     var pop = this.popObject();
     return pop ? pop : this;

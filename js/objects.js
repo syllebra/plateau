@@ -360,7 +360,7 @@ class PlateauObject {
     return PlateauObject.GetTopMost(node.parent);
   }
 
-  checkSubPick(node = null) {
+  checkSubPick(pickInfo = null) {
     return this;
   }
 
