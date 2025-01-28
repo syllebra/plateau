@@ -177,8 +177,8 @@ class Deck extends PlateauObject {
     card.body.dispose();
     card.body = null;
 
-    card.node.position = this.node.position;
-    card.node.rotationQuaternion = this.node.rotationQuaternion;
+    card.node.position.copyFrom(this.node.position);
+    card.node.rotationQuaternion.copyFrom(this.node.rotationQuaternion);
 
     card.deck = this;
     card.flippedInDeck = flip;
