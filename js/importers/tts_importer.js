@@ -197,7 +197,7 @@ class TTSImporter {
   static async importCustomModel(o) {
     var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
     if (cmr.mesh) {
-      var name = o.GUID + "_" + o.Nickname;
+      var name = o.Nickname;
       try {
         var mesh = cmr.mesh.clone();
         TTSImporter._tts_transform_to_node(o.Transform, mesh);
@@ -217,6 +217,7 @@ class TTSImporter {
         var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
         cm.startAnimationMode();
         cm.node.id = cm.node.name = name;
+        cm.uuid = o.GUID;
         return cm;
       } catch (e) {
         console.warn("Error occurred while creating ", name, e);
@@ -227,7 +228,7 @@ class TTSImporter {
   }
 
   static async importBackgammonPiece(o) {
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     try {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
       var height = 0.04;
@@ -243,6 +244,7 @@ class TTSImporter {
       cm.node.material = pbr;
 
       cm.node.id = cm.node.name = name;
+      cm.uuid = o.GUID;
       return cm;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -263,7 +265,7 @@ class TTSImporter {
   static async importCustomDice(o) {
     var texture = null;
     if (o.CustomImage?.ImageURL) texture = await TTSImporter.importTexture(o.CustomImage.ImageURL, true);
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     try {
       const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
       pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
@@ -283,7 +285,7 @@ class TTSImporter {
       po.node.rotationQuaternion = tr.rot;
       po.node.material = pbr;
       po.node.id = po.node.name = name;
-
+      po.uuid = o.GUID;
       return po;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -299,7 +301,7 @@ class TTSImporter {
       frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
     if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
       backTex = TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
 
     try {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
@@ -350,6 +352,7 @@ class TTSImporter {
       // }
       //var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
       cm.node.id = cm.node.name = name;
+      cm.uuid = o.GUID;
       return cm;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -364,7 +367,7 @@ class TTSImporter {
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
       frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
 
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
 
     //TODO: simplify threshold
     // polygon is now an array of {x,y} objects. Have fun!
@@ -407,6 +410,7 @@ class TTSImporter {
       cm.setMaterial(pbr, backMat);
 
       cm.node.id = cm.node.name = name;
+      cm.uuid = o.GUID;
       return cm;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -446,7 +450,7 @@ class TTSImporter {
     var frontTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
       frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     try {
       var cm = null;
 
@@ -473,6 +477,7 @@ class TTSImporter {
       if (o.PhysicsMaterial)
         cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
       cm.node.id = cm.node.name = name;
+      cm.uuid = o.GUID;
       return cm;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -500,7 +505,7 @@ class TTSImporter {
     }
     var atlas = CardAtlas.all.get(deckName);
 
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     try {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
       // tr.pos.x *= 0.1;
@@ -515,7 +520,7 @@ class TTSImporter {
 
       // To keep ref
       c.CardID = o.CardID;
-
+      c.uuid = o.GUID;
       return c;
     } catch (e) {
       console.warn("Error occurred while creating ", name, e);
@@ -532,20 +537,20 @@ class TTSImporter {
         cards.push(c);
       }
 
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     var tr = this._tts_transform_to_node(o);
     var deck = Deck.BuildFromCards(name, cards, tr.pos);
     deck.position = tr.pos;
     deck.rotationQuaternion = tr.rot;
     deck.updateZones();
     deck.node.id = deck.node.name = name;
+    deck.uuid = o.GUID;
     //cards.push(deck);return cards;
     return deck;
   }
 
   static async importBag(o) {
-    console.log(o);
-    var name = o.GUID + "_" + o.Nickname;
+    var name = o.Nickname;
     var bag = new Bag();
     bag.node.id = bag.node.name = name;
     var tr = this._tts_transform_to_node(o.Transform);
@@ -572,6 +577,7 @@ class TTSImporter {
         }
     }
 
+    bag.uuid = o.GUID;
     return [bag];
     // var cards = [];
     // if (o.ContainedObjects)

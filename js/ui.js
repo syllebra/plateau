@@ -21,15 +21,13 @@ class StatsUI {
 class FastUI {
   panel = null;
   constructor() {
-    var advancedTexture =
-      BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
 
     this.panel = new BABYLON.GUI.StackPanel();
     this.panel.spacing = 5;
     advancedTexture.addControl(this.panel);
     this.panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-    this.panel.horizontalAlignment =
-      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     this.panel.paddingLeftInPixels = 10;
     this.panel.paddingTopInPixels = 10;
     this.panel.width = "30%";
@@ -37,10 +35,7 @@ class FastUI {
   }
 
   addBtn(text, clickFn) {
-    const addBtn = BABYLON.GUI.Button.CreateSimpleButton(
-      "btn_" + text.slice(0, 5),
-      text
-    );
+    const addBtn = BABYLON.GUI.Button.CreateSimpleButton("btn_" + text.slice(0, 5), text);
     this.panel.addControl(addBtn);
     addBtn.width = "100%";
     addBtn.height = "30px";
@@ -53,8 +48,7 @@ class FastUI {
   addToggle(toggleText) {
     var toggleViewLine = new BABYLON.GUI.StackPanel("toggleViewLine");
     toggleViewLine.isVertical = false;
-    toggleViewLine.horizontalAlignment =
-      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    toggleViewLine.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     toggleViewLine.spacing = 5;
     toggleViewLine.resizeToFit = true;
     toggleViewLine.height = "25px";
@@ -138,7 +132,7 @@ class MouseSpeed {
     var dy = e.movementY;
 
     var distance = Math.sqrt(dx * dx + dy * dy);
-//    var direction = Math.atan2(dy, dx);
+    //    var direction = Math.atan2(dy, dx);
 
     //speed is zero when mouse was still (dt hold a long pause)
     this.value = parseInt((distance / dt) * 100);
@@ -146,18 +140,13 @@ class MouseSpeed {
     // var speedY = Math.round((dy / dt) * 100);
 
     //reset if speed is zero, otherwise set max of any speed
-    this.speedMax = !this.mouse_speed
-      ? 0
-      : this.mouse_speed > this.speedMax
-      ? this.mouse_speed
-      : this.speedMax;
+    this.speedMax = !this.mouse_speed ? 0 : this.mouse_speed > this.speedMax ? this.mouse_speed : this.speedMax;
     //console.log("max:",speedMax)
     this.timestamp = now;
   }
   static reset() {
     this.speedMax = 0;
   }
-
 }
 
 class FrostedTooltip {
@@ -167,6 +156,7 @@ class FrostedTooltip {
     this.defaultOptions = {
       title: "Default Title",
       description: "This is the default description for the frosted card tooltip.",
+      uuid: "xxxxxxxxxxxxxxxx", // Default placeholder UUID
       xOffset: 15,
       yOffset: 15,
     };
@@ -175,6 +165,7 @@ class FrostedTooltip {
     // Apply default content
     this.setTitle(this.options.title);
     this.setDescription(this.options.description);
+    this.setUUID(this.options.uuid);
   }
 
   setTitle(title) {
@@ -185,6 +176,11 @@ class FrostedTooltip {
   setDescription(description) {
     this.options.description = description;
     this.card.querySelector("#tooltip-description").textContent = description;
+  }
+
+  setUUID(uuid) {
+    this.options.uuid = uuid;
+    this.card.querySelector("#tooltip-uuid").textContent = uuid;
   }
 
   showTooltip(mouseX, mouseY) {

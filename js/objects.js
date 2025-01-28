@@ -47,6 +47,7 @@ class PlateauObject {
 
     this.canReceive = false;
 
+    this.uuid = UUID.generate();
     //this.node.showBoundingBox = true;
 
     gizmoManager.attachableMeshes.push(this.node);
@@ -65,6 +66,7 @@ class PlateauObject {
     ret.body = this.body.clone(ret.node);
     ret.updateBoundingInfos();
 
+    ret.uuid = UUID.generate();
     return ret;
   }
 

@@ -198,7 +198,8 @@ body {
 
 .frosted-card {
     position: absolute;
-    width: 200px; /* Adjusted size for smaller tooltip */
+    width: 200px;
+    /* Adjusted size for tooltip */
     padding: 15px;
     border-radius: 10px;
     backdrop-filter: blur(10px);
@@ -211,11 +212,12 @@ body {
     transition: opacity 0.3s ease, transform 0.2s ease;
     opacity: 0;
     transform: translateY(10px);
-    pointer-events: none; /* Prevent interaction when hidden */
-    font-size: 12px; /* Smaller font size for the entire card */
-  }
-  
-  .frosted-card::before {
+    pointer-events: none;
+    font-size: 12px;
+    /* Smaller font size for the entire card */
+}
+
+.frosted-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -225,39 +227,52 @@ body {
     background: inherit;
     border-radius: 10px;
     z-index: -1;
-  }
-  
-  .card-title {
-    font-size: 14px; /* Smaller title font */
+}
+
+.card-title {
+    font-size: 14px;
+    /* Title font size */
     font-weight: bold;
     margin-bottom: 8px;
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.4s ease, transform 0.3s ease;
-  }
-  
-  .card-description {
-    font-size: 11px; /* Smaller description font */
+}
+
+.card-description {
+    font-size: 11px;
+    /* Description font size */
     line-height: 1.4;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.4s ease, transform 0.3s ease;
-    transition-delay: 0.1s; /* Slight delay for staggered effect */
-  }
-  
-  .frosted-card.visible {
+    transition-delay: 0.1s;
+    /* Slight delay for staggered effect */
+}
+
+.uuid {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 9px;
+    /* Very small font for UUID */
+    color: rgba(255, 255, 255, 0.7);
+    /* Semi-transparent white for subtle appearance */
+    text-align: right;
+}
+
+.frosted-card.visible {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
-  }
-  
-  .frosted-card.visible .card-title {
+}
+
+.frosted-card.visible .card-title {
     opacity: 1;
     transform: translateY(0);
-  }
-  
-  .frosted-card.visible .card-description {
+}
+
+.frosted-card.visible .card-description {
     opacity: 1;
     transform: translateY(0);
-  }
-  
+}

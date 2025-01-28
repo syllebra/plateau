@@ -651,6 +651,7 @@ var createScene = async function () {
           if (po) {
             g_tooltip.setTitle(po.node.name);
             g_tooltip.setDescription(po.description);
+            g_tooltip.setUUID(po.uuid);
             g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
           } else {
             g_tooltip.hideTooltip();
