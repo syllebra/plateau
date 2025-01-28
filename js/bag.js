@@ -29,6 +29,7 @@ class Bag extends PlateauObject {
     super(model, collider, { friction: 0.6, restitution: 0.0 }, position, 1);
 
     this.canReceive = true;
+    this.infinite = false;
   }
 
   addObject(po, position = -1) {
@@ -52,7 +53,11 @@ class Bag extends PlateauObject {
   }
 
   popObject() {
-    var obj = this.objects.pop();
+    var obj = null;
+    if (this.infinite && this.objects.length == 1) {
+      obj = this.objects[0].clone();
+    } else obj = this.objects.pop();
+
     if (obj) {
       obj.setEnabled(true, true);
       //      obj.stopAnimationMode();
