@@ -1,4 +1,5 @@
 async function loadImage(url) {
+  //TODO: cache !!!
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.onload = () => resolve(img);
@@ -113,9 +114,9 @@ class TTSImporter {
       // case "Custom_Dice":
       //   plateauObj = await TTSImporter.importCustomDice(o);
       //   break;
-      // case "Custom_Tile":
-      //   plateauObj = await TTSImporter.importCustomTile(o);
-      //   break;
+      case "Custom_Tile":
+        plateauObj = await TTSImporter.importCustomTile(o);
+        break;
       // case "Custom_Token":
       //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
       //   //if (o.Transform.posX < -60)
@@ -304,10 +305,23 @@ class TTSImporter {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
       var thickness = o.CustomImage.CustomTile.Thickness * TTSImporter.UNIT_MULTIPLIER;
       var cm = null;
+      console.log(o);
       switch (o.CustomImage.CustomTile.Type) {
         case 0:
           cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
           cm.startAnimationMode();
+          break;
+        case 1:
+          cm = ShapedObject.Hexagon(null, tr.scale.x * 2, thickness, 0.008, 3);
+          cm.startAnimationMode();
+          break;
+        case 0:
+          cm = ShapedObject.Circle(null, tr.scale.x * 2, thickness, 0.008, 3);
+          cm.startAnimationMode();
+          break;
+        case 0:
+          // cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+          // cm.startAnimationMode();
           break;
         default:
           console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
@@ -542,6 +556,22 @@ class TTSImporter {
     }
     bag.node.position = tr.pos;
     bag.node.rotationQuaternion = tr.rot;
+
+    if (o.ContainedObjects) {
+      const promises = [];
+      for (var oc of o.ContainedObjects) {
+        promises.push(TTSImporter.importObject(oc));
+      }
+      var collection = await Promise.all(promises);
+      for (var coll of collection)
+        if (coll) {
+          for (var obj of coll)
+            if (obj) {
+              bag.addObject(obj);
+            }
+        }
+    }
+
     return [bag];
     // var cards = [];
     // if (o.ContainedObjects)
