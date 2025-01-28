@@ -648,6 +648,13 @@ var createScene = async function () {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
           var po = PlateauObject.GetTopMost(pi.pickedMesh);
           SelectionHandler.updateHover(po);
+          if (po) {
+            g_tooltip.setTitle(po.node.name);
+            g_tooltip.setDescription(po.description);
+            g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
+          } else {
+            g_tooltip.hideTooltip();
+          }
         }
         break;
       case BABYLON.PointerEventTypes.POINTERWHEEL:
@@ -688,7 +695,7 @@ var createScene = async function () {
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json");
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
   // var m = BABYLON.MeshBuilder.CreateCylinder("test", {
   //   diameter: 0.6,
   //   height: 0.1,

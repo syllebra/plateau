@@ -13,6 +13,8 @@ gLiftHeight = 0.3;
 
 let preloadFunctions = [];
 
+let g_tooltip = null;
+
 function registerPreload(f) {
   preloadFunctions.push(f);
 }
