@@ -87,6 +87,7 @@ class Card extends PlateauObject {
 
       this.orientUpTo(dstUp);
     }
+    console.log("picked up ", this.node.name);
   }
 }
 
@@ -112,6 +113,7 @@ class Deck extends PlateauObject {
     if (position) node.position.copyFrom(position);
 
     super(node);
+    this.canReceive = false;
   }
 
   clone() {
@@ -141,7 +143,6 @@ class Deck extends PlateauObject {
     var deck = new Deck(name, null);
 
     for (var c of cards) {
-      console.log("Adding ", c);
       deck.addCard(c);
     }
     deck.setupDropZones();
@@ -212,14 +213,12 @@ class Deck extends PlateauObject {
     }
 
     var world_H_card = XTransform.FromNodeWorld(card.node);
-    console.log(world_H_card);
     card.deck = null;
     card.node.parent = null;
     world_H_card.applyToNodeWorld(card.node);
     card._updateAutoCollider();
     this._updateCardsPhysics();
     card.setEnabled(true, true);
-    console.log(card);
     card.stopAnimationMode();
     card.pickable = true;
     return card;

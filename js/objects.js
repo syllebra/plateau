@@ -5,6 +5,9 @@ class PlateauObject {
   rotationAnimation = null;
   auto_collider_mode = 0;
 
+  canReceive = false;
+  acceptedClasses = new Set();
+
   constructor(
     node,
     colliderShape = null,
@@ -41,6 +44,8 @@ class PlateauObject {
     this.locked = false;
 
     this.physicsEnabled = true;
+
+    this.canReceive = false;
 
     //this.node.showBoundingBox = true;
 
@@ -373,11 +378,40 @@ class PlateauObject {
     dstPos.y -= bb.minimum.y * this.node.scaling.y;
 
     this.animatePosition(dstPos, 300, () => {
-      this.setEnabled(true, true);
-      this.stopAnimationMode();
       if (finishedCB) finishedCB();
+      var po = PlateauObject.GetTopMost(destNode);
+      if (po && po.accept(this)) po.received(this);
     });
   }
 
+  received(po) {
+    console.log(this.node.name + " received " + po.node.name);
+    this.setEnabled(true, true);
+    this.stopAnimationMode();
+  }
+
   updateZones() {}
+
+  accept(obj) {
+    if (!this.canReceive) return false;
+    if (this.acceptedClasses.size == 0) return true;
+    for (var cl of this.acceptedClasses) if (obj instanceof cl) return true;
+    return false;
+  }
+
+  static GetHovered(position, obj = null) {
+    var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
+
+    var pi = scene.pickWithRay(
+      ray,
+      (mesh, i) => mesh.plateauObj && mesh.plateauObj != obj && mesh.plateauObj.accept(obj)
+    );
+    if (!pi.hit) return null;
+    return pi.pickedMesh.plateauObj;
+  }
+
+  static CheckCurrentDrop(position, obj = null) {
+    var hoveredpo = PlateauObject.GetHovered(position, obj);
+    SelectionHandler.updateHover(hoveredpo, new BABYLON.Color3(0.4, 0.8, 0.1));
+  }
 }

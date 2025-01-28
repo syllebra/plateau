@@ -44,7 +44,7 @@ class SelectionBox {
   setSecondPoint(pos) {
     this.p1.copyFrom(pos);
     this.update();
-    console.log("X: "+(this.p1.x - this.p0.x)*10 + " cm", "Z: "+(this.p1.z - this.p0.z)*10 + " cm")
+    console.log("X: " + (this.p1.x - this.p0.x) * 10 + " cm", "Z: " + (this.p1.z - this.p0.z) * 10 + " cm");
   }
   setVisiblity(b) {
     this.box.setEnabled(b);
@@ -140,8 +140,7 @@ class SelectionHandler {
   static addPlateauObject(obj, color = new BABYLON.Color3(0, 1, 1), justHighlight = false) {
     if (!this.hl || !obj.node) return;
     //console.log("Selecting ", obj.node.id);
-    if(!justHighlight && obj && obj.locked)
-      color = new BABYLON.Color3(color.r*0.4, color.g*0.4, color.b*0.4);
+    if (!justHighlight && obj && obj.locked) color = new BABYLON.Color3(color.r * 0.4, color.g * 0.4, color.b * 0.4);
     this._addMeshesRecursive(obj.node, null, color);
     if (!justHighlight) this.selected.add(obj);
   }
@@ -184,11 +183,11 @@ class SelectionHandler {
 
   static hoveredObject = null;
 
-  static updateHover(obj) {
+  static updateHover(obj, color = new BABYLON.Color3(1, 0.6, 0.0)) {
     if (obj != this.hoveredObject) {
       if (this.hoveredObject) this._updateHover(this.hoveredObject, false);
       this.hoveredObject = obj;
-      var color = obj && obj.locked? new BABYLON.Color3(0.4, 0.4, 0.4) : new BABYLON.Color3(1, 0.6, 0.0);
+      var color = obj && obj.locked ? new BABYLON.Color3(0.4, 0.4, 0.4) : color;
       this._updateHover(obj, true, color);
     }
   }

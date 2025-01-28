@@ -49,7 +49,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   const groundShape = new BABYLON.PhysicsShapeCylinder(
     new BABYLON.Vector3(0, -0.1, 0), // starting point of the cylinder segment
     new BABYLON.Vector3(0, 0.1, 0), // ending point of the cylinder segment
-    size * 0.5, // radius of the cylinder
+    size * 0.5 * 1000, // radius of the cylinder
     scene // scene of the shape
   );
 
@@ -285,7 +285,9 @@ var createScene = async function () {
   // );
 
   var french_deck_atlas = new CardAtlas();
-  //var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+
+  var bag = new Bag();
 
   const tstBtn = ui.addBtn("Test", () => {
     //tst.setEnabled(true);
@@ -481,6 +483,13 @@ var createScene = async function () {
       if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
       for (var o of objects) {
         o.node.dragged = false;
+
+        var under = PlateauObject.GetHovered(o.node.absolutePosition, o);
+        if (under) {
+          o.dropOn(under.node, false, null);
+          continue;
+        }
+
         var pos = new BABYLON.Vector3();
         pos.copyFrom(o.node.absolutePosition);
         pos.y += 0.03; // slightly up to induce some moment (angular velocity)
@@ -558,6 +567,7 @@ var createScene = async function () {
             (m) => PlateauObject.GetTopMost(m.node) != pickedObject
           );
           DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+          PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
 
           var objects = SelectionHandler.getPlateauObjects();
           if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
@@ -628,6 +638,7 @@ var createScene = async function () {
               (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
             );
             DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+            PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
@@ -673,7 +684,7 @@ var createScene = async function () {
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json");
   // var m = BABYLON.MeshBuilder.CreateCylinder("test", {
   //   diameter: 0.6,
   //   height: 0.1,

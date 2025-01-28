@@ -136,8 +136,11 @@ class TTSImporter {
       // case "Card":
       //   plateauObj = await TTSImporter.importCard(o);
       //   break;
-      case "Deck":
-        plateauObj = await TTSImporter.importDeck(o);
+      // case "Deck":
+      //   plateauObj = await TTSImporter.importDeck(o);
+      //   break;
+      case "Bag":
+        plateauObj = await TTSImporter.importBag(o);
         break;
       // default:
       //   console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
@@ -324,7 +327,8 @@ class TTSImporter {
       }
       if (frontTex) pbr.albedoTexture = frontTex;
       cm.setMaterial(pbr, backMat);
-      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+      if (o.PhysicsMaterial)
+        cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
       //var meshCol = null;
       // var meshCol = cmr.colliderMesh?.clone();
       // if (meshCol) {
@@ -452,7 +456,8 @@ class TTSImporter {
 
       if (frontTex) pbr.albedoTexture = frontTex;
       cm.setMaterial(pbr);
-      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+      if (o.PhysicsMaterial)
+        cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
       cm.node.id = cm.node.name = name;
       return cm;
     } catch (e) {
@@ -519,11 +524,41 @@ class TTSImporter {
     deck.position = tr.pos;
     deck.rotationQuaternion = tr.rot;
     deck.updateZones();
-    console.log(deck);
+    deck.node.id = deck.node.name = name;
     //cards.push(deck);return cards;
     return deck;
   }
 
+  static async importBag(o) {
+    console.log(o);
+    var name = o.GUID + "_" + o.Nickname;
+    var bag = new Bag();
+    bag.node.id = bag.node.name = name;
+    var tr = this._tts_transform_to_node(o.Transform);
+    if (o.ColorDiffuse) {
+      var mat = bag.node.material.clone(name + "_Material");
+      mat.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b);
+      bag.node.material = mat;
+    }
+    bag.node.position = tr.pos;
+    bag.node.rotationQuaternion = tr.rot;
+    return [bag];
+    // var cards = [];
+    // if (o.ContainedObjects)
+    //   for (var oc of o.ContainedObjects) {
+    //     var c = await TTSImporter.importCard(oc);
+    //     cards.push(c);
+    //   }
+
+    // var name = o.GUID + "_" + o.Nickname;
+    // var tr = this._tts_transform_to_node(o);
+    // var deck = Deck.BuildFromCards(name, cards, tr.pos);
+    // deck.position = tr.pos;
+    // deck.rotationQuaternion = tr.rot;
+    // deck.updateZones();
+    // //cards.push(deck);return cards;
+    // return deck;
+  }
   static importTexture(url, flip = false) {
     if (!TTSImporter.textures.has(url)) {
       var tex = null;
@@ -537,6 +572,7 @@ class TTSImporter {
   static async importMesh(url) {
     if (TTSImporter.meshes.has(url)) return TTSImporter.meshes[url];
     try {
+      BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
       var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
       if (!tst) return null;
 
