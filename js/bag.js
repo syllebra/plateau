@@ -32,6 +32,7 @@ class Bag extends PlateauObject {
   }
 
   addObject(po, position = -1) {
+    console.log("Adding " + po.node.name + " to bag " + this.node.name);
     // Add an object inside the bag, at a given position
     po.startAnimationMode();
     po.setEnabled(false, false);
