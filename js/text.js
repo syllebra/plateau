@@ -6,7 +6,7 @@ class TextObject {
     // var font_size = 48;
     // var font = "bold " + font_size + "px Arial";
     var font = (bold ? "bold " : "") + font_size + "px " + fontName;
-     console.log(font)
+     
     //Set height for plane
     var planeHeight = 0.3;
 

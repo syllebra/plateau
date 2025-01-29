@@ -60,7 +60,7 @@ class PlateauObject {
   }
 
   get fullDescription() {
-    return this.description;
+    return this.description ? this.description : "";
   }
 
   get fullAdditional() {

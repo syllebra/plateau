@@ -15,7 +15,7 @@ class TTSImporter {
   static IMPORT_SCALE = (2.54 * 14) / 20; // TODO: parametrizable scaler
   static UNIT_MULTIPLIER = TTSImporter.UNIT_CONVERTER * TTSImporter.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
-  static POS_OFFSET = new BABYLON.Vector3(0.0, 0.0, 0.0); // new BABYLON.Vector3(0.0, -0.254, 0.0);
+  static POS_OFFSET = new BABYLON.Vector3(0.0, -0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
   static textures = new Map();
   static meshes = new Map();
 
@@ -37,6 +37,8 @@ class TTSImporter {
       for (var sp of jsonObj.SnapPoints) {
         TTSImporter.importSnapPoint(sp);
       }
+
+    console.log("OBJECTS:", jsonObj.ObjectStates.length);
 
     const promises = [];
     for (var o of jsonObj.ObjectStates) {
@@ -108,50 +110,54 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      // case "Custom_Model":
-      //   plateauObj = await TTSImporter.importCustomModel(o);
-      //   break;
-      // case "Custom_Dice":
-      //   plateauObj = await TTSImporter.importCustomDice(o);
-      //   break;
-      // case "Custom_Tile":
-      //   plateauObj = await TTSImporter.importCustomTile(o);
-      //   break;
+      case "Custom_Model":
+        plateauObj = await TTSImporter.importCustomModel(o);
+        break;
+      case "Custom_Dice":
+        plateauObj = await TTSImporter.importCustomDice(o);
+        break;
+      case "Custom_Tile":
+        plateauObj = await TTSImporter.importCustomTile(o);
+        break;
       case "Custom_Token":
         //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
         //if (o.Transform.posX < -60)
         plateauObj = await TTSImporter.importCustomToken(o);
         break;
-      // case "Custom_Board":
-      //   plateauObj = await TTSImporter.importCustomBoard(o);
-      //   break;
-      // case "backgammon_piece_white":
-      //   plateauObj = await TTSImporter.importBackgammonPiece(o);
-      //   break;
-      // case "Custom_Token_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
-      //   break;
-      // case "Custom_Model_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
-      //   break;
-      // case "Card":
-      //   plateauObj = await TTSImporter.importCard(o);
-      //   break;
-      // case "Deck":
-      //   plateauObj = await TTSImporter.importDeck(o);
-      //   break;
-      // case "Bag":
-      //   plateauObj = await TTSImporter.importBag(o);
-      //   break;
-      // case "Custom_Model_Infinite_Bag":
-      //   plateauObj = await TTSImporter.importCustomModelInfiniteBag(o);
-      //   break;
+      case "Custom_Board":
+        plateauObj = await TTSImporter.importCustomBoard(o);
+        break;
+      case "backgammon_piece_white":
+        plateauObj = await TTSImporter.importBackgammonPiece(o);
+        break;
+      case "Custom_Token_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+        break;
+      case "Custom_Model_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+        break;
+      case "Card":
+        plateauObj = await TTSImporter.importCard(o);
+        break;
+      case "Deck":
+        plateauObj = await TTSImporter.importDeck(o);
+        break;
+      case "Bag":
+        plateauObj = await TTSImporter.importBag(o);
+        break;
+      case "Custom_Model_Infinite_Bag":
+        plateauObj = await TTSImporter.importCustomModelInfiniteBag(o);
+        break;
       case "3DText":
         await TTSImporter.import3DText(o);
-        break;        
-      // default:
-      //   console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
-      //   break;
+        break;
+      case "HandTrigger":
+      case "ScriptingTrigger":
+        console.log(o);
+        break;
+      default:
+        console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
+        break;
     }
 
     if (!plateauObj) return null;
@@ -319,11 +325,11 @@ class TTSImporter {
           cm.startAnimationMode();
           break;
         case 1:
-          cm = ShapedObject.Hexagon(null, tr.scale.x * 2, thickness, 0.008, 3);
+          cm = ShapedObject.Hexagon(null, tr.scale.x, thickness, 0.008, 3);
           cm.startAnimationMode();
           break;
         case 0:
-          cm = ShapedObject.Circle(null, tr.scale.x * 2, thickness, 0.008, 3);
+          cm = ShapedObject.Circle(null, tr.scale.x, thickness, 0.008, 3);
           cm.startAnimationMode();
           break;
         case 0:
@@ -657,7 +663,6 @@ class TTSImporter {
   }
 
   static async import3DText(o) {
-    console.log(o.Text);
     var colorHex = new BABYLON.Color3(o.Text.colorstate.r,o.Text.colorstate.g,o.Text.colorstate.b).toHexString();
     var text = new TextObject(o.Text.Text, false, o.Text.fontSize, "Amaranth", colorHex, true);
     var tr = this._tts_transform_to_node(o.Transform);

@@ -34,10 +34,14 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Measure tools
 - [x] 3D pointer while interacting
 - [x] Soft Shadows
+- [ ] Loading Screen
+- [ ] PDF Viewer
 
 ## TTS Import
 
+- [ ] Custom Tables
 - [x] Custom Models
+  - [ ] Physic joints
 - [x] Custom Models Stacks
 - [/] Custom Dices
   - [x] D6
@@ -61,6 +65,10 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Decks
 - [x] Bags / Infinite bags / Custom models bag
 - [x] 3D Text
+- [ ] Grid
+- [ ] Decals?
+- [ ] Vector Lines?
+- [ ] HandTrigger / ScriptingTrigger
 
 # Todo
 

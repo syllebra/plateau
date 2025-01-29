@@ -692,11 +692,16 @@ var createScene = async function () {
   //     // containerMeshes = [];
   //   }
   // );
-  var bag = new Bag();
-  bag.infinite = true;
+  // var bag = new Bag();
+  // bag.infinite = true;
 
-  var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+  // var french_deck_atlas = new CardAtlas();
+  // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
+
+
+  // var text = new TextObject("Testing Text area");
+  // text.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(90),0,0)
+  // text.node.position.y += 0.01;
 
   // // //var tile = ShapedObject.Circle(null, 0.4, 0.1, 30, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
   // var tile = ShapedObject.RoundedSquare(null, 0.8, 0.4, 0.1, 0.05, 4, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
