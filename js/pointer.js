@@ -21,6 +21,7 @@ class Pointer {
         mesh.material.metallic = 0.0;
         mesh.material.roughness = 1;
 
+        if(shadowGen) shadowGen.addShadowCaster(mesh, true);
         Pointer.pointer = mesh;
         Pointer.hide();
       }

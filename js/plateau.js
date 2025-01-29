@@ -26,7 +26,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
 
   //ground.rotation.x = Math.PI / 2;
   ground.position.copyFrom(position);
-  ground.position.y -= 0.2;
+  ground.position.y -= 0.1;
 
   const pbr = new BABYLON.PBRMaterial("pbr", scene);
   //pbr.albedoColor = new BABYLON.Color3(1.0, 0.766, 0.336);
@@ -35,7 +35,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
 
   // pbr.clearCoat.isEnabled = true;
   // pbr.clearCoat.intensity = 0.2;
-
+  //pbr.albedoColor = new BABYLON.Color3(0.2,0.2,0.2)
   pbr.albedoTexture = new BABYLON.Texture("textures/table/37_Old table top_DIFF.jpg", scene);
   //pbr.albedoTexture = new BABYLON.Texture("https://github.com/Tencent/Hunyuan3D-1/blob/main/assets/teaser.png?raw=true", scene);
 
@@ -44,6 +44,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   pbr.ambientTexture = new BABYLON.Texture("textures/table/37_Old table top-AO.jpg", scene);
 
   pbr.reflectanceTexture = new BABYLON.Texture("textures/table/37_Old table top_SPEC.jpg", scene);
+  pbr.environmentIntensity = 0.5
   ground.material = pbr;
 
   const groundShape = new BABYLON.PhysicsShapeCylinder(
@@ -64,7 +65,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   });
 
   ground.receiveShadows = true;
-  if (shadowGen) shadowGen.addShadowCaster(ground);
+  //if (shadowGen) shadowGen.addShadowCaster(ground);
 
   if (viewer) viewer.showBody(ground.physicsBody);
   return ground;
@@ -112,17 +113,17 @@ function preparePipeline(scene, camera) {
   defaultPipeline.chromaticAberration.aberrationAmount = 10;
   defaultPipeline.imageProcessing.vignetteEnabled = true;
 
-  var curve = new BABYLON.ColorCurves();
-  curve.globalHue = 200;
-  curve.globalDensity = 80;
-  curve.globalSaturation = 80;
-  curve.highlightsHue = 20;
-  curve.highlightsDensity = 80;
-  curve.highlightsSaturation = -80;
-  curve.shadowsHue = 2;
-  curve.shadowsDensity = 80;
-  curve.shadowsSaturation = 40;
-  defaultPipeline.imageProcessing.colorCurves = curve;
+  // var curve = new BABYLON.ColorCurves();
+  // curve.globalHue = 200;
+  // curve.globalDensity = 80;
+  // curve.globalSaturation = 80;
+  // curve.highlightsHue = 20;
+  // curve.highlightsDensity = 80;
+  // curve.highlightsSaturation = -80;
+  // curve.shadowsHue = 2;
+  // curve.shadowsDensity = 80;
+  // curve.shadowsSaturation = 40;
+  // defaultPipeline.imageProcessing.colorCurves = curve;
   //defaultPipeline.depthOfField.focalLength = 150;
   defaultPipeline.fxaaEnabled = true;
   defaultPipeline.samples = 4;
@@ -163,7 +164,7 @@ function preparePipeline(scene, camera) {
   hdrSkybox.infiniteDistance = true;
 
   // const ssr = new BABYLON.SSRRenderingPipeline(
-  //   "ssr", // The name of the pipeline
+  //   "ssr", // The name of the pipeli ne
   //   scene, // The scene to which the pipeline belongs
   //   [scene.activeCamera], // The list of cameras to attach the pipeline to
   //   true, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
@@ -210,13 +211,29 @@ var createScene = async function () {
   // // Default intensity is 1. Let's dim the light a small amount
   // light.intensity = 0.7;
 
-  // var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0, -1, 1));
-  // dirLight.autoCalcShadowZBounds = true;
-  // dirLight.intensity = 4;
-  // shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
-  // shadowGen.bias = 0.01;
-  // shadowGen.usePercentageCloserFiltering = true;
-  //console.log(shadowGen.darkness);
+  var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0.2, -1, 0.3));
+  dirLight.position = new BABYLON.Vector3(0,12,0);
+  dirLight.autoUpdateExtends = false;
+  dirLight.autoCalcShadowZBounds = false;
+  //dirLight.shadowFrustumSize = 1;
+  dirLight.orthoLeft = -15;
+  dirLight.orthoRight = 15;
+  dirLight.orthoTop = 15;
+  dirLight.orthoBottom = -15;
+  dirLight.shadowMinZ = 0;
+  dirLight.shadowMaxZ = 15;
+
+//   //orthoRight / orthoTop / orthoBottom
+//   dirLight.customProjectionMatrixBuilder = function(viewMatrix, renderList) {
+//     return BABYLON.Matrix.PerspectiveFovLH(Math.PI*0.25, 1.0, camera.minZ, 1.0);
+// }
+  dirLight.intensity = 2;
+  shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
+  shadowGen.bias = 0.001;
+  shadowGen.usePercentageCloserFiltering = true;
+  //shadowGen.useBlurCloseExponentialShadowMap = true;
+  //shadowGen.usePoissonSampling = true;
+  //shadowGen.useContactHardeningShadow = true;
 
   // initialize plugin
   const havokInstance = await HavokPhysics();
@@ -293,7 +310,7 @@ var createScene = async function () {
       }
     }
 
-    Pointer.move(new BABYLON.Vector3(position.x, max_height, position.z));
+    Pointer.move(new BABYLON.Vector3(position.x, 0, position.z));
 
     return max_height;
   }

@@ -120,7 +120,7 @@ class DropZone {
 
     var pi = scene.pickWithRay(
       ray,
-      (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && mesh.dropZone.accept(obj)
+      (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && mesh != Pointer.pointer && mesh.dropZone.accept(obj)
     );
     if (!pi.hit) return null;
     return pi.pickedMesh.dropZone;

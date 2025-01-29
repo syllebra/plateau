@@ -111,44 +111,44 @@ class TTSImporter {
       case "Custom_Model":
         plateauObj = await TTSImporter.importCustomModel(o);
         break;
-      // case "Custom_Dice":
-      //   plateauObj = await TTSImporter.importCustomDice(o);
-      //   break;
-      // case "Custom_Tile":
-      //   plateauObj = await TTSImporter.importCustomTile(o);
-      //   break;
-      // case "Custom_Token":
-      //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
-      //   //if (o.Transform.posX < -60)
-      //   plateauObj = await TTSImporter.importCustomToken(o);
-      //   break;
-      // case "Custom_Board":
-      //   plateauObj = await TTSImporter.importCustomBoard(o);
-      //   break;
-      // case "backgammon_piece_white":
-      //   plateauObj = await TTSImporter.importBackgammonPiece(o);
-      //   break;
-      // case "Custom_Token_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
-      //   break;
-      // case "Custom_Model_Stack":
-      //   plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
-      //   break;
-      // case "Card":
-      //   plateauObj = await TTSImporter.importCard(o);
-      //   break;
-      // case "Deck":
-      //   plateauObj = await TTSImporter.importDeck(o);
-      //   break;
-      // case "Bag":
-      //   plateauObj = await TTSImporter.importBag(o);
-      //   break;
+      case "Custom_Dice":
+        plateauObj = await TTSImporter.importCustomDice(o);
+        break;
+      case "Custom_Tile":
+        plateauObj = await TTSImporter.importCustomTile(o);
+        break;
+      case "Custom_Token":
+        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+        //if (o.Transform.posX < -60)
+        plateauObj = await TTSImporter.importCustomToken(o);
+        break;
+      case "Custom_Board":
+        plateauObj = await TTSImporter.importCustomBoard(o);
+        break;
+      case "backgammon_piece_white":
+        plateauObj = await TTSImporter.importBackgammonPiece(o);
+        break;
+      case "Custom_Token_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+        break;
+      case "Custom_Model_Stack":
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+        break;
+      case "Card":
+        plateauObj = await TTSImporter.importCard(o);
+        break;
+      case "Deck":
+        plateauObj = await TTSImporter.importDeck(o);
+        break;
+      case "Bag":
+        plateauObj = await TTSImporter.importBag(o);
+        break;
       case "Custom_Model_Infinite_Bag":
         plateauObj = await TTSImporter.importCustomModelInfiniteBag(o);
         break;
-      // default:
-      //   console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
-      //   break;
+      default:
+        console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
+        break;
     }
 
     if (!plateauObj) return null;

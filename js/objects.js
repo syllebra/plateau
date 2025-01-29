@@ -18,7 +18,8 @@ class PlateauObject {
     if (position) node.position = position;
     this.node = node;
     this.updateBoundingInfos();
-    if (shadowGen) shadowGen.addShadowCaster(node);
+    if (shadowGen) shadowGen.addShadowCaster(node,true);
+    node.receiveShadows = true;
     this.body = new BABYLON.PhysicsBody(node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
 
     this.auto_collider_mode = auto_collider_mode;
