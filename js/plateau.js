@@ -238,7 +238,7 @@ var createScene = async function () {
   // initialize plugin
   const havokInstance = await HavokPhysics();
   // pass the engine to the plugin
-  const hk = new BABYLON.HavokPlugin(true, havokInstance);
+  const hk = new BABYLON.HavokPlugin(false, havokInstance);
   scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0), hk);
   var physicsEngine = scene.getPhysicsEngine();
 
