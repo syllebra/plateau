@@ -32,6 +32,21 @@ class Bag extends PlateauObject {
     this.infinite = false;
   }
 
+  get fullTitle() {
+    var ret = super.fullTitle ? super.fullTitle + " - " : "";
+    ret += this.infinite ? "∞ " : "";
+    ret += " " + this.objects.length;
+    return ret;
+  }
+
+  // get fullDescription() {
+  //   var ret = this.infinite ? "∞ " : "";
+  //   ret += this.objects.length;
+  //   var sup = super.fullDescription;
+  //   ret += sup ? "<br>" + sup : "";
+  //   return ret;
+  // }
+
   addObject(po, position = -1) {
     console.log("Adding " + po.node.name + " to bag " + this.node.name);
     // Add an object inside the bag, at a given position

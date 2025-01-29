@@ -108,15 +108,15 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
     switch (o.Name) {
-      // case "Custom_Model":
-      //   plateauObj = await TTSImporter.importCustomModel(o);
-      //   break;
+      case "Custom_Model":
+        plateauObj = await TTSImporter.importCustomModel(o);
+        break;
       // case "Custom_Dice":
       //   plateauObj = await TTSImporter.importCustomDice(o);
       //   break;
-      case "Custom_Tile":
-        plateauObj = await TTSImporter.importCustomTile(o);
-        break;
+      // case "Custom_Tile":
+      //   plateauObj = await TTSImporter.importCustomTile(o);
+      //   break;
       // case "Custom_Token":
       //   //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
       //   //if (o.Transform.posX < -60)
@@ -140,8 +140,11 @@ class TTSImporter {
       // case "Deck":
       //   plateauObj = await TTSImporter.importDeck(o);
       //   break;
-      case "Bag":
-        plateauObj = await TTSImporter.importBag(o);
+      // case "Bag":
+      //   plateauObj = await TTSImporter.importBag(o);
+      //   break;
+      case "Custom_Model_Infinite_Bag":
+        plateauObj = await TTSImporter.importCustomModelInfiniteBag(o);
         break;
       // default:
       //   console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
@@ -307,7 +310,6 @@ class TTSImporter {
       var tr = TTSImporter._tts_transform_to_node(o.Transform);
       var thickness = o.CustomImage.CustomTile.Thickness * TTSImporter.UNIT_MULTIPLIER;
       var cm = null;
-      console.log(o);
       switch (o.CustomImage.CustomTile.Type) {
         case 0:
           cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
@@ -487,7 +489,6 @@ class TTSImporter {
   }
 
   static async importCard(o) {
-    //console.log(o);
     var deckName = Object.keys(o.CustomDeck)[0];
 
     if (!CardAtlas.all.has(deckName)) {
@@ -513,9 +514,7 @@ class TTSImporter {
       var w = (0.572 * (o.Transform.scaleX * TTSImporter.IMPORT_SCALE)) / 2.54;
       var h = (0.889 * (o.Transform.scaleZ * TTSImporter.IMPORT_SCALE)) / 2.54;
       //tr.pos.z *= 0.1;
-      //console.log(tr.pos);
       var num = parseInt(String(o.CardID).replace(deckName, ""));
-      //console.log(num);
       var c = new Card(tr.pos, atlas, num, atlas.back, w, h);
 
       // To keep ref
@@ -549,9 +548,9 @@ class TTSImporter {
     return deck;
   }
 
-  static async importBag(o) {
+  static async importBag(o, mesh = null, collider = null) {
     var name = o.Nickname;
-    var bag = new Bag();
+    var bag = new Bag(mesh, collider);
     bag.node.id = bag.node.name = name;
     var tr = this._tts_transform_to_node(o.Transform);
     if (o.ColorDiffuse) {
@@ -568,6 +567,7 @@ class TTSImporter {
         promises.push(TTSImporter.importObject(oc));
       }
       var collection = await Promise.all(promises);
+      //console.log(collection);
       for (var coll of collection)
         if (coll) {
           for (var obj of coll)
@@ -595,6 +595,39 @@ class TTSImporter {
     // //cards.push(deck);return cards;
     // return deck;
   }
+
+  static async importCustomModelInfiniteBag(o) {
+    var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
+    if (cmr.mesh) {
+      var name = o.Nickname;
+      try {
+        var mesh = cmr.mesh.clone();
+        TTSImporter._tts_transform_to_node(o.Transform, mesh);
+
+        const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+        pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+        pbr.metallic = 0;
+        pbr.roughness = 0.5;
+        if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
+        mesh.material = pbr;
+
+        var meshCol = null;
+        // var meshCol = cmr.colliderMesh?.clone();
+        // if (meshCol) {
+        // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
+        // }
+        var bag = await this.importBag(o, mesh, meshCol);
+        bag[0].startAnimationMode();
+        bag[0].infinite = true;
+        return bag;
+      } catch (e) {
+        console.warn("Error occurred while creating ", name, e);
+        return null;
+      }
+    }
+    return null;
+  }
+
   static importTexture(url, flip = false) {
     if (!TTSImporter.textures.has(url)) {
       var tex = null;
@@ -606,7 +639,7 @@ class TTSImporter {
   }
 
   static async importMesh(url) {
-    if (TTSImporter.meshes.has(url)) return TTSImporter.meshes[url];
+    if (TTSImporter.meshes.has(url)) return TTSImporter.meshes.get(url);
     try {
       BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
       var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
@@ -614,7 +647,8 @@ class TTSImporter {
 
       TTSImporter.meshes.set(url, tst.meshes[0]);
       return TTSImporter.meshes.get(url);
-    } catch {
+    } catch (error) {
+      console.error("Error loading ", url, error);
       return null;
     }
   }

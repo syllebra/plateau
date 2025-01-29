@@ -54,6 +54,18 @@ class PlateauObject {
     gizmoManager.attachToMesh(this.node);
   }
 
+  get fullTitle() {
+    return this.node.name;
+  }
+
+  get fullDescription() {
+    return this.description;
+  }
+
+  get fullAdditional() {
+    return this.uuid + " - <<i>" + this.constructor.name + "</i>>";
+  }
+
   clone(name = null) {
     // Avoid recursion
     var tmp = this.node.plateauObj;
@@ -408,7 +420,9 @@ class PlateauObject {
       ray,
       (mesh, i) => mesh.plateauObj && mesh.plateauObj != obj && mesh.plateauObj.accept(obj)
     );
+
     if (!pi.hit) return null;
+
     return pi.pickedMesh.plateauObj;
   }
 

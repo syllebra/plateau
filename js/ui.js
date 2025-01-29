@@ -170,17 +170,17 @@ class FrostedTooltip {
 
   setTitle(title) {
     this.options.title = title;
-    this.card.querySelector("#tooltip-title").textContent = title;
+    this.card.querySelector("#tooltip-title").innerHTML = title;
   }
 
   setDescription(description) {
     this.options.description = description;
-    this.card.querySelector("#tooltip-description").textContent = description;
+    this.card.querySelector("#tooltip-description").innerHTML = description;
   }
 
   setUUID(uuid) {
     this.options.uuid = uuid;
-    this.card.querySelector("#tooltip-uuid").textContent = uuid;
+    this.card.querySelector("#tooltip-uuid").innerHTML = uuid;
   }
 
   showTooltip(mouseX, mouseY) {

@@ -210,15 +210,13 @@ var createScene = async function () {
   // // Default intensity is 1. Let's dim the light a small amount
   // light.intensity = 0.7;
 
-  // var dirLight = new BABYLON.DirectionalLight(
-  //   "dirLight",
-  //   new BABYLON.Vector3(0, -1, 1)
-  // );
+  // var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0, -1, 1));
   // dirLight.autoCalcShadowZBounds = true;
-  // dirLight.intensity = 0.4;
+  // dirLight.intensity = 4;
   // shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
   // shadowGen.bias = 0.01;
   // shadowGen.usePercentageCloserFiltering = true;
+  //console.log(shadowGen.darkness);
 
   // initialize plugin
   const havokInstance = await HavokPhysics();
@@ -242,52 +240,6 @@ var createScene = async function () {
 
   var ui = new FastUI();
   ui.setup(scene, hk, viewer);
-
-  // const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
-
-  // BABYLON.SceneLoader.LoadAssetContainer(
-  //   "models/",
-  //   "stairs_01.glb",
-  //   scene,
-  //   function (
-  //     container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
-  //   ) {
-  //     // clear out the mesh object and array
-  //     //meshes = container.meshes;
-  //     var mesh = container.meshes[1].clone();
-  //     mesh.createNormals();
-  //     mesh.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
-  //     // mesh.material.clearCoat.isEnabled = true;
-  //     // mesh.material.clearCoat.intensity = 1.0;
-
-  //     mesh.material.metallic = 0.0;
-  //     mesh.material.roughness = 0;
-
-  //     mesh.material.subSurface.isTranslucencyEnabled = true;
-  //     mesh.material.subSurface.tintColor = BABYLON.Color3.White();
-
-  //     const instance = new PlateauObject(
-  //       mesh,
-  //       null,
-  //       { friction: 0.6, restitution: 0.3 },
-  //       new BABYLON.Vector3(0, 1.6, 0),
-  //       1
-  //     );
-
-  //     // var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
-  //     // box.material = bodyRenderingMaterial;
-  //     // instance.node.addChild(box);
-  //     // box.position = new BABYLON.Vector3(0, 0.3, 0);
-  //     // instance.updateBoundingInfos();
-  //     // pathTracedMesh = null;
-  //     // containerMeshes = [];
-  //   }
-  // );
-
-  var french_deck_atlas = new CardAtlas();
-  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
-
-  var bag = new Bag();
 
   const tstBtn = ui.addBtn("Test", () => {
     //tst.setEnabled(true);
@@ -321,7 +273,7 @@ var createScene = async function () {
     function includeMesh(mesh) {
       var po = PlateauObject.GetTopMost(mesh);
       var isDragged = po && po.node.dragged;
-      return mesh != avoid && !isDragged;
+      return mesh != avoid && !isDragged && mesh != Pointer.pointer;
       //return mesh.dragged || (mesh.parent ? isDragged(mesh.parent) : true);
       //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
     }
@@ -340,6 +292,8 @@ var createScene = async function () {
           max_height = height_pick_info.pickedPoint.y;
       }
     }
+
+    Pointer.move(new BABYLON.Vector3(position.x, max_height, position.z));
 
     return max_height;
   }
@@ -521,6 +475,7 @@ var createScene = async function () {
       DropZone.HideAll();
 
       pickedObject = null;
+      Pointer.hide();
     }
   }
 
@@ -559,6 +514,8 @@ var createScene = async function () {
           } else {
             if (!SelectionHandler.isSelected(pickedObject)) SelectionHandler.removeAll();
           }
+
+          Pointer.show();
 
           picked_ground_pos.copyFrom(pickedObject.node.position);
           picked_ray_hit_ground.copyFrom(
@@ -649,9 +606,9 @@ var createScene = async function () {
           var po = PlateauObject.GetTopMost(pi.pickedMesh);
           SelectionHandler.updateHover(po);
           if (po) {
-            g_tooltip.setTitle(po.node.name);
-            g_tooltip.setDescription(po.description);
-            g_tooltip.setUUID(po.uuid);
+            g_tooltip.setTitle(po.fullTitle);
+            g_tooltip.setDescription(po.fullDescription);
+            g_tooltip.setUUID(po.fullAdditional);
             g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
           } else {
             g_tooltip.hideTooltip();
@@ -671,6 +628,56 @@ var createScene = async function () {
   SelectionHandler.hl.addExcludedMesh(ground);
 
   SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
+
+  //////////////////////////////////* TEST ZONE */////////////////////////////////////
+
+  // const instance = new Dice(new BABYLON.Vector3(0, 0.6, 0));
+
+  // BABYLON.SceneLoader.LoadAssetContainer(
+  //   "models/",
+  //   "pointer_00.glb",
+  //   scene,
+  //   function (
+  //     container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
+  //   ) {
+  //     // clear out the mesh object and array
+  //     //meshes = container.meshes;
+  //     var mesh = container.meshes[1].clone();
+  //     mesh.createNormals();
+  //     mesh.scaling = new BABYLON.Vector3(2.5, 2.5, 2.5);
+  //     mesh.material.clearCoat.isEnabled = true;
+  //     mesh.material.clearCoat.intensity = 1.0;
+  //     mesh.material.albedoColor = new BABYLON.Color3(0, 1, 1, 0.5);
+  //     mesh.material.transparency = 0.4;
+
+  //     mesh.material.metallic = 0.0;
+  //     mesh.material.roughness = 1;
+
+  //     // mesh.material.subSurface.isTranslucencyEnabled = true;
+  //     // mesh.material.subSurface.tintColor = BABYLON.Color3.Color3(1, 1, 0);
+
+  //     // const instance = new PlateauObject(
+  //     //   mesh,
+  //     //   null,
+  //     //   { friction: 0.6, restitution: 0.3 },
+  //     //   new BABYLON.Vector3(0, 1.6, 0),
+  //     //   1
+  //     // );
+
+  //     // var box = BABYLON.Mesh.CreateBox("box", 0.3, scene, false, BABYLON.Mesh.DEFAULTSIDE);
+  //     // box.material = bodyRenderingMaterial;
+  //     // instance.node.addChild(box);
+  //     // box.position = new BABYLON.Vector3(0, 0.3, 0);
+  //     // instance.updateBoundingInfos();
+  //     // pathTracedMesh = null;
+  //     // containerMeshes = [];
+  //   }
+  // );
+  var bag = new Bag();
+  bag.infinite = true;
+
+  var french_deck_atlas = new CardAtlas();
+  var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
   // // //var tile = ShapedObject.Circle(null, 0.4, 0.1, 30, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
   // var tile = ShapedObject.RoundedSquare(null, 0.8, 0.4, 0.1, 0.05, 4, 0.05, 3, uvFromAtlas(1,4,2), uvFromAtlas(0,4,2));
@@ -696,7 +703,6 @@ var createScene = async function () {
 
   //DropZone.CreateRectangularZone(1, 1, 0.01, null, new BABYLON.Vector3(-1, 0, 0.5));
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
   // var m = BABYLON.MeshBuilder.CreateCylinder("test", {
   //   diameter: 0.6,
   //   height: 0.1,
@@ -714,6 +720,12 @@ var createScene = async function () {
 
   // // var po2 = po.clone();
   // // po2.node.id = po2.node.node = "test2";
+
+  //////////////////////////////////* TEST ZONE */////////////////////////////////////
+
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+
+  Pointer.load();
 
   return scene;
 };
