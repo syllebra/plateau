@@ -17,26 +17,28 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Throwing interaction (drag/drop while lifting)
 - [x] Multiple objects manipulation
 - [x] Flipping object(s)
-- [ ] Cards deck mechanism
-- [ ] Fixed object
+- [x] Cards deck mechanism
+- [x] Fixed object (Locking)
 - [ ] Detect shake movement
-- [ ] Predefined poses (oriented)
-- [ ] Handling events (lift, dropped, thrown...)
+- [x] Predefined poses (oriented)
+- [x] Handling events (lift, dropped, thrown...)
 - [x] PBR materials
 - [ ] System to retrieve fallen objects
 - [ ] Contextual menu
 - [ ] File save/restore system
 - [ ] external http textures
-- [ ] Object dropping onto another events system
+- [x] Object dropping onto another events system
 - [ ] Long/Short click system and associated events
 - [ ] Multiple touches interactions
 - [ ] XR and XR interactions
 - [ ] Measure tools
+- [x] 3D pointer while interacting
+- [x] Soft Shadows
 
 ## TTS Import
 
 - [x] Custom Models
-- [ ] Custom Models Stacks ?
+- [x] Custom Models Stacks
 - [/] Custom Dices
   - [x] D6
   - [x] Texture
@@ -44,17 +46,20 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Face orientations
 - [x] Custom Tiles
   - [x] Rectangle
-  - [ ] Hexagon
-  - [ ] Circle
-  - [ ] Rounded Rectangle
+  - [x] Hexagon
+  - [x] Circle
+  - [x] Rounded Rectangle
 - [x] Custom Tokens
   - [x] Attached Snap Points
   - [ ] Multiple States ?
   - [ ] Multiple Textures
 - [x] Custom Tokens Stacks (simple)
-- [ ] Cards
 - [x] Custom Boards
   - [ ] Borders
+- [x] Backgammon pieces (white)
+- [x] Cards
+- [x] Decks
+- [x] Bags / Infinite bags / Custom models bag
 
 # Todo
 
