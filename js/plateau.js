@@ -290,7 +290,7 @@ var createScene = async function () {
     function includeMesh(mesh) {
       var po = PlateauObject.GetTopMost(mesh);
       var isDragged = po && po.node.dragged;
-      return mesh != avoid && !isDragged && mesh != Pointer.pointer;
+      return mesh != avoid && !isDragged && !Pointer.isPointerPart(mesh);
       //return mesh.dragged || (mesh.parent ? isDragged(mesh.parent) : true);
       //return mesh.physicsBody && mesh.physicsBody.getMotionType() == BABYLON.PhysicsMotionType.ANIMATED;
     }
@@ -310,7 +310,7 @@ var createScene = async function () {
       }
     }
 
-    Pointer.move(new BABYLON.Vector3(position.x, 0, position.z));
+    Pointer.move(new BABYLON.Vector3(position.x, 0, position.z), max_height);
 
     return max_height;
   }
@@ -556,6 +556,7 @@ var createScene = async function () {
             o.onPickup();
             updateDraggedNodeHeight(o);
           }
+          updateDraggedNodeHeight(pickedObject);
         }
         break;
       case BABYLON.PointerEventTypes.POINTERUP:
@@ -604,6 +605,7 @@ var createScene = async function () {
               o.node.position.z += dz;
               updateDraggedNodeHeight(o);
             }
+            updateDraggedNodeHeight(pickedObject);
 
             var elapsed = performance.now() - last_base_hit_time;
             dir_speed.x = (base_hit.pickedPoint.x - last_base_hit.x) / elapsed;
