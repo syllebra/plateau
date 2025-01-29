@@ -60,6 +60,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Cards
 - [x] Decks
 - [x] Bags / Infinite bags / Custom models bag
+- [x] 3D Text
 
 # Todo
 

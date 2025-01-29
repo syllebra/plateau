@@ -92,6 +92,7 @@ class DropZone {
   static FromNode(node) {
     var z = new DropZone();
     z.node = node;
+    node.receiveShadows = true;
     z.node.dropZone = z;
     z.setEnabled(false);
     return z;
