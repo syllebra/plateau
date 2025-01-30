@@ -258,7 +258,7 @@ class Deck extends PlateauObject {
   }
 
   onKeyDown(key) {
-    super.onKeyDown(key);
+    var consumed = super.onKeyDown(key);
     switch (key) {
       case "s":
       case "S":
@@ -270,7 +270,10 @@ class Deck extends PlateauObject {
         //this.popCard();
         document.querySelector(".card-panel").classList.add("open");
         break;
+      default:
+        return consumed;
     }
+    return true;
   }
 
   onKeyUp(key) {

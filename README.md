@@ -67,7 +67,6 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Hexagonal Cards
   - [ ] Circle Cards
   - [ ] Rectangular Cards
-
 - [x] Decks
 - [x] Bags / Infinite bags / Custom models bag
 - [x] 3D Text
@@ -76,6 +75,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Vector Lines?
 - [ ] HandTrigger / ScriptingTrigger
 - [ ] Sky environment maps
+- [ ] Player Pawn
 
 # Todo
 

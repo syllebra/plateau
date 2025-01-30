@@ -365,9 +365,9 @@ class PlateauObject {
 
   onRelease() {}
 
-  onKeyDown(key) {}
+  onKeyDown(key) {return false;}
 
-  onKeyUp(key) {}
+  onKeyUp(key) {return false;}
 
   static GetTopMost(node) {
     if (!node) return null;

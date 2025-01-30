@@ -6,6 +6,15 @@ function arcFan(cx, cy, r, start, end, nb, shape) {
   }
 }
 
+function createRectangleShape(w = 0.572, h = 0.889) {
+  return [
+    new BABYLON.Vector3(-w * 0.5, h * 0.5, 0),
+    new BABYLON.Vector3(-w * 0.5, -h * 0.5, 0),
+    new BABYLON.Vector3(w * 0.5, -h * 0.5, 0),
+    new BABYLON.Vector3(w * 0.5, h * 0.5, 0),
+  ];
+}
+
 function createRoundedRectangleShape(w = 0.572, h = 0.889, cRad = 0.05, cN = 4) {
   var shape = [];
 
@@ -57,7 +66,7 @@ function expandShape(shape, amount = 0.05) {
     var p0 = shape[i];
     var ii = i == shape.length - 1 ? 0 : i + 1;
     var p1 = shape[ii];
-    var jj = i == 0 ? shape.length-1 : i - 1;
+    var jj = i == 0 ? shape.length - 1 : i - 1;
     var p2 = shape[jj];
     var d = new BABYLON.Vector3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
     d.normalize();
@@ -83,7 +92,7 @@ function planarUVProjectXZ(
   frontUvs = new BABYLON.Vector4(0, 0, 1, 1),
   backUvs = null,
   flipFrontU = false,
-  flipBackU = false,  
+  flipBackU = false
 ) {
   const positions = mesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
   const uvs = mesh.getVerticesData(BABYLON.VertexBuffer.UVKind);
@@ -92,8 +101,7 @@ function planarUVProjectXZ(
 
   var bb = mesh.getBoundingInfo().boundingBox;
 
-  if(!backUvs)
-    backUvs = frontUvs.clone();
+  if (!backUvs) backUvs = frontUvs.clone();
 
   const eps = 0.001;
   const minx = bb.minimum.x - eps;
@@ -113,9 +121,8 @@ function planarUVProjectXZ(
     uvs[i * 2] = (x - minx) / (maxx - minx);
     //if (ny < -eps) uvs[i * 2] = 1.0 - uvs[i * 2];
     var multU = flipFrontU ? -1 : 1;
-    if(ny < -eps)
-      multU = flipBackU ? -1 : 1;
-    uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x)*multU + uv.x;
+    if (ny < -eps) multU = flipBackU ? -1 : 1;
+    uvs[i * 2] = uvs[i * 2] * (uv.z - uv.x) * multU + uv.x;
 
     uvs[i * 2 + 1] = (z - minz) / (maxz - minz);
     //if (y < 0) uvs[i * 2 + 1] = 1.0 - uvs[i * 2 + 1];
@@ -146,7 +153,7 @@ function extrudeShape(shape, thickness, center = false, capOpt = BABYLON.Mesh.CA
     closeShape: true,
     cap: capOpt,
     //sideOrientation: BABYLON.Mesh.DOUBLESIDE,
-    firstNormal: BABYLON.Vector3.Right()
+    firstNormal: BABYLON.Vector3.Right(),
   };
 
   return BABYLON.MeshBuilder.ExtrudeShapeCustom("extrudedShape", options, scene); //scene is

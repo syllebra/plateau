@@ -346,8 +346,12 @@ var createScene = async function () {
 
             break;
         }
-        if (pickedObject) pickedObject.onKeyDown(kbInfo.event.key);
-        else if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
+        var consumed = false;
+        if (pickedObject) consumed=pickedObject.onKeyDown(kbInfo.event.key);
+        else if (SelectionHandler.hoveredObject) consumed = SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
+        if(consumed) {
+          camera.inputs.attached.keyboard.detachControl();
+        }
         break;
       case BABYLON.KeyboardEventTypes.KEYUP:
         switch (kbInfo.event.key) {
@@ -366,8 +370,12 @@ var createScene = async function () {
               });
             break;
         }
-        if (pickedObject) pickedObject.onKeyUp(kbInfo.event.key);
-        else if (SelectionHandler.hoveredObject) SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
+        var consumed = false;
+        if (pickedObject) consumed=pickedObject.onKeyUp(kbInfo.event.key);
+        else if (SelectionHandler.hoveredObject) consumed = SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
+        if(consumed) {
+          camera.inputs.attached.keyboard.detachControl();
+        }
         break;
     }
   });
@@ -631,6 +639,7 @@ var createScene = async function () {
             g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
           } else {
             g_tooltip.hideTooltip();
+            camera.inputs.attachInput(camera.inputs.attached.keyboard);
           }
         }
         break;
@@ -747,8 +756,12 @@ var createScene = async function () {
 
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json");
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
+
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
   
 
   Pointer.load();

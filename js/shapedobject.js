@@ -121,7 +121,7 @@ class ShapedObject extends PlateauObject {
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
     bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
   ) {
-    var topShape = [new BABYLON.Vector3(-w*0.5,h*0.5,0),new BABYLON.Vector3(-w*0.5,-h*0.5,0), new BABYLON.Vector3(w*0.5,-h*0.5,0), new BABYLON.Vector3(w*0.5,h*0.5,0)]
+    var topShape = createRectangleShape(w, h);
     return new ShapedObject(position, topShape, null, thickness, 0, 0, topUVs, bottomUVs);
   }
 
