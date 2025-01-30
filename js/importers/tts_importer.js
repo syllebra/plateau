@@ -66,7 +66,7 @@ class TTSImporter {
     }, 3000);
   }
 
-  static importSnapPoint(sp, parent = null) {
+  static importSnapPoint(sp, parent = null, parentTTS=null) {
     var pos = sp.Position;
 
     if (pos) {
@@ -80,12 +80,14 @@ class TTSImporter {
         pos.x += TTSImporter.POS_OFFSET.x;
         pos.y += TTSImporter.POS_OFFSET.y;
         pos.z += TTSImporter.POS_OFFSET.z;
-      } else
+      } else {
+        var tr = TTSImporter._tts_transform_to_node(parentTTS.Transform);
         pos = pos.multiplyByFloats(
-          -1.0 / TTSImporter.IMPORT_SCALE,
-          1.0 / TTSImporter.IMPORT_SCALE,
-          1.0 / TTSImporter.IMPORT_SCALE
+          -tr.scale.x,
+          tr.scale.y*2, // TODO: more generic
+          tr.scale.z,
         );
+      }
     }
     var rot = sp.Rotation;
     if (rot) {
@@ -185,7 +187,7 @@ class TTSImporter {
 
       if (o.AttachedSnapPoints) {
         for (var sp of o.AttachedSnapPoints) {
-          var dz = TTSImporter.importSnapPoint(sp, po.node);
+          var dz = TTSImporter.importSnapPoint(sp, po.node, o);
         }
       }
     }
