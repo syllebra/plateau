@@ -150,6 +150,7 @@ class MouseSpeed {
 }
 
 class FrostedTooltip {
+  appearTimeout = -1;
   constructor(cardId, container, options = {}) {
     this.card = document.getElementById(cardId);
     this.container = container; //document.getElementById(containerId);
@@ -166,6 +167,7 @@ class FrostedTooltip {
     this.setTitle(this.options.title);
     this.setDescription(this.options.description);
     this.setUUID(this.options.uuid);
+    this.appearTimeout = -1;
   }
 
   setTitle(title) {
@@ -211,12 +213,17 @@ class FrostedTooltip {
     this.card.style.top = `${top}px`;
 
     // Add visible class for animations
-    this.card.classList.add("visible");
+    if(this.appearTimeout <0)
+      this.appearTimeout = setTimeout(() => {this.card.classList.add("visible");}, 1000);
   }
 
   hideTooltip() {
     // Remove visible class to trigger disappearance animations
     this.card.classList.remove("visible");
+    if(this.appearTimeout >= 0) {
+      clearTimeout(this.appearTimeout);
+      this.appearTimeout = -1;
+    }
   }
 }
 
