@@ -132,6 +132,16 @@ function planarUVProjectXZ(
   mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
 }
 
+
+function flipNormals(mesh) {
+  var norms = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+
+  for (let i = 0; i < norms.length; i++)
+    norms[i] *= -1.0;
+
+  mesh.setVerticesData(BABYLON.VertexBuffer.NormalKind, norms);
+}
+
 function uvFromAtlas(num, cols, rows) {
   var row = Math.floor(num / cols);
   var col = num % cols;

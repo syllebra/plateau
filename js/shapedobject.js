@@ -7,7 +7,7 @@ class ShapedObject extends PlateauObject {
     bevelRad,
     bevelN,
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
-    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1),
+    bottomUVs = new BABYLON.Vector4(1, 0, 0, 1),
     separatedMaterials = true
   ) {
     function flipShapeY(shape) {
@@ -55,6 +55,7 @@ class ShapedObject extends PlateauObject {
     var bottomShape = expandShape(topShapeMirror, -bevelRad);
     var bottom = new BABYLON.PolygonMeshBuilder("", bottomShape, scene).build();
     bottom.flipFaces();
+    flipNormals(bottom);
 
     planarUVProjectXZ(topBevel, topUVs);
     planarUVProjectXZ(bottom, bottomUVs,bottomUVs, true);
@@ -107,7 +108,7 @@ class ShapedObject extends PlateauObject {
     bevelRad,
     bevelN,
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
-    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
+    bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRegularShape(radius - bevelRad, 6);
     return new ShapedObject(position, topShape, null, thickness, bevelRad, bevelN, topUVs, bottomUVs);
@@ -119,7 +120,7 @@ class ShapedObject extends PlateauObject {
     h,
     thickness,
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
-    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
+    bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRectangleShape(w, h);
     return new ShapedObject(position, topShape, null, thickness, 0, 0, topUVs, bottomUVs);
@@ -135,7 +136,7 @@ class ShapedObject extends PlateauObject {
     bevelRad,
     bevelN,
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
-    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
+    bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRoundedRectangleShape(w - bevelRad * 2, h - bevelRad * 2, cRad, cN);
     var physShape = createRoundedRectangleShape(w, h, cRad, Math.ceil(cN/3));
@@ -150,7 +151,7 @@ class ShapedObject extends PlateauObject {
     bevelRad,
     bevelN,
     topUVs = new BABYLON.Vector4(0, 0, 1, 1),
-    bottomUVs = new BABYLON.Vector4(0, 0, 1, 1)
+    bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRegularShape(radius - bevelRad, cN);
     var phys = createRegularShape(radius, Math.ceil(cN/3));

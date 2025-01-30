@@ -11,7 +11,7 @@ class PdfObject extends ShapedObject {
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
 
     var topShape = createRectangleShape(planeWidth, planeHeight);
-    super(null, topShape, null, thickness);
+    super(null, topShape, null, thickness,0,0);
 
     var pdfObj = this;
     var pbr = new BABYLON.PBRMaterial("default_material", scene);
@@ -36,8 +36,6 @@ class PdfObject extends ShapedObject {
         console.error(reason);
       }
     );
-
-    return pdfObj;
   }
 
   onKeyDown(key) {

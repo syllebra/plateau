@@ -164,16 +164,16 @@ class TTSImporter {
         plateauObj = await TTSImporter.importCustomModelInfiniteBag(o).catch((err) => handleError(err, o));
         break;
       case "3DText":
-        await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
+        plateauObj = await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
       case "PlayerPawn":
         // await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         console.log(o)
         break;
-        case "Custom_PDF":
-          await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
-          break;        
-        case "HandTrigger":
+      case "Custom_PDF":
+        plateauObj = await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
+        break;        
+      case "HandTrigger":
       case "ScriptingTrigger":
         console.log(o);
         break;
@@ -712,7 +712,6 @@ class TTSImporter {
   }
 
   static async importPDF(o) {
-    console.log(o);
     var url = "";
     if (o.CustomPDF?.PDFUrl) url =  o.CustomPDF.PDFUrl;
     
