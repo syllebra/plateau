@@ -110,7 +110,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = new Set(["Card"]);//, "Custom_Token"]);
+    var only  = null;//new Set(["Card"]);//, "Custom_Token"]);
     if(only && !only.has(o.Name))
       return null;
 
@@ -306,7 +306,6 @@ class TTSImporter {
   }
 
   static async importCustomTile(o) {
-    console.log(o);
     var frontTex = null;
     var backTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
@@ -315,7 +314,6 @@ class TTSImporter {
       backTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageSecondaryURL, true);
     var name = o.Nickname;
 
-    console.log("FRONT:",frontTex._texture.baseWidth)
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     var thickness = o.CustomImage.CustomTile.Thickness * TTSImporter.UNIT_MULTIPLIER;
     var cm = null;
@@ -465,13 +463,17 @@ class TTSImporter {
 
     var cm = null;
 
-    var h = (0.5 * 67 * TTSImporter.IMPORT_SCALE * TTSImporter.UNIT_MULTIPLIER) / 2.54;
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    
+    var h = 0.5 * 67;
     var w = (h * frontTex._texture.baseWidth) / frontTex._texture.baseHeight;
-    w *= o.Transform.scaleX;
-    h *= o.Transform.scaleZ;
-    //w *= o.CustomImage.WidthScale;
+    w *= tr.scale.x / 2.54;
+    h *= tr.scale.z / 2.54;
+    var thickness = 0.2 * tr.scale.y;
+    //console.log(o.CustomImage.WidthScale)
+   //w *= o.CustomImage.WidthScale;
 
-    cm = ShapedObject.Square(null, w, h, 0.2);
+    cm = ShapedObject.Square(null, w, h, thickness);
     cm.startAnimationMode();
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     cm.node.position = tr.pos;
@@ -517,13 +519,13 @@ class TTSImporter {
     var w = h * wPix/hPix;
     w *= tr.scale.x / 2.54;
     h *= tr.scale.z / 2.54;
-    console.log(o.Transform)
+
     var thickness = 0.024 * tr.scale.y / 2.54;
     var cornerRadius = 0.35 * tr.scale.x / 2.54;
 
     var num = parseInt(String(o.CardID).replace(deckName, ""));
     var c = new Card(tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
-    console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
+    //console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
     c.node.rotationQuaternion = tr.rot;
     c.node.id = c.node.name = o.Nickname;
 
