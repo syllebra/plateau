@@ -110,7 +110,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = null;//new Set(["Card"]);//, "Custom_Token"]);
+    var only  = null;//new Set(["Custom_Board"]);//, "Custom_Token"]);
     if(only && !only.has(o.Name))
       return null;
 
@@ -465,12 +465,14 @@ class TTSImporter {
 
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     
-    var h = 0.5 * 67;
+    var h = 67;
     var w = (h * frontTex._texture.baseWidth) / frontTex._texture.baseHeight;
     w *= tr.scale.x / 2.54;
     h *= tr.scale.z / 2.54;
-    var thickness = 0.2 * tr.scale.y;
+    var thickness = 2 * tr.scale.y;
     //console.log(o.CustomImage.WidthScale)
+    w/=  o.CustomImage.WidthScale;
+    h/=  o.CustomImage.WidthScale;
    //w *= o.CustomImage.WidthScale;
 
     cm = ShapedObject.Square(null, w, h, thickness);
