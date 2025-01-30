@@ -109,47 +109,59 @@ class TTSImporter {
 
   static async importObject(o) {
     var plateauObj = null;
+
+    var only  = null;//new Set(["Custom_Token"]);
+    if(only && !only.has(o.Name))
+      return null;
+
+    function handleError(err, o) {
+      console.warn("Error while importing", o.Name, o.Nickname, o.GUID, err);
+    }
     switch (o.Name) {
       case "Custom_Model":
-        plateauObj = await TTSImporter.importCustomModel(o);
+        plateauObj = await TTSImporter.importCustomModel(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Dice":
-        plateauObj = await TTSImporter.importCustomDice(o);
+        plateauObj = await TTSImporter.importCustomDice(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Tile":
-        plateauObj = await TTSImporter.importCustomTile(o);
+        plateauObj = await TTSImporter.importCustomTile(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Token":
         //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
         //if (o.Transform.posX < -60)
-        plateauObj = await TTSImporter.importCustomToken(o);
+        plateauObj = await TTSImporter.importCustomToken(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Board":
-        plateauObj = await TTSImporter.importCustomBoard(o);
+        plateauObj = await TTSImporter.importCustomBoard(o).catch((err) => handleError(err, o));
         break;
       case "backgammon_piece_white":
-        plateauObj = await TTSImporter.importBackgammonPiece(o);
+        plateauObj = await TTSImporter.importBackgammonPiece(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Token_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken).catch((err) =>
+          handleError(err, o)
+        );
         break;
       case "Custom_Model_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel).catch((err) =>
+          handleError(err, o)
+        );
         break;
       case "Card":
-        plateauObj = await TTSImporter.importCard(o);
+        plateauObj = await TTSImporter.importCard(o).catch((err) => handleError(err, o));
         break;
       case "Deck":
-        plateauObj = await TTSImporter.importDeck(o);
+        plateauObj = await TTSImporter.importDeck(o).catch((err) => handleError(err, o));
         break;
       case "Bag":
-        plateauObj = await TTSImporter.importBag(o);
+        plateauObj = await TTSImporter.importBag(o).catch((err) => handleError(err, o));
         break;
       case "Custom_Model_Infinite_Bag":
-        plateauObj = await TTSImporter.importCustomModelInfiniteBag(o);
+        plateauObj = await TTSImporter.importCustomModelInfiniteBag(o).catch((err) => handleError(err, o));
         break;
       case "3DText":
-        await TTSImporter.import3DText(o);
+        await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
       case "HandTrigger":
       case "ScriptingTrigger":
@@ -210,58 +222,50 @@ class TTSImporter {
     var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
     if (cmr.mesh) {
       var name = o.Nickname;
-      try {
-        var mesh = cmr.mesh.clone();
-        TTSImporter._tts_transform_to_node(o.Transform, mesh);
 
-        const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-        pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-        pbr.metallic = 0;
-        pbr.roughness = 0.5;
-        if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
-        mesh.material = pbr;
+      var mesh = cmr.mesh.clone();
+      TTSImporter._tts_transform_to_node(o.Transform, mesh);
 
-        var meshCol = null;
-        // var meshCol = cmr.colliderMesh?.clone();
-        // if (meshCol) {
-        // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
-        // }
-        var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
-        cm.startAnimationMode();
-        cm.node.id = cm.node.name = name;
-        cm.uuid = o.GUID;
-        return cm;
-      } catch (e) {
-        console.warn("Error occurred while creating ", name, e);
-        return null;
-      }
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.5;
+      if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
+      mesh.material = pbr;
+
+      var meshCol = null;
+      // var meshCol = cmr.colliderMesh?.clone();
+      // if (meshCol) {
+      // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
+      // }
+      var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
+      cm.startAnimationMode();
+      cm.node.id = cm.node.name = name;
+      cm.uuid = o.GUID;
+      return cm;
     }
     return null;
   }
 
   static async importBackgammonPiece(o) {
     var name = o.Nickname;
-    try {
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      var height = 0.04;
-      tr.pos.y -= height * 0.5;
-      var cm = ShapedObject.Circle(tr.pos, 0.48 * tr.scale.x, height, 48, 0.006, 3);
-      cm.node.position = tr.pos;
-      cm.node.rotationQuaternion = tr.rot;
 
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 0.1;
-      cm.node.material = pbr;
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    var height = 0.04;
+    tr.pos.y -= height * 0.5;
+    var cm = ShapedObject.Circle(tr.pos, 0.48 * tr.scale.x, height, 48, 0.006, 3);
+    cm.node.position = tr.pos;
+    cm.node.rotationQuaternion = tr.rot;
 
-      cm.node.id = cm.node.name = name;
-      cm.uuid = o.GUID;
-      return cm;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
-    }
+    const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0;
+    pbr.roughness = 0.1;
+    cm.node.material = pbr;
+
+    cm.node.id = cm.node.name = name;
+    cm.uuid = o.GUID;
+    return cm;
   }
 
   static async importCustomMeshResources(o) {
@@ -278,98 +282,99 @@ class TTSImporter {
     var texture = null;
     if (o.CustomImage?.ImageURL) texture = await TTSImporter.importTexture(o.CustomImage.ImageURL, true);
     var name = o.Nickname;
-    try {
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 1.0;
-      pbr.clearCoat.isEnabled = true;
-      pbr.clearCoat.intensity = 1.0;
 
-      if (texture) pbr.albedoTexture = texture;
+    const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0;
+    pbr.roughness = 1.0;
+    pbr.clearCoat.isEnabled = true;
+    pbr.clearCoat.intensity = 1.0;
 
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      // TODO: physics material?
-      // TODO: Face orientations?
-      // Note: for now does ot support non cubic dices...
-      var po = new Dice(tr.pos, tr.scale.x);
-      po.startAnimationMode();
-      po.node.rotationQuaternion = tr.rot;
-      po.node.material = pbr;
-      po.node.id = po.node.name = name;
-      po.uuid = o.GUID;
-      return po;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
-    }
-    return null;
+    if (texture) pbr.albedoTexture = texture;
+
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    // TODO: physics material?
+    // TODO: Face orientations?
+    // Note: for now does ot support non cubic dices...
+    var po = new Dice(tr.pos, tr.scale.x);
+    po.startAnimationMode();
+    po.node.rotationQuaternion = tr.rot;
+    po.node.material = pbr;
+    po.node.id = po.node.name = name;
+    po.uuid = o.GUID;
+    return po;
   }
 
   static async importCustomTile(o) {
+    console.log(o);
     var frontTex = null;
     var backTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
-      frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
+      frontTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, true);
     if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
-      backTex = TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
+      backTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageSecondaryURL, true);
     var name = o.Nickname;
 
-    try {
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      var thickness = o.CustomImage.CustomTile.Thickness * TTSImporter.UNIT_MULTIPLIER;
-      var cm = null;
-      switch (o.CustomImage.CustomTile.Type) {
-        case 0:
-          cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
-          cm.startAnimationMode();
-          break;
-        case 1:
-          cm = ShapedObject.Hexagon(null, tr.scale.x, thickness, 0.008, 3);
-          cm.startAnimationMode();
-          break;
-        case 0:
-          cm = ShapedObject.Circle(null, tr.scale.x, thickness, 0.008, 3);
-          cm.startAnimationMode();
-          break;
-        case 0:
-          // cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
-          // cm.startAnimationMode();
-          break;
-        default:
-          console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
-          console.log(o);
-      }
-      cm.node.position = tr.pos;
-
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 0.15;
-
-      var backMat = null;
-      if (backTex) {
-        backMat = pbr.clone(pbr.name + "_back");
-        backMat.albedoTexture = backTex;
-      }
-      if (frontTex) pbr.albedoTexture = frontTex;
-      cm.setMaterial(pbr, backMat);
-      if (o.PhysicsMaterial)
-        cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
-      //var meshCol = null;
-      // var meshCol = cmr.colliderMesh?.clone();
-      // if (meshCol) {
-      // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
-      // }
-      //var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
-      cm.node.id = cm.node.name = name;
-      cm.uuid = o.GUID;
-      return cm;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
+    console.log("FRONT:",frontTex._texture.baseWidth)
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    var thickness = o.CustomImage.CustomTile.Thickness * TTSImporter.UNIT_MULTIPLIER;
+    var cm = null;
+    switch (o.CustomImage.CustomTile.Type) {
+      case 0:
+        cm = ShapedObject.RoundedSquare(
+          null,
+          (tr.scale.x * 2 * frontTex._texture.baseWidth) / frontTex._texture.baseHeight,
+          tr.scale.z * 2,
+          thickness,
+          0.01,
+          3,
+          0.008,
+          3
+        );
+        cm.startAnimationMode();
+        break;
+      case 1:
+        cm = ShapedObject.Hexagon(null, tr.scale.x, thickness, 0.008, 3);
+        cm.startAnimationMode();
+        break;
+      case 0:
+        cm = ShapedObject.Circle(null, tr.scale.x, thickness, 0.008, 3);
+        cm.startAnimationMode();
+        break;
+      case 0:
+        // cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+        // cm.startAnimationMode();
+        break;
+      default:
+        console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
+        console.log(o);
     }
-    return null;
+    cm.node.position = tr.pos;
+    cm.node.rotationQuaternion = tr.rot;
+
+    const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0;
+    pbr.roughness = 0.15;
+
+    var backMat = null;
+    if (backTex) {
+      backMat = pbr.clone(pbr.name + "_back");
+      backMat.albedoTexture = backTex;
+    }
+    if (frontTex) pbr.albedoTexture = frontTex;
+    cm.setMaterial(pbr, backMat);
+    if (o.PhysicsMaterial)
+      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+    //var meshCol = null;
+    // var meshCol = cmr.colliderMesh?.clone();
+    // if (meshCol) {
+    // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
+    // }
+    //var cm = new PlateauObject(mesh, meshCol, { friction: 0.6, restitution: 0.3 }, null, 1);
+    cm.node.id = cm.node.name = name;
+    cm.uuid = o.GUID;
+    return cm;
   }
 
   static async importCustomToken(o) {
@@ -382,51 +387,48 @@ class TTSImporter {
 
     //TODO: simplify threshold
     // polygon is now an array of {x,y} objects. Have fun!
-    try {
-      var image = await loadImage(o.CustomImage.ImageURL);
 
-      var polygon = getImageOutline(image);
+    var image = await loadImage(o.CustomImage.ImageURL);
 
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      var thickness = o.CustomImage.CustomToken.Thickness * TTSImporter.UNIT_MULTIPLIER;
-      var cm = null;
-      var poly = [];
+    var polygon = getImageOutline(image);
 
-      // The reversed engineered is that output area should be 88 (in TTS space)
-      var k = Math.sqrt(88 / (image.width * image.height)) / 2.54;
-      for (var p of polygon) {
-        var x = p.x - 0.5 * image.width;
-        x *= tr.scale.x * k;
-        var y = p.y - 0.5 * image.height;
-        y *= tr.scale.z * k;
-        poly.push(new BABYLON.Vector3(x, y, 0.0));
-      }
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    var thickness = o.CustomImage.CustomToken.Thickness * TTSImporter.UNIT_MULTIPLIER;
+    var cm = null;
+    var poly = [];
 
-      cm = new ShapedObject(null, poly, null, thickness, 0, 1);
-      cm.startAnimationMode();
-      cm.node.position = tr.pos;
-      cm.node.rotationQuaternion = tr.rot;
-
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 0.15;
-
-      var backMat = null;
-      // if(backTex) {
-      //   backMat = pbr.clone(pbr.name+"_back");
-      //   backMat.albedoTexture = backTex;
-      // }
-      if (frontTex) pbr.albedoTexture = frontTex;
-      cm.setMaterial(pbr, backMat);
-
-      cm.node.id = cm.node.name = name;
-      cm.uuid = o.GUID;
-      return cm;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
+    // The reversed engineered is that output area should be 88 (in TTS space)
+    var k = Math.sqrt(88 / (image.width * image.height)) / 2.54;
+    for (var p of polygon) {
+      var x = p.x - 0.5 * image.width;
+      x *= tr.scale.x * k;
+      var y = (image.height-p.y) - 0.5 * image.height;
+      y *= tr.scale.z * k;
+      poly.push(new BABYLON.Vector3(x, y, 0.0));
     }
+    poly.reverse();
+
+    cm = new ShapedObject(null, poly, null, thickness, 0, 1);
+    cm.startAnimationMode();
+    cm.node.position = tr.pos;
+    cm.node.rotationQuaternion = tr.rot;
+
+    const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0;
+    pbr.roughness = 0.15;
+
+    var backMat = null;
+    // if(backTex) {
+    //   backMat = pbr.clone(pbr.name+"_back");
+    //   backMat.albedoTexture = backTex;
+    // }
+    if (frontTex) pbr.albedoTexture = frontTex;
+    cm.setMaterial(pbr, backMat);
+
+    cm.node.id = cm.node.name = name;
+    cm.uuid = o.GUID;
+    return cm;
 
     // var frontTex = null;
     // var backTex = null;
@@ -435,8 +437,6 @@ class TTSImporter {
     // if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
     //   backTex = TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
     // var name = o.GUID + "_" + o.Nickname;
-
-    return null;
   }
 
   static async importSimpleStack(o, f) {
@@ -460,41 +460,35 @@ class TTSImporter {
   static async importCustomBoard(o) {
     var frontTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
-      frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
+      frontTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, true);
     var name = o.Nickname;
-    try {
-      var cm = null;
 
-      var image = await loadImage(o.CustomImage.ImageURL);
-      var h = (0.5 * 67 * TTSImporter.IMPORT_SCALE * TTSImporter.UNIT_MULTIPLIER) / 2.54;
-      var w = (h * image.width) / image.height;
-      w *= o.Transform.scaleX;
-      h *= o.Transform.scaleZ;
-      //w *= o.CustomImage.WidthScale;
+    var cm = null;
 
-      cm = ShapedObject.Square(null, w, h, 0.2);
-      cm.startAnimationMode();
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      cm.node.position = tr.pos;
-      cm.node.rotationQuaternion = tr.rot;
+    var h = (0.5 * 67 * TTSImporter.IMPORT_SCALE * TTSImporter.UNIT_MULTIPLIER) / 2.54;
+    var w = (h * frontTex._texture.baseWidth) / frontTex._texture.baseHeight;
+    w *= o.Transform.scaleX;
+    h *= o.Transform.scaleZ;
+    //w *= o.CustomImage.WidthScale;
 
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 0.15;
+    cm = ShapedObject.Square(null, w, h, 0.2);
+    cm.startAnimationMode();
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    cm.node.position = tr.pos;
+    cm.node.rotationQuaternion = tr.rot;
 
-      if (frontTex) pbr.albedoTexture = frontTex;
-      cm.setMaterial(pbr);
-      if (o.PhysicsMaterial)
-        cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
-      cm.node.id = cm.node.name = name;
-      cm.uuid = o.GUID;
-      return cm;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
-    }
-    return null;
+    const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0;
+    pbr.roughness = 0.15;
+
+    if (frontTex) pbr.albedoTexture = frontTex;
+    cm.setMaterial(pbr);
+    if (o.PhysicsMaterial)
+      cm.body.material = { friction: o.PhysicsMaterial.DynamicFriction, restitution: o.PhysicsMaterial.Bounciness };
+    cm.node.id = cm.node.name = name;
+    cm.uuid = o.GUID;
+    return cm;
   }
 
   static async importCard(o) {
@@ -516,25 +510,20 @@ class TTSImporter {
     var atlas = CardAtlas.all.get(deckName);
 
     var name = o.Nickname;
-    try {
-      var tr = TTSImporter._tts_transform_to_node(o.Transform);
-      // tr.pos.x *= 0.1;
-      // tr.pos.y = 0.001;
-      var w = (0.572 * (o.Transform.scaleX * TTSImporter.IMPORT_SCALE)) / 2.54;
-      var h = (0.889 * (o.Transform.scaleZ * TTSImporter.IMPORT_SCALE)) / 2.54;
-      //tr.pos.z *= 0.1;
-      var num = parseInt(String(o.CardID).replace(deckName, ""));
-      var c = new Card(tr.pos, atlas, num, atlas.back, w, h);
 
-      // To keep ref
-      c.CardID = o.CardID;
-      c.uuid = o.GUID;
-      return c;
-    } catch (e) {
-      console.warn("Error occurred while creating ", name, e);
-      return null;
-    }
-    return null;
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    // tr.pos.x *= 0.1;
+    // tr.pos.y = 0.001;
+    var w = (0.572 * (o.Transform.scaleX * TTSImporter.IMPORT_SCALE)) / 2.54;
+    var h = (0.889 * (o.Transform.scaleZ * TTSImporter.IMPORT_SCALE)) / 2.54;
+    //tr.pos.z *= 0.1;
+    var num = parseInt(String(o.CardID).replace(deckName, ""));
+    var c = new Card(tr.pos, atlas, num, atlas.back, w, h);
+
+    // To keep ref
+    c.CardID = o.CardID;
+    c.uuid = o.GUID;
+    return c;
   }
 
   static async importDeck(o) {
@@ -609,61 +598,73 @@ class TTSImporter {
     var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
     if (cmr.mesh) {
       var name = o.Nickname;
-      try {
-        var mesh = cmr.mesh.clone();
-        TTSImporter._tts_transform_to_node(o.Transform, mesh);
 
-        const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-        pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-        pbr.metallic = 0;
-        pbr.roughness = 0.5;
-        if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
-        mesh.material = pbr;
+      var mesh = cmr.mesh.clone();
+      TTSImporter._tts_transform_to_node(o.Transform, mesh);
 
-        var meshCol = null;
-        // var meshCol = cmr.colliderMesh?.clone();
-        // if (meshCol) {
-        // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
-        // }
-        var bag = await this.importBag(o, mesh, meshCol);
-        bag[0].startAnimationMode();
-        bag[0].infinite = true;
-        return bag;
-      } catch (e) {
-        console.warn("Error occurred while creating ", name, e);
-        return null;
-      }
+      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+      pbr.metallic = 0;
+      pbr.roughness = 0.5;
+      if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
+      mesh.material = pbr;
+
+      var meshCol = null;
+      // var meshCol = cmr.colliderMesh?.clone();
+      // if (meshCol) {
+      // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
+      // }
+      var bag = await this.importBag(o, mesh, meshCol);
+      bag[0].startAnimationMode();
+      bag[0].infinite = true;
+      return bag;
     }
     return null;
   }
 
-  static importTexture(url, flip = false) {
+  static importTexture(url, flip = false, onLoadCallback = null, onErrorCallback = null) {
     if (!TTSImporter.textures.has(url)) {
       var tex = null;
-      if (flip) tex = new BABYLON.Texture(url, scene, true, false);
-      else tex = new BABYLON.Texture(url, scene);
+      tex = new BABYLON.Texture(
+        url,
+        scene,
+        true,
+        !flip,
+        BABYLON.Texture.TRILINEAR_SAMPLINGMODE,
+        null,
+        onErrorCallback
+      );
       TTSImporter.textures.set(url, tex);
+      if (onLoadCallback) tex.onLoadObservable.add(() => onLoadCallback(tex));
+    }
+    else {
+      if(onLoadCallback) {
+        var tex=TTSImporter.textures.get(url);
+        tex.onLoadObservable.add(() => onLoadCallback(tex));
+      }
     }
     return TTSImporter.textures.get(url);
   }
 
+  static async importTextureAsync(url, flip = false) {
+    //TODO: cache !!!
+    return new Promise((resolve, reject) => {
+      this.importTexture(url, flip, (tex) => resolve(tex), reject);
+    });
+  }
+
   static async importMesh(url) {
     if (TTSImporter.meshes.has(url)) return TTSImporter.meshes.get(url);
-    try {
-      BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
-      var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
-      if (!tst) return null;
+    BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
+    var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
+    if (!tst) return null;
 
-      TTSImporter.meshes.set(url, tst.meshes[0]);
-      return TTSImporter.meshes.get(url);
-    } catch (error) {
-      console.error("Error loading ", url, error);
-      return null;
-    }
+    TTSImporter.meshes.set(url, tst.meshes[0]);
+    return TTSImporter.meshes.get(url);
   }
 
   static async import3DText(o) {
-    var colorHex = new BABYLON.Color3(o.Text.colorstate.r,o.Text.colorstate.g,o.Text.colorstate.b).toHexString();
+    var colorHex = new BABYLON.Color3(o.Text.colorstate.r, o.Text.colorstate.g, o.Text.colorstate.b).toHexString();
     var text = new TextObject(o.Text.Text, false, o.Text.fontSize, "Amaranth", colorHex, true);
     var tr = this._tts_transform_to_node(o.Transform);
     text.node.position = tr.pos;
@@ -671,7 +672,7 @@ class TTSImporter {
     text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleZ, o.Transform.scaleZ);
     text.uuid = o.GUID;
     text.node.name = o.NickName;
-    
+
     return null;
-  }  
+  }
 }

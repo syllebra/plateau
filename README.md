@@ -69,6 +69,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Decals?
 - [ ] Vector Lines?
 - [ ] HandTrigger / ScriptingTrigger
+- [ ] Sky environment maps
 
 # Todo
 
