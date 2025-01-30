@@ -747,7 +747,9 @@ var createScene = async function () {
 
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json");
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json");
+  
 
   Pointer.load();
 

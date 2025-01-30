@@ -5,12 +5,13 @@ class CardAtlas {
   rows = 1;
   nb = 54;
   back = 55;
+  texture= null;
 
   static all = new Map();
 
   constructor(
     name = "French Deck Atlas",
-    texturePath = "textures/cards/french_deck.png",
+    texture = "textures/cards/french_deck.png",
     cols = 13,
     rows = 5,
     nb = 54,
@@ -21,7 +22,11 @@ class CardAtlas {
     this.rows = rows;
     this.nb = nb;
     this.back = back;
-    const texture = new BABYLON.Texture(texturePath, scene, true, false);
+    
+    if(typeof texture === 'string' || texture instanceof String)
+      texture = new BABYLON.Texture(texture, scene, true, false);
+
+    //const texture = new BABYLON.Texture(texturePath, scene, true, false);
 
     const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
     pbr.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
@@ -29,6 +34,7 @@ class CardAtlas {
     pbr.roughness = 0.5;
     pbr.albedoTexture = texture;
     this.material = pbr;
+    this.texture = texture;
 
     if (!CardAtlas.all.has(name)) CardAtlas.all.set(name, this);
   }
@@ -57,7 +63,11 @@ class Card extends PlateauObject {
   ) {
     var box = createCardShape(width, height, thickness, cornerRadius, cornerSegments);
 
-    planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), uvFromAtlas(numBack, atlas.cols, atlas.rows));
+    var back_uv = uvFromAtlas(numBack, atlas.cols, atlas.rows);
+    var tmp = back_uv.x;
+    back_uv.x = back_uv.z;
+    back_uv.z = tmp;
+    planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), back_uv );
 
     box.material = atlas.material; //scene.getMaterialByName("default_material");
 

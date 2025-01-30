@@ -110,7 +110,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = null;//new Set(["Custom_Token"]);
+    var only  = new Set(["Card"]);//, "Custom_Token"]);
     if(only && !only.has(o.Name))
       return null;
 
@@ -499,26 +499,33 @@ class TTSImporter {
       if (cd) {
         if (cd.FaceURL && cd.FaceURL != "") {
           var nb = cd.NumWidth * cd.NumHeight - 1;
+          
+          var texture = await TTSImporter.importTextureAsync(cd.FaceURL,true);
           // Back texture is last by default
-          var deckAtlas = new CardAtlas(deckName, cd.FaceURL, cd.NumWidth, cd.NumHeight, nb, nb);
-          //frontTex = TTSImporter.importTexture(o.CustomDeck.ImageURL, true);
-          // if (o.CustomDeck?.BackURL && o.CustomDeck.BackURL != "")
-          //   backTex = TTSImporter.importTexture(o.CustomDeck.BackURL, true);
+          var deckAtlas = new CardAtlas(deckName, texture, cd.NumWidth, cd.NumHeight, nb, nb);
         }
       }
     }
     var atlas = CardAtlas.all.get(deckName);
 
-    var name = o.Nickname;
-
+    var wPix = atlas.texture._texture.baseWidth / atlas.cols;
+    var hPix = atlas.texture._texture.baseHeight / atlas.rows;
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     // tr.pos.x *= 0.1;
     // tr.pos.y = 0.001;
-    var w = (0.572 * (o.Transform.scaleX * TTSImporter.IMPORT_SCALE)) / 2.54;
-    var h = (0.889 * (o.Transform.scaleZ * TTSImporter.IMPORT_SCALE)) / 2.54;
-    //tr.pos.z *= 0.1;
+    var h = 7.7;
+    var w = h * wPix/hPix;
+    w *= tr.scale.x / 2.54;
+    h *= tr.scale.z / 2.54;
+    console.log(o.Transform)
+    var thickness = 0.024 * tr.scale.y / 2.54;
+    var cornerRadius = 0.35 * tr.scale.x / 2.54;
+
     var num = parseInt(String(o.CardID).replace(deckName, ""));
-    var c = new Card(tr.pos, atlas, num, atlas.back, w, h);
+    var c = new Card(tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
+    console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
+    c.node.rotationQuaternion = tr.rot;
+    c.node.id = c.node.name = o.Nickname;
 
     // To keep ref
     c.CardID = o.CardID;

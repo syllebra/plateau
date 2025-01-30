@@ -62,6 +62,12 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Borders
 - [x] Backgammon pieces (white)
 - [x] Cards
+  - [ ] Back image not the last of the deck
+  - [x] Rounded rectangular cards
+  - [ ] Hexagonal Cards
+  - [ ] Circle Cards
+  - [ ] Rectangular Cards
+
 - [x] Decks
 - [x] Bags / Infinite bags / Custom models bag
 - [x] 3D Text
