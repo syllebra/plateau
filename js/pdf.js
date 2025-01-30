@@ -5,9 +5,10 @@ class PdfObject extends ShapedObject {
   currentPage = 0;
 
   constructor(url, pageNumber = 1, planeWidth = 2.1, planeHeight = 2.97, thickness = 0.01) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
     // var url =
     //   "https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/";
+
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
 
     var topShape = createRectangleShape(planeWidth, planeHeight);
     super(null, topShape, null, thickness);
@@ -26,8 +27,7 @@ class PdfObject extends ShapedObject {
     loadingTask.promise.then(
       function (pdf) {
         pdfObj.pdf = pdf;
-        for(var i = 0; i<pdf.numPages;i++)
-            pdfObj.renderCanvas.push(null);
+        for (var i = 0; i < pdf.numPages; i++) pdfObj.renderCanvas.push(null);
         console.log("PDF loaded:", pdf.numPages, "pages");
         pdfObj.loadPage(pageNumber);
       },
@@ -53,7 +53,7 @@ class PdfObject extends ShapedObject {
       case "ArrowUp":
         this.loadPage(this.currentPage == this.pdf.numPages ? 1 : this.currentPage + 1);
         break;
-    default:
+      default:
         return consumed;
     }
     return true;
@@ -71,10 +71,11 @@ class PdfObject extends ShapedObject {
 
       // Prepare canvas using PDF page dimensions
       //var canvas = document.getElementById('the-canvas');
-      if (!pdfObj.renderCanvas[pdfObj.currentPage-1]) pdfObj.renderCanvas[pdfObj.currentPage-1] = document.createElement("canvas"); //document.getElementById("pdf_renderer");
-      var context = pdfObj.renderCanvas[pdfObj.currentPage-1].getContext("2d");
-      pdfObj.renderCanvas[pdfObj.currentPage-1].height = viewport.height;
-      pdfObj.renderCanvas[pdfObj.currentPage-1].width = viewport.width;
+      if (!pdfObj.renderCanvas[pdfObj.currentPage - 1])
+        pdfObj.renderCanvas[pdfObj.currentPage - 1] = document.createElement("canvas"); //document.getElementById("pdf_renderer");
+      var context = pdfObj.renderCanvas[pdfObj.currentPage - 1].getContext("2d");
+      pdfObj.renderCanvas[pdfObj.currentPage - 1].height = viewport.height;
+      pdfObj.renderCanvas[pdfObj.currentPage - 1].width = viewport.width;
 
       // Render PDF page into canvas context
       var renderContext = {
@@ -85,7 +86,13 @@ class PdfObject extends ShapedObject {
       renderTask.promise.then(() => {
         //var pdfMat = new BABYLON.BackgroundMaterial("PDF", scene);
         if (pdfObj.texture) pdfObj.texture.dispose();
-        pdfObj.texture = new BABYLON.Texture(pdfObj.renderCanvas[pdfObj.currentPage-1].toDataURL(), scene, true, false);
+        pdfObj.texture = new BABYLON.Texture(
+          pdfObj.renderCanvas[pdfObj.currentPage - 1].toDataURL(),
+          scene,
+          true,
+          false,
+          BABYLON.Texture.TRILINEAR_SAMPLINGMODE
+        );
         pdfObj.node.material.albedoTexture = pdfObj.texture;
 
         if (logging) console.log("Page loaded:", pdfObj.currentPage);

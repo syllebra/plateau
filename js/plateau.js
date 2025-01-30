@@ -647,7 +647,7 @@ var createScene = async function () {
         if (pickedObject) {
           const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;
           rotateSelectionAround(pickedObject, angle);
-        } else zoomCamera(pointerInfo.event.deltaY * 0.002);
+        } else zoomCamera(pointerInfo.event.deltaY * 0.02);
         break;
     }
   });
@@ -756,9 +756,9 @@ var createScene = async function () {
 
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
-  var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
+  //var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
 
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED

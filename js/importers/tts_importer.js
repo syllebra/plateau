@@ -112,7 +112,8 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = null;//new Set(["Custom_Board"]);//, "Custom_Token"]);
+    var only  = new Set(["Custom_PDF"]);//, "Custom_Token"]);
+    only = null;
     if(only && !only.has(o.Name))
       return null;
 
@@ -165,7 +166,14 @@ class TTSImporter {
       case "3DText":
         await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
-      case "HandTrigger":
+      case "PlayerPawn":
+        // await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
+        console.log(o)
+        break;
+        case "Custom_PDF":
+          await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
+          break;        
+        case "HandTrigger":
       case "ScriptingTrigger":
         console.log(o);
         break;
@@ -687,5 +695,48 @@ class TTSImporter {
     text.node.name = o.NickName;
 
     return null;
+  }
+
+
+  static async getPDFPageSizeAsync(url, pageNum) {
+    if(!pdfjsLib.GlobalWorkerOptions.workerSrc)
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
+
+    var loadingTask = pdfjsLib.getDocument(url);
+    var pdf =  await loadingTask.promise;
+
+    var page = await pdf.getPage(pageNum);
+    var scale = 1.5;
+    var viewport = page.getViewport({ scale: scale });
+    return [viewport.width,  viewport.height];
+  }
+
+  static async importPDF(o) {
+    console.log(o);
+    var url = "";
+    if (o.CustomPDF?.PDFUrl) url =  o.CustomPDF.PDFUrl;
+    
+    var name = "PDF"+o.Nickname;
+
+    var psize = await TTSImporter.getPDFPageSizeAsync(url,o.CustomPDF.PDFPage+1);
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+    // tr.pos.x *= 0.1;
+    // tr.pos.y = 0.001;
+    var h = 10;
+    var w = h * psize[0]/psize[1];
+    w *= tr.scale.x / 2.54;
+    h *= tr.scale.z / 2.54;
+    
+    var thickness = 0.5 * tr.scale.y / 2.54;
+    var po = new PdfObject(url, o.CustomPDF.PDFPage+1,w,h,thickness);
+    po.startAnimationMode();
+
+    po.node.position = tr.pos;
+    po.node.rotationQuaternion = tr.rot;
+
+    po.node.material.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    po.node.id = po.node.name = name;
+    po.uuid = o.GUID;
+    return po;
   }
 }

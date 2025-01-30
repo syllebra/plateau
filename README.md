@@ -35,7 +35,11 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] 3D pointer while interacting
 - [x] Soft Shadows
 - [ ] Loading Screen
-- [ ] PDF Viewer
+- [x] PDF Viewer
+  - [x] Keyboard interactions
+  - [x] 3D Display
+  - [ ] 3D Buttons
+  - [ ] Screen display option
 
 ## TTS Import
 
@@ -76,6 +80,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] HandTrigger / ScriptingTrigger
 - [ ] Sky environment maps
 - [ ] Player Pawn
+- [x] Custom PDF
 
 # Todo
 
