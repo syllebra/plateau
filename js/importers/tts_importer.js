@@ -112,8 +112,8 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = new Set(["Deck","Card"]);//,"Card","Deck"]);//, "Custom_Token"]);
-    //only = null;
+    var only  = new Set(["Tile","Board"]);//,"Card","Deck"]);//, "Custom_Token"]);
+    only = null;
     if(only) {
       var isIncluded = false;
       for(var included of only) {
@@ -354,12 +354,13 @@ class TTSImporter {
         cm.startAnimationMode();
         break;
       case 2:
-        cm = ShapedObject.Circle(null, tr.scale.x, thickness, 0.008, 3);
+        var segs = Math.ceil(tr.scale.x*Math.PI*2*25)
+        cm = ShapedObject.Circle(null, tr.scale.x, thickness, segs, 0.008, 3);
         cm.startAnimationMode();
         break;
       case 3:
-        // cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
-        // cm.startAnimationMode();
+        cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
+        cm.startAnimationMode();
         break;
       default:
         console.warn("Custom tile type not implemented yet:" + o.GUID + " => " + o.CustomImage.CustomTile.Type);
