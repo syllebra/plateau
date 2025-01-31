@@ -18,7 +18,7 @@ class PlateauObject {
     if (position) node.position = position;
     this.node = node;
     this.updateBoundingInfos();
-    if (shadowGen) shadowGen.addShadowCaster(node,true);
+    if (shadowGen) shadowGen.addShadowCaster(node, true);
     node.receiveShadows = true;
     this.body = new BABYLON.PhysicsBody(node, BABYLON.PhysicsMotionType.DYNAMIC, false, scene);
 
@@ -365,9 +365,13 @@ class PlateauObject {
 
   onRelease() {}
 
-  onKeyDown(key) {return false;}
+  onKeyDown(key) {
+    return false;
+  }
 
-  onKeyUp(key) {return false;}
+  onKeyUp(key) {
+    return false;
+  }
 
   static GetTopMost(node) {
     if (!node) return null;
@@ -433,12 +437,11 @@ class PlateauObject {
   }
 }
 
-
 class MeshObjectUtils {
   static library = new Map();
-  
-  static async loadCached (meshURL, clone = true) {
-    if(this.library.has(meshURL)) {
+
+  static async loadCached(meshURL, clone = true) {
+    if (this.library.has(meshURL)) {
       var mesh = this.library.get(meshURL);
       return clone ? mesh.clone() : mesh;
     }
@@ -447,8 +450,7 @@ class MeshObjectUtils {
     console.log(container);
     this.library.set(meshURL, mesh);
     mesh.setEnabled(false); // Hide for library
-    if(clone)
-      mesh = mesh.clone();    
+    if (clone) mesh = mesh.clone();
     return clone ? mesh.clone() : mesh;
   }
 

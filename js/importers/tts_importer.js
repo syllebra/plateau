@@ -60,13 +60,13 @@ class TTSImporter {
         for (var po of objects) {
           if (po == null) continue;
 
-          po.stopAnimationMode();
+          if (po.hasOwnProperty("stopAnimationMode")) po.stopAnimationMode();
         }
       }
     }, 3000);
   }
 
-  static importSnapPoint(sp, parent = null, parentTTS=null) {
+  static importSnapPoint(sp, parent = null, parentTTS = null) {
     var pos = sp.Position;
 
     if (pos) {
@@ -84,8 +84,8 @@ class TTSImporter {
         var tr = TTSImporter._tts_transform_to_node(parentTTS.Transform);
         pos = pos.multiplyByFloats(
           -tr.scale.x,
-          tr.scale.y*2, // TODO: more generic
-          tr.scale.z,
+          tr.scale.y * 2, // TODO: more generic
+          tr.scale.z
         );
       }
     }
@@ -112,14 +112,17 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = new Set(["Tile","Board"]);//,"Card","Deck"]);//, "Custom_Token"]);
-    only = null;
-    if(only) {
+    var only = new Set(["Note", "Trigger"]); //,"Card","Deck"]);//, "Custom_Token"]);
+    //only = null;
+    if (only) {
       var isIncluded = false;
-      for(var included of only) {
-        if(o.Name.includes(included)) {isIncluded = true; break;}
+      for (var included of only) {
+        if (o.Name.includes(included)) {
+          isIncluded = true;
+          break;
+        }
       }
-      if(!isIncluded) return null;
+      if (!isIncluded) return null;
     }
 
     function handleError(err, o) {
@@ -173,15 +176,26 @@ class TTSImporter {
         plateauObj = await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
       case "PlayerPawn":
-        plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb").catch((err) => handleError(err, o));
+        plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb").catch((err) =>
+          handleError(err, o)
+        );
         break;
       case "Custom_PDF":
         plateauObj = await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
-        break;        
+        break;
       case "HandTrigger":
       case "ScriptingTrigger":
         console.log(o);
+        var tr = TTSImporter._tts_transform_to_node(o.Transform);
+        plateauObj = new Zone(
+          tr.pos,
+          tr.rot,
+          tr.scale,
+          new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
+        );
+
         break;
+
       default:
         console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
         break;
@@ -192,22 +206,22 @@ class TTSImporter {
     var objects = plateauObj instanceof Array ? plateauObj : [plateauObj];
 
     for (var po of objects) {
-      po.startAnimationMode(); // Block physics while loading
+      if (po.hasOwnProperty("startAnimationMode")) po.startAnimationMode(); // Block physics while loading
       TTSImporter.genericImports(po, o);
     }
     return objects;
   }
 
   static genericImports(po, o) {
-      // Common variables
-      po.description = o.Description;
-      po.locked = o.Locked ? o.Locked : false;
+    // Common variables
+    po.description = o.Description;
+    po.locked = o.Locked ? o.Locked : false;
 
-      if (o.AttachedSnapPoints) {
-        for (var sp of o.AttachedSnapPoints) {
-          var dz = TTSImporter.importSnapPoint(sp, po.node, o);
-        }
+    if (o.AttachedSnapPoints) {
+      for (var sp of o.AttachedSnapPoints) {
+        var dz = TTSImporter.importSnapPoint(sp, po.node, o);
       }
+    }
   }
 
   static _tts_transform_to_node(tr, node = null) {
@@ -354,7 +368,7 @@ class TTSImporter {
         cm.startAnimationMode();
         break;
       case 2:
-        var segs = Math.ceil(tr.scale.x*Math.PI*2*25)
+        var segs = Math.ceil(tr.scale.x * Math.PI * 2 * 25);
         cm = ShapedObject.Circle(null, tr.scale.x, thickness, segs, 0.008, 3);
         cm.startAnimationMode();
         break;
@@ -419,7 +433,7 @@ class TTSImporter {
     for (var p of polygon) {
       var x = p.x - 0.5 * image.width;
       x *= tr.scale.x * k;
-      var y = (image.height-p.y) - 0.5 * image.height;
+      var y = image.height - p.y - 0.5 * image.height;
       y *= tr.scale.z * k;
       poly.push(new BABYLON.Vector3(x, y, 0.0));
     }
@@ -483,16 +497,16 @@ class TTSImporter {
     var cm = null;
 
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
-    
+
     var h = 67;
     var w = (h * frontTex._texture.baseWidth) / frontTex._texture.baseHeight;
     w *= tr.scale.x / 2.54;
     h *= tr.scale.z / 2.54;
     var thickness = 2 * tr.scale.y;
     //console.log(o.CustomImage.WidthScale)
-    w/=  o.CustomImage.WidthScale;
-    h/=  o.CustomImage.WidthScale;
-   //w *= o.CustomImage.WidthScale;
+    w /= o.CustomImage.WidthScale;
+    h /= o.CustomImage.WidthScale;
+    //w *= o.CustomImage.WidthScale;
 
     cm = ShapedObject.Square(null, w, h, thickness);
     cm.startAnimationMode();
@@ -515,14 +529,14 @@ class TTSImporter {
   }
 
   static async importCustomDecks(cds) {
-    for(var id in cds) {
+    for (var id in cds) {
       var deckName = String(id);
-      if(CardAtlas.all.has(deckName)) continue;
+      if (CardAtlas.all.has(deckName)) continue;
       var cd = cds[id];
       if (cd.FaceURL && cd.FaceURL != "") {
         var nb = cd.NumWidth * cd.NumHeight - 1;
-        
-        var texture = await TTSImporter.importTextureAsync(cd.FaceURL,true);
+
+        var texture = await TTSImporter.importTextureAsync(cd.FaceURL, true);
         // Back texture is last by default
         var deckAtlas = new CardAtlas(deckName, texture, cd.NumWidth, cd.NumHeight, nb, nb);
       }
@@ -530,10 +544,9 @@ class TTSImporter {
   }
 
   static async importCard(o, force_tr = null) {
-    if (o.CustomDeck)
-      await TTSImporter.importCustomDecks(o.CustomDeck);
+    if (o.CustomDeck) await TTSImporter.importCustomDecks(o.CustomDeck);
 
-    var deckName = String(o.CardID).substring(0,2);
+    var deckName = String(o.CardID).substring(0, 2);
 
     var atlas = CardAtlas.all.get(deckName);
 
@@ -543,19 +556,19 @@ class TTSImporter {
     // tr.pos.x *= 0.1;
     // tr.pos.y = 0.001;
     var h = 7.7;
-    var w = h * wPix/hPix;
-    var scale = force_tr ? force_tr.scale : tr.scale
+    var w = (h * wPix) / hPix;
+    var scale = force_tr ? force_tr.scale : tr.scale;
     w *= scale.x / 2.54;
-    h *=  scale.z / 2.54;
+    h *= scale.z / 2.54;
 
-    var thickness = 0.024 * scale.y / 2.54;
-    var cornerRadius = 0.35 * scale.x / 2.54;
+    var thickness = (0.024 * scale.y) / 2.54;
+    var cornerRadius = (0.35 * scale.x) / 2.54;
 
     var num = parseInt(String(o.CardID).replace(deckName, ""));
     var c = new Card(force_tr ? force_tr.pos : tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
     //console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
-    c.node.rotationQuaternion = force_tr ? force_tr.rot: tr.rot;
-    c.node.id = c.node.name = "("+o.CardID+")"+o.Nickname;
+    c.node.rotationQuaternion = force_tr ? force_tr.rot : tr.rot;
+    c.node.id = c.node.name = "(" + o.CardID + ")" + o.Nickname;
 
     // To keep ref
     c.CardID = o.CardID;
@@ -564,11 +577,10 @@ class TTSImporter {
   }
 
   static async importDeck(o) {
-    if (o.CustomDeck)
-      await TTSImporter.importCustomDecks(o.CustomDeck);
-    
+    if (o.CustomDeck) await TTSImporter.importCustomDecks(o.CustomDeck);
+
     var tr = this._tts_transform_to_node(o.Transform);
-    
+
     var cards = [];
     if (o.ContainedObjects)
       for (var oc of o.ContainedObjects) {
@@ -598,7 +610,7 @@ class TTSImporter {
     var mesh = null;
     var collider = null;
 
-    if(o.CustomMesh) {
+    if (o.CustomMesh) {
       var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
       if (cmr.mesh) {
         mesh = cmr.mesh.clone();
@@ -657,21 +669,12 @@ class TTSImporter {
   static importTexture(url, flip = false, onLoadCallback = null, onErrorCallback = null) {
     if (!TTSImporter.textures.has(url)) {
       var tex = null;
-      tex = new BABYLON.Texture(
-        url,
-        scene,
-        true,
-        !flip,
-        BABYLON.Texture.TRILINEAR_SAMPLINGMODE,
-        null,
-        onErrorCallback
-      );
+      tex = new BABYLON.Texture(url, scene, true, !flip, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, onErrorCallback);
       TTSImporter.textures.set(url, tex);
       if (onLoadCallback) tex.onLoadObservable.add(() => onLoadCallback(tex));
-    }
-    else {
-      if(onLoadCallback) {
-        var tex=TTSImporter.textures.get(url);
+    } else {
+      if (onLoadCallback) {
+        var tex = TTSImporter.textures.get(url);
         tex.onLoadObservable.add(() => onLoadCallback(tex));
       }
     }
@@ -687,9 +690,7 @@ class TTSImporter {
 
   static async importMesh(url) {
     // Specific pastebin fix
-    if(url.includes("pastebin.com") && !url.includes("/raw"))
-      url = url.replace("pastebin.com","pastebin.com/raw");
-    
+    if (url.includes("pastebin.com") && !url.includes("/raw")) url = url.replace("pastebin.com", "pastebin.com/raw");
 
     if (TTSImporter.meshes.has(url)) return TTSImporter.meshes.get(url);
     BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
@@ -715,7 +716,11 @@ class TTSImporter {
     var tr = this._tts_transform_to_node(o.Transform);
     var po = await MeshObjectUtils.Create(url);
     po.node.material = po.node.material.clone();
-    po.node.material.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    po.node.material.albedoColor = new BABYLON.Color3(
+      o.ColorDiffuse.r * 0.8,
+      o.ColorDiffuse.g * 0.8,
+      o.ColorDiffuse.b * 0.8
+    );
     po.node.position = tr.pos;
     po.node.rotationQuaternion = tr.rot;
     po.node.id = po.node.name = o.Nickname;
@@ -736,43 +741,45 @@ class TTSImporter {
     return null;
   }
 
-
   static async getPDFPageSizeAsync(url, pageNum) {
-    if(!pdfjsLib.GlobalWorkerOptions.workerSrc)
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) pdfjsLib.GlobalWorkerOptions.workerSrc = "js/ext/pdf.worker.min.mjs";
 
     var loadingTask = pdfjsLib.getDocument(url);
-    var pdf =  await loadingTask.promise;
+    var pdf = await loadingTask.promise;
 
     var page = await pdf.getPage(pageNum);
     var scale = 1.5;
     var viewport = page.getViewport({ scale: scale });
-    return [viewport.width,  viewport.height];
+    return [viewport.width, viewport.height];
   }
 
   static async importPDF(o) {
     var url = "";
-    if (o.CustomPDF?.PDFUrl) url =  o.CustomPDF.PDFUrl;
-    
-    var name = "PDF"+o.Nickname;
+    if (o.CustomPDF?.PDFUrl) url = o.CustomPDF.PDFUrl;
 
-    var psize = await TTSImporter.getPDFPageSizeAsync(url,o.CustomPDF.PDFPage+1);
+    var name = "PDF" + o.Nickname;
+
+    var psize = await TTSImporter.getPDFPageSizeAsync(url, o.CustomPDF.PDFPage + 1);
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     // tr.pos.x *= 0.1;
     // tr.pos.y = 0.001;
     var h = 10;
-    var w = h * psize[0]/psize[1];
+    var w = (h * psize[0]) / psize[1];
     w *= tr.scale.x / 2.54;
     h *= tr.scale.z / 2.54;
-    
-    var thickness = 0.5 * tr.scale.y / 2.54;
-    var po = new PdfObject(url, o.CustomPDF.PDFPage+1,w,h,thickness);
+
+    var thickness = (0.5 * tr.scale.y) / 2.54;
+    var po = new PdfObject(url, o.CustomPDF.PDFPage + 1, w, h, thickness);
     po.startAnimationMode();
 
     po.node.position = tr.pos;
     po.node.rotationQuaternion = tr.rot;
 
-    po.node.material.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    po.node.material.albedoColor = new BABYLON.Color3(
+      o.ColorDiffuse.r * 0.8,
+      o.ColorDiffuse.g * 0.8,
+      o.ColorDiffuse.b * 0.8
+    );
     po.node.id = po.node.name = name;
     po.uuid = o.GUID;
     return po;

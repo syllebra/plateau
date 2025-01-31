@@ -1,6 +1,3 @@
-var a = [0, 1, 2, 3, 4];
-console.log(a);
-
 canvas = document.getElementById("renderCanvas");
 engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
@@ -44,7 +41,7 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   pbr.ambientTexture = new BABYLON.Texture("textures/table/37_Old table top-AO.jpg", scene);
 
   pbr.reflectanceTexture = new BABYLON.Texture("textures/table/37_Old table top_SPEC.jpg", scene);
-  pbr.environmentIntensity = 0.5
+  pbr.environmentIntensity = 0.5;
   ground.material = pbr;
 
   const groundShape = new BABYLON.PhysicsShapeCylinder(
@@ -151,15 +148,15 @@ function preparePipeline(scene, camera) {
   scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/environment.dds", scene);
   //BABYLON.CubeTexture
   //scene.environmentTexture =BABYLON.CubeTexture.CreateFromPrefilteredData("https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg", scene)
-//   scene.environmentTexture = new BABYLON.PhotoDome(
-//     "testdome",
-//     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
-//     {
-//         resolution: 32,
-//         size: 1000
-//     },
-//     scene
-// );
+  //   scene.environmentTexture = new BABYLON.PhotoDome(
+  //     "testdome",
+  //     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
+  //     {
+  //         resolution: 32,
+  //         size: 1000
+  //     },
+  //     scene
+  // );
   // Skybox
   var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
   var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
@@ -222,7 +219,7 @@ var createScene = async function () {
   // light.intensity = 0.7;
 
   var dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0.2, -1, 0.3));
-  dirLight.position = new BABYLON.Vector3(0,12,0);
+  dirLight.position = new BABYLON.Vector3(0, 12, 0);
   dirLight.autoUpdateExtends = false;
   dirLight.autoCalcShadowZBounds = false;
   //dirLight.shadowFrustumSize = 1;
@@ -233,10 +230,10 @@ var createScene = async function () {
   dirLight.shadowMinZ = 0;
   dirLight.shadowMaxZ = 15;
 
-//   //orthoRight / orthoTop / orthoBottom
-//   dirLight.customProjectionMatrixBuilder = function(viewMatrix, renderList) {
-//     return BABYLON.Matrix.PerspectiveFovLH(Math.PI*0.25, 1.0, camera.minZ, 1.0);
-// }
+  //   //orthoRight / orthoTop / orthoBottom
+  //   dirLight.customProjectionMatrixBuilder = function(viewMatrix, renderList) {
+  //     return BABYLON.Matrix.PerspectiveFovLH(Math.PI*0.25, 1.0, camera.minZ, 1.0);
+  // }
   dirLight.intensity = 2;
   shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
   shadowGen.bias = 0.001;
@@ -357,9 +354,9 @@ var createScene = async function () {
             break;
         }
         var consumed = false;
-        if (pickedObject) consumed=pickedObject.onKeyDown(kbInfo.event.key);
+        if (pickedObject) consumed = pickedObject.onKeyDown(kbInfo.event.key);
         else if (SelectionHandler.hoveredObject) consumed = SelectionHandler.hoveredObject.onKeyDown(kbInfo.event.key);
-        if(consumed) {
+        if (consumed) {
           camera.inputs.attached.keyboard.detachControl();
         }
         break;
@@ -381,9 +378,9 @@ var createScene = async function () {
             break;
         }
         var consumed = false;
-        if (pickedObject) consumed=pickedObject.onKeyUp(kbInfo.event.key);
+        if (pickedObject) consumed = pickedObject.onKeyUp(kbInfo.event.key);
         else if (SelectionHandler.hoveredObject) consumed = SelectionHandler.hoveredObject.onKeyUp(kbInfo.event.key);
-        if(consumed) {
+        if (consumed) {
           camera.inputs.attached.keyboard.detachControl();
         }
         break;
@@ -514,6 +511,7 @@ var createScene = async function () {
     }
   }
 
+  scene.pointerDownPredicate = (m) => PlateauObject.GetTopMost(m) != null;
   scene.onPointerObservable.add((pointerInfo) => {
     if (gestureOn || gestureHandler.touches.size > 1) return;
     switch (pointerInfo.type) {
@@ -717,7 +715,6 @@ var createScene = async function () {
   // var french_deck_atlas = new CardAtlas();
   // var deck = Deck.BuildFromCardsAtlas("Test Deck", french_deck_atlas, new BABYLON.Vector3(1, 0.4, 0));
 
-
   // var text = new TextObject("Testing Text area");
   // text.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(90),0,0)
   // text.node.position.y += 0.01;
@@ -767,13 +764,12 @@ var createScene = async function () {
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
   //var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
-
+  //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
-  
 
   Pointer.load();
 

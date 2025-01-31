@@ -41,6 +41,11 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] 3D Buttons
   - [ ] Screen display option
 
+## Backend
+
+- [ ] Url caching
+- [ ] File save/write
+
 ## TTS Import
 
 - [ ] Custom Tables
@@ -77,9 +82,9 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Grid
 - [ ] Decals?
 - [ ] Vector Lines?
-- [ ] HandTrigger / ScriptingTrigger
+- [x] HandTrigger / ScriptingTrigger
 - [ ] Sky environment maps
-- [ ] Player Pawn
+- [x] Player Pawn
 - [x] Custom PDF
 - [ ] Figurine / Figurine_Custom
 - [ ] Notecard
