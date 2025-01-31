@@ -15,7 +15,7 @@ class TTSImporter {
   static IMPORT_SCALE = (2.54 * 14) / 20; // TODO: parametrizable scaler
   static UNIT_MULTIPLIER = TTSImporter.UNIT_CONVERTER * TTSImporter.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
-  static POS_OFFSET = new BABYLON.Vector3(0.0, 0*-0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
+  static POS_OFFSET = new BABYLON.Vector3(0.0, -0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
   static textures = new Map();
   static meshes = new Map();
 
@@ -193,7 +193,12 @@ class TTSImporter {
 
     for (var po of objects) {
       po.startAnimationMode(); // Block physics while loading
+      TTSImporter.genericImports(po, o);
+    }
+    return objects;
+  }
 
+  static genericImports(po, o) {
       // Common variables
       po.description = o.Description;
       po.locked = o.Locked ? o.Locked : false;
@@ -203,8 +208,6 @@ class TTSImporter {
           var dz = TTSImporter.importSnapPoint(sp, po.node, o);
         }
       }
-    }
-    return objects;
   }
 
   static _tts_transform_to_node(tr, node = null) {
@@ -525,7 +528,7 @@ class TTSImporter {
     }
   }
 
-  static async importCard(o) {
+  static async importCard(o, force_tr = null) {
     if (o.CustomDeck)
       await TTSImporter.importCustomDecks(o.CustomDeck);
 
@@ -540,16 +543,17 @@ class TTSImporter {
     // tr.pos.y = 0.001;
     var h = 7.7;
     var w = h * wPix/hPix;
-    w *= tr.scale.x / 2.54;
-    h *= tr.scale.z / 2.54;
+    var scale = force_tr ? force_tr.scale : tr.scale
+    w *= scale.x / 2.54;
+    h *=  scale.z / 2.54;
 
-    var thickness = 0.024 * tr.scale.y / 2.54;
-    var cornerRadius = 0.35 * tr.scale.x / 2.54;
+    var thickness = 0.024 * scale.y / 2.54;
+    var cornerRadius = 0.35 * scale.x / 2.54;
 
     var num = parseInt(String(o.CardID).replace(deckName, ""));
-    var c = new Card(tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
+    var c = new Card(force_tr ? force_tr.pos : tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
     //console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
-    c.node.rotationQuaternion = tr.rot;
+    c.node.rotationQuaternion = force_tr ? force_tr.rot: tr.rot;
     c.node.id = c.node.name = "("+o.CardID+")"+o.Nickname;
 
     // To keep ref
@@ -562,15 +566,19 @@ class TTSImporter {
     if (o.CustomDeck)
       await TTSImporter.importCustomDecks(o.CustomDeck);
     
+    var tr = this._tts_transform_to_node(o.Transform);
+    
     var cards = [];
     if (o.ContainedObjects)
       for (var oc of o.ContainedObjects) {
-        var c = await TTSImporter.importObject(oc);
-        cards.push(c[0]);
+        var c = await TTSImporter.importCard(oc, tr);
+        c.startAnimationMode(); // Block physics while loading
+        TTSImporter.genericImports(c, oc);
+        cards.push(c);
       }
 
     var name = o.Nickname;
-    var tr = this._tts_transform_to_node(o);
+
     var deck = Deck.BuildFromCards(name, cards, tr.pos);
     deck.startAnimationMode();
     deck.position = tr.pos;
