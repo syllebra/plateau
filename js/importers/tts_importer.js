@@ -15,7 +15,7 @@ class TTSImporter {
   static IMPORT_SCALE = (2.54 * 14) / 20; // TODO: parametrizable scaler
   static UNIT_MULTIPLIER = TTSImporter.UNIT_CONVERTER * TTSImporter.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
-  static POS_OFFSET = new BABYLON.Vector3(0.0, -0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
+  static POS_OFFSET = new BABYLON.Vector3(0.0, 0*-0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
   static textures = new Map();
   static meshes = new Map();
 
@@ -112,13 +112,18 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only  = new Set(["Custom_PDF"]);//, "Custom_Token"]);
-    only = null;
-    if(only && !only.has(o.Name))
-      return null;
+    var only  = new Set(["Deck","Card"]);//,"Card","Deck"]);//, "Custom_Token"]);
+    //only = null;
+    if(only) {
+      var isIncluded = false;
+      for(var included of only) {
+        if(o.Name.includes(included)) {isIncluded = true; break;}
+      }
+      if(!isIncluded) return null;
+    }
 
     function handleError(err, o) {
-      console.warn("Error while importing", o.Name, o.Nickname, o.GUID, err);
+      console.warn("Error while importing", o.Name, o.Nickname, o.GUID, err, o);
     }
     switch (o.Name) {
       case "Custom_Model":
@@ -154,21 +159,21 @@ class TTSImporter {
       case "Card":
         plateauObj = await TTSImporter.importCard(o).catch((err) => handleError(err, o));
         break;
+      case "DeckCustom":
       case "Deck":
         plateauObj = await TTSImporter.importDeck(o).catch((err) => handleError(err, o));
         break;
       case "Bag":
-        plateauObj = await TTSImporter.importBag(o).catch((err) => handleError(err, o));
-        break;
+      case "Infinite_Bag":
+      case "Custom_Model_Bag":
       case "Custom_Model_Infinite_Bag":
-        plateauObj = await TTSImporter.importCustomModelInfiniteBag(o).catch((err) => handleError(err, o));
+        plateauObj = await TTSImporter.importBag(o).catch((err) => handleError(err, o));
         break;
       case "3DText":
         plateauObj = await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
       case "PlayerPawn":
-        // await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
-        console.log(o)
+        plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb").catch((err) => handleError(err, o));
         break;
       case "Custom_PDF":
         plateauObj = await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
@@ -345,11 +350,11 @@ class TTSImporter {
         cm = ShapedObject.Hexagon(null, tr.scale.x, thickness, 0.008, 3);
         cm.startAnimationMode();
         break;
-      case 0:
+      case 2:
         cm = ShapedObject.Circle(null, tr.scale.x, thickness, 0.008, 3);
         cm.startAnimationMode();
         break;
-      case 0:
+      case 3:
         // cm = ShapedObject.RoundedSquare(null, tr.scale.x * 2, tr.scale.z * 2, thickness, 0.01, 3, 0.008, 3);
         // cm.startAnimationMode();
         break;
@@ -505,21 +510,27 @@ class TTSImporter {
     return cm;
   }
 
-  static async importCard(o) {
-    var deckName = Object.keys(o.CustomDeck)[0];
-
-    if (!CardAtlas.all.has(deckName)) {
-      var cd = o.CustomDeck ? o.CustomDeck[deckName] : null;
-      if (cd) {
-        if (cd.FaceURL && cd.FaceURL != "") {
-          var nb = cd.NumWidth * cd.NumHeight - 1;
-          
-          var texture = await TTSImporter.importTextureAsync(cd.FaceURL,true);
-          // Back texture is last by default
-          var deckAtlas = new CardAtlas(deckName, texture, cd.NumWidth, cd.NumHeight, nb, nb);
-        }
+  static async importCustomDecks(cds) {
+    for(var id in cds) {
+      var deckName = String(id);
+      if(CardAtlas.all.has(deckName)) continue;
+      var cd = cds[id];
+      if (cd.FaceURL && cd.FaceURL != "") {
+        var nb = cd.NumWidth * cd.NumHeight - 1;
+        
+        var texture = await TTSImporter.importTextureAsync(cd.FaceURL,true);
+        // Back texture is last by default
+        var deckAtlas = new CardAtlas(deckName, texture, cd.NumWidth, cd.NumHeight, nb, nb);
       }
     }
+  }
+
+  static async importCard(o) {
+    if (o.CustomDeck)
+      await TTSImporter.importCustomDecks(o.CustomDeck);
+
+    var deckName = String(o.CardID).substring(0,2);
+
     var atlas = CardAtlas.all.get(deckName);
 
     var wPix = atlas.texture._texture.baseWidth / atlas.cols;
@@ -539,7 +550,7 @@ class TTSImporter {
     var c = new Card(tr.pos, atlas, num, atlas.back, w, h, thickness, cornerRadius);
     //console.log(c.getBoundingInfos().boundingBox.extendSizeWorld.x *20+" x "+ c.getBoundingInfos().boundingBox.extendSizeWorld.z *20+" cm")
     c.node.rotationQuaternion = tr.rot;
-    c.node.id = c.node.name = o.Nickname;
+    c.node.id = c.node.name = "("+o.CardID+")"+o.Nickname;
 
     // To keep ref
     c.CardID = o.CardID;
@@ -548,16 +559,20 @@ class TTSImporter {
   }
 
   static async importDeck(o) {
+    if (o.CustomDeck)
+      await TTSImporter.importCustomDecks(o.CustomDeck);
+    
     var cards = [];
     if (o.ContainedObjects)
       for (var oc of o.ContainedObjects) {
-        var c = await TTSImporter.importCard(oc);
-        cards.push(c);
+        var c = await TTSImporter.importObject(oc);
+        cards.push(c[0]);
       }
 
     var name = o.Nickname;
     var tr = this._tts_transform_to_node(o);
     var deck = Deck.BuildFromCards(name, cards, tr.pos);
+    deck.startAnimationMode();
     deck.position = tr.pos;
     deck.rotationQuaternion = tr.rot;
     deck.updateZones();
@@ -567,16 +582,43 @@ class TTSImporter {
     return deck;
   }
 
-  static async importBag(o, mesh = null, collider = null) {
+  static async importBag(o) {
+    console.log(o);
+    var name = o.Nickname;
+
+    var mesh = null;
+    var collider = null;
+
+    if(o.CustomMesh) {
+      var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
+      if (cmr.mesh) {
+        mesh = cmr.mesh.clone();
+        TTSImporter._tts_transform_to_node(o.Transform, mesh);
+
+        const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
+        pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+        pbr.metallic = 0;
+        pbr.roughness = 0.5;
+        if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
+        mesh.material = pbr;
+        // var collider = cmr.colliderMesh?.clone();
+        // if (collider) {
+        // TTSImporter._tts_transform_to_node(o.Transform, collider);
+        // }
+      }
+    }
+
     var name = o.Nickname;
     var bag = new Bag(mesh, collider);
-    bag.node.id = bag.node.name = name;
+    bag.startAnimationMode();
+
     var tr = this._tts_transform_to_node(o.Transform);
     if (o.ColorDiffuse) {
       var mat = bag.node.material.clone(name + "_Material");
       mat.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b);
       bag.node.material = mat;
     }
+
     bag.node.position = tr.pos;
     bag.node.rotationQuaternion = tr.rot;
 
@@ -596,51 +638,11 @@ class TTSImporter {
         }
     }
 
+    bag.infinite = o.Name.includes("Infinite");
+
+    bag.node.id = bag.node.name = o.Nickname;
     bag.uuid = o.GUID;
-    return [bag];
-    // var cards = [];
-    // if (o.ContainedObjects)
-    //   for (var oc of o.ContainedObjects) {
-    //     var c = await TTSImporter.importCard(oc);
-    //     cards.push(c);
-    //   }
-
-    // var name = o.GUID + "_" + o.Nickname;
-    // var tr = this._tts_transform_to_node(o);
-    // var deck = Deck.BuildFromCards(name, cards, tr.pos);
-    // deck.position = tr.pos;
-    // deck.rotationQuaternion = tr.rot;
-    // deck.updateZones();
-    // //cards.push(deck);return cards;
-    // return deck;
-  }
-
-  static async importCustomModelInfiniteBag(o) {
-    var cmr = await TTSImporter.importCustomMeshResources(o.CustomMesh);
-    if (cmr.mesh) {
-      var name = o.Nickname;
-
-      var mesh = cmr.mesh.clone();
-      TTSImporter._tts_transform_to_node(o.Transform, mesh);
-
-      const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
-      pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
-      pbr.metallic = 0;
-      pbr.roughness = 0.5;
-      if (cmr.diffuse) pbr.albedoTexture = cmr.diffuse;
-      mesh.material = pbr;
-
-      var meshCol = null;
-      // var meshCol = cmr.colliderMesh?.clone();
-      // if (meshCol) {
-      // TTSImporter._tts_transform_to_node(o.Transform, meshCol);
-      // }
-      var bag = await this.importBag(o, mesh, meshCol);
-      bag[0].startAnimationMode();
-      bag[0].infinite = true;
-      return bag;
-    }
-    return null;
+    return bag;
   }
 
   static importTexture(url, flip = false, onLoadCallback = null, onErrorCallback = null) {
@@ -675,13 +677,41 @@ class TTSImporter {
   }
 
   static async importMesh(url) {
+    // Specific pastebin fix
+    if(url.includes("pastebin.com") && !url.includes("/raw"))
+      url = url.replace("pastebin.com","pastebin.com/raw");
+    
+
     if (TTSImporter.meshes.has(url)) return TTSImporter.meshes.get(url);
     BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
     var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
     if (!tst) return null;
 
+    // var resp = await fetch(url);
+    // var data = await resp.text();
+    // //console.log(data);
+
+    // var loader = new OBJLoader();
+    // var meshNames = [];
+    // var meshes = [];
+    // await loader.importMesh(meshNames, scene, data, null, meshes, null, null)
+    // console.log(meshNames)
+    // console.log(meshes)
+
     TTSImporter.meshes.set(url, tst.meshes[0]);
     return TTSImporter.meshes.get(url);
+  }
+
+  static async importMeshedObject(o, url) {
+    var tr = this._tts_transform_to_node(o.Transform);
+    var po = await MeshObjectUtils.Create(url);
+    po.node.material = po.node.material.clone();
+    po.node.material.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    po.node.position = tr.pos;
+    po.node.rotationQuaternion = tr.rot;
+    po.node.id = po.node.name = o.Nickname;
+    po.uuid = o.GUID;
+    return po;
   }
 
   static async import3DText(o) {
@@ -692,7 +722,7 @@ class TTSImporter {
     text.node.rotationQuaternion = tr.rot;
     text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleZ, o.Transform.scaleZ);
     text.uuid = o.GUID;
-    text.node.name = o.NickName;
+    text.node.name = o.Nickname;
 
     return null;
   }

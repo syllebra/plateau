@@ -149,7 +149,17 @@ function preparePipeline(scene, camera) {
   // })
 
   scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/environment.dds", scene);
-
+  //BABYLON.CubeTexture
+  //scene.environmentTexture =BABYLON.CubeTexture.CreateFromPrefilteredData("https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg", scene)
+//   scene.environmentTexture = new BABYLON.PhotoDome(
+//     "testdome",
+//     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
+//     {
+//         resolution: 32,
+//         size: 1000
+//     },
+//     scene
+// );
   // Skybox
   var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
   var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
@@ -758,8 +768,9 @@ var createScene = async function () {
 
   //var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
 
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
   

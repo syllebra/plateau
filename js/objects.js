@@ -432,3 +432,30 @@ class PlateauObject {
     SelectionHandler.updateHover(hoveredpo, new BABYLON.Color3(0.4, 0.8, 0.1));
   }
 }
+
+
+class MeshObjectUtils {
+  static library = new Map();
+  
+  static async loadCached (meshURL, clone = true) {
+    if(this.library.has(meshURL)) {
+      var mesh = this.library.get(meshURL);
+      return clone ? mesh.clone() : mesh;
+    }
+    var container = await BABYLON.loadAssetContainerAsync(meshURL, scene);
+    var mesh = container.meshes[1];
+    console.log(container);
+    this.library.set(meshURL, mesh);
+    mesh.setEnabled(false); // Hide for library
+    if(clone)
+      mesh = mesh.clone();    
+    return clone ? mesh.clone() : mesh;
+  }
+
+  static async Create(meshURL, scale = BABYLON.Vector3.One(), clone = true) {
+    var mesh = await this.loadCached(meshURL);
+    mesh.setEnabled(true);
+    mesh.scaling.copyFrom(scale);
+    return new PlateauObject(mesh, null, { friction: 0.6, restitution: 0.3 }, null, 1);
+  }
+}

@@ -126,6 +126,10 @@ class Deck extends PlateauObject {
     this.canReceive = false;
   }
 
+  get fullTitle() {
+    return super.fullTitle + " - "+this.cards.length;
+  }
+
   clone() {
     var ret = super.clone();
     ret.topDropZone = this.topDropZone.clone(ret);
