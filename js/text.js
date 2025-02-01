@@ -1,28 +1,52 @@
 class TextObject {
   texture = null;
   node = null;
-  constructor(text, bold = false, font_size = 48, fontName = "Arial", color="#FFFFFF", flipY = false) {
-    //Set font
-    // var font_size = 48;
-    // var font = "bold " + font_size + "px Arial";
-    var font = (bold ? "bold " : "") + font_size + "px " + fontName;
-     
-    //Set height for plane
-    var planeHeight = 0.3;
+  constructor(text, options = {}) {
+    var opts = {
+      bold: false,
+      fontSize: 48,
+      fontName: "Arial",
+      color: "#FFFFFF",
+      flipY: false,
+      lineSpacing: 1.2,
+      //lineHeight: 0.1,
+    };
+    Object.assign(opts, options);
+
+    if (!opts.hasOwnProperty("lineHeight")) opts.lineHeight = opts.fontSize * 0.005;
+    console.log(opts);
+    var font = (opts.bold ? "bold " : "") + opts.fontSize + "px " + opts.fontName;
 
     //Set height for dynamic texture
-    var DTHeight = 1.5 * font_size; //or set as wished
+    var lineHeight = opts.lineSpacing * opts.fontSize; //or set as wished
 
-    //Calcultae ratio
-    var ratio = planeHeight / DTHeight;
+    var lines = text.split("\n");
+    var numLines = lines.length;
 
-    //Use a temporay dynamic texture to calculate the length of the text on the dynamic texture canvas
+    var DTHeight = lineHeight * numLines;
+
+    //Use a temporary dynamic texture to calculate the length of the text on the dynamic texture canvas
     var temp = new BABYLON.DynamicTexture("DynamicTexture", 64, scene);
     var tmpctx = temp.getContext();
     tmpctx.font = font;
-    var DTWidth = tmpctx.measureText(text).width + 8;
+    var maxWidth = 0;
+    var last_y_offset = 0;
+    for (var l of lines) {
+      var measure = tmpctx.measureText(l);
+      console.log(measure);
+      last_y_offset += measure.fontBoundingBoxDescent;
+      maxWidth = Math.max(measure.width + 8, maxWidth);
+    }
+
+    //DTHeight = totalHeight;
+
+    var DTWidth = maxWidth;
+    DTHeight += last_y_offset;
 
     //Calculate width the plane has to be
+    //Set height for plane
+    var planeHeight = (opts.lineHeight * DTHeight) / lineHeight;
+    var ratio = planeHeight / DTHeight;
     var planeWidth = DTWidth * ratio;
 
     //Create dynamic texture and write the text
@@ -35,7 +59,12 @@ class TextObject {
     dynamicTexture.hasAlpha = true;
     var mat = new BABYLON.StandardMaterial("mat", scene);
     mat.diffuseTexture = dynamicTexture;
-    dynamicTexture.drawText(text, null, null, font, color, "transparent", flipY);
+
+    var y = lineHeight;
+    for (var l of lines) {
+      dynamicTexture.drawText(l, 2, y + 2, font, opts.color, "transparent", opts.flipY);
+      y += lineHeight;
+    }
 
     //Create plane and set dynamic texture as material
     var plane = BABYLON.MeshBuilder.CreatePlane("plane", { width: planeWidth, height: planeHeight }, scene);

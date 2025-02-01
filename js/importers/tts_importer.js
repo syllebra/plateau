@@ -112,7 +112,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only = new Set(["Note", "Trigger"]); //,"Card","Deck"]);//, "Custom_Token"]);
+    var only = new Set(["Note", "Text"]); //,"Card","Deck"]);//, "Custom_Token"]);
     //only = null;
     if (only) {
       var isIncluded = false;
@@ -185,7 +185,6 @@ class TTSImporter {
         break;
       case "HandTrigger":
       case "ScriptingTrigger":
-        console.log(o);
         var tr = TTSImporter._tts_transform_to_node(o.Transform);
         plateauObj = new Zone(
           tr.pos,
@@ -193,7 +192,9 @@ class TTSImporter {
           tr.scale,
           new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
         );
-
+        break;
+      case "Notecard":
+        console.log(o);
         break;
 
       default:
@@ -729,8 +730,17 @@ class TTSImporter {
   }
 
   static async import3DText(o) {
+    console.log(o);
     var colorHex = new BABYLON.Color3(o.Text.colorstate.r, o.Text.colorstate.g, o.Text.colorstate.b).toHexString();
-    var text = new TextObject(o.Text.Text, false, o.Text.fontSize, "Amaranth", colorHex, true);
+    var opts = {
+      fontSize: o.Text.fontSize,
+      fontName: "Amaranth",
+      color: colorHex,
+      flipY: true,
+      //lineHeight: 0.3, // TODO: measure
+    };
+
+    var text = new TextObject(o.Text.Text, opts);
     var tr = this._tts_transform_to_node(o.Transform);
     text.node.position = tr.pos;
     text.node.rotationQuaternion = tr.rot;
