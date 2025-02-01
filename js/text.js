@@ -8,13 +8,13 @@ class TextObject {
       fontName: "Arial",
       color: "#FFFFFF",
       flipY: false,
+      backgroundColor: "transparent",
       lineSpacing: 1.2,
       //lineHeight: 0.1,
     };
     Object.assign(opts, options);
 
     if (!opts.hasOwnProperty("lineHeight")) opts.lineHeight = opts.fontSize * 0.005;
-    console.log(opts);
     var font = (opts.bold ? "bold " : "") + opts.fontSize + "px " + opts.fontName;
 
     //Set height for dynamic texture
@@ -33,7 +33,7 @@ class TextObject {
     var last_y_offset = 0;
     for (var l of lines) {
       var measure = tmpctx.measureText(l);
-      console.log(measure);
+      //console.log(measure);
       last_y_offset += measure.fontBoundingBoxDescent;
       maxWidth = Math.max(measure.width + 8, maxWidth);
     }
@@ -56,13 +56,13 @@ class TextObject {
       scene,
       false
     );
-    dynamicTexture.hasAlpha = true;
+    dynamicTexture.hasAlpha = opts.backgroundColor == "transparent";
     var mat = new BABYLON.StandardMaterial("mat", scene);
     mat.diffuseTexture = dynamicTexture;
 
     var y = lineHeight;
     for (var l of lines) {
-      dynamicTexture.drawText(l, 2, y + 2, font, opts.color, "transparent", opts.flipY);
+      dynamicTexture.drawText(l, 2, y + 2, font, opts.color, opts.backgroundColor, opts.flipY);
       y += lineHeight;
     }
 

@@ -764,10 +764,17 @@ var createScene = async function () {
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
   //var pdfobj = new PdfObject("https://steamusercontent-a.akamaihd.net/ugc/1481073489969110801/D4F2A221E4F891CA741DEAF96DA774CCDFF53A78/");
+
+  var txt = "ICI.\nJ'aime les fruits\n\n... AU SIROP!!!";
+  var txtObj = new TextObject(txt, { fontName: "Amaranth", color: BABYLON.Color3.Red().toHexString(), fontSize: 40 });
+  txtObj.node.showBoundingBox = true;
+  txtObj.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(90), 0, 0);
+  txtObj.node.position.y += 0.01;
+
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
 

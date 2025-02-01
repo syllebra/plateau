@@ -88,6 +88,8 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Custom PDF
 - [ ] Figurine / Figurine_Custom
 - [ ] Notecard
+- [ ] Notebook ?
+- [ ] Rules ?
 
 # Todo
 

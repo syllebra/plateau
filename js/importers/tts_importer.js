@@ -175,6 +175,9 @@ class TTSImporter {
       case "3DText":
         plateauObj = await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
         break;
+      case "Notecard":
+        plateauObj = await TTSImporter.importNoteCard(o).catch((err) => handleError(err, o));
+        break;
       case "PlayerPawn":
         plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb").catch((err) =>
           handleError(err, o)
@@ -192,9 +195,6 @@ class TTSImporter {
           tr.scale,
           new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
         );
-        break;
-      case "Notecard":
-        console.log(o);
         break;
 
       default:
@@ -730,7 +730,6 @@ class TTSImporter {
   }
 
   static async import3DText(o) {
-    console.log(o);
     var colorHex = new BABYLON.Color3(o.Text.colorstate.r, o.Text.colorstate.g, o.Text.colorstate.b).toHexString();
     var opts = {
       fontSize: o.Text.fontSize,
@@ -748,7 +747,30 @@ class TTSImporter {
     text.uuid = o.GUID;
     text.node.name = o.Nickname;
 
-    return null;
+    return text;
+  }
+
+  static async importNoteCard(o) {
+    console.log(o);
+    //var colorHex = "#000000"; //new BABYLON.Color3(o.Text.colorstate.r, o.Text.colorstate.g, o.Text.colorstate.b).toHexString();
+    var opts = {
+      fontSize: 32,
+      fontName: "Amaranth",
+      //color: "#ffffff",
+      //backgroundColor: "#ffffff",
+      flipY: true,
+      //lineHeight: 0.3, // TODO: measure
+    };
+
+    var text = new TextObject((o.NickName ? o.Nickname : "NOTE") + "\n\n" + o.Description, opts);
+    var tr = this._tts_transform_to_node(o.Transform);
+    text.node.position = tr.pos;
+    text.node.rotationQuaternion = tr.rot;
+    text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleZ, o.Transform.scaleZ);
+    text.uuid = o.GUID;
+    text.node.name = o.Nickname;
+
+    return text;
   }
 
   static async getPDFPageSizeAsync(url, pageNum) {
