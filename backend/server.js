@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 const app = express();
 const PORT = 3000;
@@ -19,9 +20,20 @@ if (!fs.existsSync(cacheDir)) {
   fs.mkdirSync(cacheDir, { recursive: true });
 }
 
+// Helper function to generate a unique filename from a URL
+function generateFilenameFromUrl(url, default_ext = ".jpg") {
+  // Create a hash of the URL
+  const hash = crypto.createHash("sha256").update(url).digest("hex");
+  // Extract the file extension from the URL (default to .jpg if not provided)
+  const fileExtension = path.extname(new URL(url).pathname) || default_ext;
+  // Combine the hash and file extension
+  return `${hash}${fileExtension}`;
+}
+
 // Endpoint to handle external resource requests
 app.post("/api/download", async (req, res) => {
-  const { url, category } = req.body;
+  const { url, category, default_ext } = req.body;
+  //console.log(url, category, default_ext);
 
   // Validate input
   if (!url || !category) {
@@ -35,13 +47,19 @@ app.post("/api/download", async (req, res) => {
       fs.mkdirSync(categoryDir, { recursive: true });
     }
 
+    // Generate a unique filename from the URL
+    const fileName = generateFilenameFromUrl(url, default_ext);
+    const filePath = path.join(categoryDir, fileName);
+
+    // Check if the file already exists
+    if (fs.existsSync(filePath)) {
+      // If the file exists, return the local URL without re-downloading
+      const localUrl = `/cache/${category}/${fileName}`;
+      return res.json({ localUrl });
+    }
+
     // Download the resource
     const response = await axios.get(url, { responseType: "arraybuffer" });
-
-    // Determine file extension (default to .jpg if not provided)
-    const fileExtension = path.extname(new URL(url).pathname) || ".jpg";
-    const fileName = `${Date.now()}${fileExtension}`; // Unique filename
-    const filePath = path.join(categoryDir, fileName);
 
     // Save the file locally
     fs.writeFileSync(filePath, response.data);

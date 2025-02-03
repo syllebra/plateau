@@ -1,11 +1,12 @@
 async function loadImage(url) {
   //TODO: cache !!!
+  var cached = await TTSImporter.cachedDownloadURL(url, "images");
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.crossOrigin = "Anonymous";
-    img.src = url;
+    img.src = cached;
   });
 }
 
@@ -305,8 +306,8 @@ class TTSImporter {
 
   static async importCustomMeshResources(o) {
     var cmr = {};
-    if (o.DiffuseURL && o.DiffuseURL != "") cmr.diffuse = TTSImporter.importTexture(o.DiffuseURL);
-    if (o.NormalURL && o.NormalURL != "") cmr.normal = TTSImporter.importTexture(o.NormalURL);
+    if (o.DiffuseURL && o.DiffuseURL != "") cmr.diffuse = await TTSImporter.importTextureAsync(o.DiffuseURL);
+    if (o.NormalURL && o.NormalURL != "") cmr.normal = await TTSImporter.importTextureAsync(o.NormalURL);
 
     if (o.MeshURL && o.MeshURL != "") cmr.mesh = await TTSImporter.importMesh(o.MeshURL);
     if (o.ColliderURL && o.ColliderURL != "") cmr.colliderMesh = await TTSImporter.importMesh(o.ColliderURL);
@@ -315,7 +316,7 @@ class TTSImporter {
 
   static async importCustomDice(o) {
     var texture = null;
-    if (o.CustomImage?.ImageURL) texture = await TTSImporter.importTexture(o.CustomImage.ImageURL, true);
+    if (o.CustomImage?.ImageURL) texture = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, true);
     var name = o.Nickname;
 
     const pbr = new BABYLON.PBRMaterial(name + " Material", scene);
@@ -415,7 +416,7 @@ class TTSImporter {
     var frontTex = null;
     //    var backTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
-      frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
+      frontTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, true);
 
     var name = o.Nickname;
 
@@ -467,27 +468,26 @@ class TTSImporter {
     // var frontTex = null;
     // var backTex = null;
     // if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
-    //   frontTex = TTSImporter.importTexture(o.CustomImage.ImageURL, true);
+    //   frontTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, true);
     // if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
-    //   backTex = TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
+    //   backTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageSecondaryURL, true);
     // var name = o.GUID + "_" + o.Nickname;
   }
 
   static async importCustomFigurine(o) {
-    if(!o.CustomImage) return;
+    if (!o.CustomImage) return;
     var frontTex = null;
     var backTex = null;
     if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
-      frontTex = await TTSImporter.importTexture(o.CustomImage.ImageURL, false);
+      frontTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageURL, false);
     // if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
-    //   backTex = await TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
+    //   backTex = await TTSImporter.importTextureAsync(o.CustomImage.ImageSecondaryURL, true);
 
     var name = o.Nickname;
 
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
 
-
-    var image = await loadImage(o.CustomImage.ImageURL)
+    var image = await loadImage(o.CustomImage.ImageURL);
     var hf = 6;
     var wf = (hf * image.width) / image.height;
     //TODO: BackImage
@@ -501,32 +501,29 @@ class TTSImporter {
     var planeFront = BABYLON.MeshBuilder.CreatePlane("plane", { width: wf, height: hf }, scene);
     planeFront.position.y = hf * 0.5 + 0.06;
 
-    
     standee.sideOrientation = planeFront.sideOrientation;
     var all = BABYLON.Mesh.MergeMeshes([standee, planeFront], true, false, false, true, true);
     all.subMeshes[1].materialIndex = 1;
 
     // TODO: separate colliders.
-    var cm = new PlateauObject(all, null, {friction:0.6, restitution: 0.1}, null, 1);
+    var cm = new PlateauObject(all, null, { friction: 0.6, restitution: 0.1 }, null, 1);
     cm.updateBoundingInfos();
 
     const pbr = new BABYLON.PBRMaterial(name + " Standee Material", scene);
     pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
     pbr.metallic = 0.6;
     pbr.roughness = 0.15;
-    pbr.backFaceCulling  = false;
-    
+    pbr.backFaceCulling = false;
+
     const pbrFront = new BABYLON.PBRMaterial(name + " Front card Material", scene);
     pbrFront.albedoTexture = frontTex;
     pbrFront.metallic = 0;
     pbrFront.roughness = 0.8;
-    pbrFront.backFaceCulling  = false;
-
+    pbrFront.backFaceCulling = false;
 
     all.material = new BABYLON.MultiMaterial(name + " Material", scene);
     all.material.subMaterials.push(pbr);
     all.material.subMaterials.push(pbrFront);
-    
 
     cm.startAnimationMode();
     cm.node.position = tr.pos;
@@ -672,7 +669,6 @@ class TTSImporter {
   }
 
   static async importBag(o) {
-    console.log(o);
     var name = o.Nickname;
 
     var mesh = null;
@@ -751,8 +747,9 @@ class TTSImporter {
 
   static async importTextureAsync(url, flip = false) {
     //TODO: cache !!!
+    var cached = await TTSImporter.cachedDownloadURL(url, "images");
     return new Promise((resolve, reject) => {
-      this.importTexture(url, flip, (tex) => resolve(tex), reject);
+      this.importTexture(cached, flip, (tex) => resolve(tex), reject);
     });
   }
 
@@ -762,7 +759,8 @@ class TTSImporter {
 
     if (TTSImporter.meshes.has(url)) return TTSImporter.meshes.get(url);
     BABYLON.OBJFileLoader.SKIP_MATERIALS = true;
-    var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(url, null, scene, null, ".obj");
+    var cached = await TTSImporter.cachedDownloadURL(url, "models", ".obj");
+    var tst = await BABYLON.SceneLoader.LoadAssetContainerAsync(cached, null, scene, null, ".obj");
     if (!tst) return null;
 
     // var resp = await fetch(url);
@@ -876,7 +874,9 @@ class TTSImporter {
 
     var name = "PDF" + o.Nickname;
 
-    var psize = await TTSImporter.getPDFPageSizeAsync(url, o.CustomPDF.PDFPage + 1);
+    var cached = await TTSImporter.cachedDownloadURL(url, "pdf", ".pdf");
+
+    var psize = await TTSImporter.getPDFPageSizeAsync(cached, o.CustomPDF.PDFPage + 1);
     var tr = TTSImporter._tts_transform_to_node(o.Transform);
     // tr.pos.x *= 0.1;
     // tr.pos.y = 0.001;
@@ -900,5 +900,28 @@ class TTSImporter {
     po.node.id = po.node.name = name;
     po.uuid = o.GUID;
     return po;
+  }
+
+  static async cachedDownloadURL(url, category, default_ext = ".jpg") {
+    // const url = 'https://example.com/image.jpg'; // Replace with your image URL
+    // const category = 'images';
+    try {
+      const response = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, category, default_ext }),
+      });
+      const data = await response.json();
+      //console.log(url, "=> ", data);
+      if (response.ok) {
+        return data.localUrl;
+      } else {
+        console.warn("Unable to cache ", url);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      document.getElementById("result").textContent = "Failed to download image";
+    }
+    return url;
   }
 }

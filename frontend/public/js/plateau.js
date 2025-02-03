@@ -778,7 +778,7 @@ var createScene = async function () {
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/263788054.json"); // CCS
-  //TSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/270492259.json"); // Clue
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/270492259.json"); // Clue
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DD2
 
   Pointer.load();
