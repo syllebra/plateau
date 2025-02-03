@@ -772,8 +772,8 @@ var createScene = async function () {
   // txtObj.node.position.y += 0.01;
 
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED

@@ -33,6 +33,13 @@ BABYLON.HavokPlugin.prototype.setPhysicsBodyEnabled = function (body, setEnabled
   }
 };
 
+function getPageName(url) {
+  var index = url.lastIndexOf("/") + 1;
+  var filenameWithExtension = url.substr(index);
+  var filename = filenameWithExtension.split(".")[0]; // <-- added this line
+  return filename; // <-- added this line
+}
+
 function shuffle(array) {
   let currentIndex = array.length;
 

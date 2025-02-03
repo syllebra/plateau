@@ -32,17 +32,17 @@ function generateFilenameFromUrl(url, default_ext = ".jpg") {
 
 // Endpoint to handle external resource requests
 app.post("/api/download", async (req, res) => {
-  const { url, category, default_ext } = req.body;
-  //console.log(url, category, default_ext);
+  const { url, subdir, category, default_ext } = req.body;
+  //console.log(url,subdir,category, default_ext);
 
   // Validate input
-  if (!url || !category) {
-    return res.status(400).json({ error: "URL and category are required" });
+  if (!url || !subdir || !category) {
+    return res.status(400).json({ error: "URL, subdir and category are required" });
   }
 
   try {
     // Create a subfolder for the category if it doesn't exist
-    const categoryDir = path.join(cacheDir, category);
+    const categoryDir = path.join(cacheDir, subdir, category);
     if (!fs.existsSync(categoryDir)) {
       fs.mkdirSync(categoryDir, { recursive: true });
     }
@@ -54,16 +54,17 @@ app.post("/api/download", async (req, res) => {
     // Check if the file already exists
     if (fs.existsSync(filePath)) {
       // If the file exists, return the local URL without re-downloading
-      const localUrl = `/cache/${category}/${fileName}`;
+      const localUrl = `/cache/${subdir}/${category}/${fileName}`;
       return res.json({ localUrl });
     }
 
     // Download the resource
+    console.log("Downloading ", url, "...");
     const response = await axios.get(url, { responseType: "arraybuffer" });
 
     // Save the file locally
     fs.writeFileSync(filePath, response.data);
-
+    console.log("... Done");
     // Return the local URL
     const localUrl = `/cache/${category}/${fileName}`;
     res.json({ localUrl });

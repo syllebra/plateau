@@ -20,11 +20,14 @@ class TTSImporter {
   static textures = new Map();
   static meshes = new Map();
 
+  static cacheSubDir = "";
+
   static importFile(url) {
     var json = null;
     fetch(url)
       .then((response) => response.text())
       .then((data) => {
+        TTSImporter.cacheSubDir = getPageName(url);
         TTSImporter.import(JSON.parse(data));
         //console.log(json);
       })
@@ -906,10 +909,11 @@ class TTSImporter {
     // const url = 'https://example.com/image.jpg'; // Replace with your image URL
     // const category = 'images';
     try {
+      var subdir = TTSImporter.cacheSubDir;
       const response = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, category, default_ext }),
+        body: JSON.stringify({ url, subdir, category, default_ext }),
       });
       const data = await response.json();
       //console.log(url, "=> ", data);

@@ -43,7 +43,10 @@ A virtual tabletop (VTT) playground based on Babylon.js
 
 ## Backend
 
-- [ ] Url caching
+- [x] Url caching
+  - [x] Images
+  - [x] Models
+  - [x] PDFs
 - [ ] File save/write
 
 ## TTS Import
