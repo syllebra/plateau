@@ -511,7 +511,7 @@ var createScene = async function () {
     }
   }
 
-  scene.pointerDownPredicate = (m) => PlateauObject.GetTopMost(m) != null;
+  scene.pointerDownPredicate = (m) => m == ground || PlateauObject.GetTopMost(m) != null;
   scene.onPointerObservable.add((pointerInfo) => {
     if (gestureOn || gestureHandler.touches.size > 1) return;
     switch (pointerInfo.type) {
@@ -773,14 +773,13 @@ var createScene = async function () {
 
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
+  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
   //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/263788054.json"); // CCS
   //TSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/270492259.json"); // Clue
-  
-  
+  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DD2
 
   Pointer.load();
 
