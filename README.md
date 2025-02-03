@@ -86,8 +86,10 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Sky environment maps
 - [x] Player Pawn
 - [x] Custom PDF
-- [ ] Figurine / Figurine_Custom
-- [ ] Notecard
+- [ ] Figurine
+- [x] Figurine_Custom
+  - [ ] Different Back Image
+- [x] Notecard (Basic)
 - [ ] Notebook ?
 - [ ] Rules ?
 

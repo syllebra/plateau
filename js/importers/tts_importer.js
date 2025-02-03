@@ -112,8 +112,8 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only = new Set(["Note", "Text"]); //,"Card","Deck"]);//, "Custom_Token"]);
-    //only = null;
+    var only = new Set(["Note", "Figurine"]); //,"Card","Deck"]);//, "Custom_Token"]);
+    only = null;
     if (only) {
       var isIncluded = false;
       for (var included of only) {
@@ -196,7 +196,9 @@ class TTSImporter {
           new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
         );
         break;
-
+      case "Figurine_Custom":
+        plateauObj = await TTSImporter.importCustomFigurine(o).catch((err) => handleError(err, o));
+        break;
       default:
         console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
         break;
@@ -471,6 +473,71 @@ class TTSImporter {
     // var name = o.GUID + "_" + o.Nickname;
   }
 
+  static async importCustomFigurine(o) {
+    if(!o.CustomImage) return;
+    var frontTex = null;
+    var backTex = null;
+    if (o.CustomImage?.ImageURL && o.CustomImage.ImageURL != "")
+      frontTex = await TTSImporter.importTexture(o.CustomImage.ImageURL, false);
+    // if (o.CustomImage?.ImageSecondaryURL && o.CustomImage.ImageSecondaryURL != "")
+    //   backTex = await TTSImporter.importTexture(o.CustomImage.ImageSecondaryURL, true);
+
+    var name = o.Nickname;
+
+    var tr = TTSImporter._tts_transform_to_node(o.Transform);
+
+
+    var image = await loadImage(o.CustomImage.ImageURL)
+    var hf = 6;
+    var wf = (hf * image.width) / image.height;
+    //TODO: BackImage
+
+    // //TODO: card scale
+    wf *= tr.scale.x / 2.54;
+    hf *= tr.scale.z / 2.54;
+
+    var standee = await MeshObjectUtils.loadCached("models/standee_01.glb", true);
+    console.log(standee.material);
+    var planeFront = BABYLON.MeshBuilder.CreatePlane("plane", { width: wf, height: hf }, scene);
+    planeFront.position.y = hf * 0.5 + 0.06;
+
+    
+    standee.sideOrientation = planeFront.sideOrientation;
+    var all = BABYLON.Mesh.MergeMeshes([standee, planeFront], true, false, false, true, true);
+    all.subMeshes[1].materialIndex = 1;
+
+    // TODO: separate colliders.
+    var cm = new PlateauObject(all, null, {friction:0.6, restitution: 0.1}, null, 1);
+    cm.updateBoundingInfos();
+
+    const pbr = new BABYLON.PBRMaterial(name + " Standee Material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0.6;
+    pbr.roughness = 0.15;
+    pbr.backFaceCulling  = false;
+    
+    const pbrFront = new BABYLON.PBRMaterial(name + " Front card Material", scene);
+    pbrFront.albedoTexture = frontTex;
+    pbrFront.metallic = 0;
+    pbrFront.roughness = 0.8;
+    pbrFront.backFaceCulling  = false;
+
+
+    all.material = new BABYLON.MultiMaterial(name + " Material", scene);
+    all.material.subMaterials.push(pbr);
+    all.material.subMaterials.push(pbrFront);
+    
+
+    cm.startAnimationMode();
+    cm.node.position = tr.pos;
+    cm.node.rotationQuaternion = tr.rot;
+    //cm.node.scaling = tr.scale;
+
+    cm.node.id = cm.node.name = name;
+    cm.uuid = o.GUID;
+    return cm;
+  }
+
   static async importSimpleStack(o, f) {
     // Simple stack implementation
     var number = o.Number;
@@ -743,7 +810,7 @@ class TTSImporter {
     var tr = this._tts_transform_to_node(o.Transform);
     text.node.position = tr.pos;
     text.node.rotationQuaternion = tr.rot;
-    text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleZ, o.Transform.scaleZ);
+    text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleY, o.Transform.scaleZ);
     text.uuid = o.GUID;
     text.node.name = o.Nickname;
 
@@ -752,25 +819,43 @@ class TTSImporter {
 
   static async importNoteCard(o) {
     console.log(o);
-    //var colorHex = "#000000"; //new BABYLON.Color3(o.Text.colorstate.r, o.Text.colorstate.g, o.Text.colorstate.b).toHexString();
+
+    var tr = this._tts_transform_to_node(o.Transform);
+
+    var h = (10 * tr.scale.x) / 2.54;
+    var w = (17.5 * tr.scale.z) / 2.54;
+    var thickness = (0.2 * tr.scale.y) / 2.54;
+
+    var po = ShapedObject.Square(null, w, h, thickness);
+    po.node.position = tr.pos;
+    po.node.rotationQuaternion = tr.rot.multiply(BABYLON.Quaternion.FromEulerAngles(0, Math.PI, 0));
+
+    var pbr = new BABYLON.PBRMaterial("default_material", scene);
+    pbr.albedoColor = new BABYLON.Color3(o.ColorDiffuse.r * 0.8, o.ColorDiffuse.g * 0.8, o.ColorDiffuse.b * 0.8);
+    pbr.metallic = 0.0;
+    pbr.roughness = 1.0;
+
+    var colorHex = new BABYLON.Color3.Black().toHexString();
+    // TODO: background image
     var opts = {
-      fontSize: 32,
+      fontSize: 64,
       fontName: "Amaranth",
-      //color: "#ffffff",
-      //backgroundColor: "#ffffff",
-      flipY: true,
+      color: colorHex,
+      backgroundColor: "#ffffff",
+      flipY: false,
       //lineHeight: 0.3, // TODO: measure
     };
+    var tx = TextObject.BuildTexture((o.Nickname ? o.Nickname : "NOTE") + "\n" + o.Description, opts);
 
-    var text = new TextObject((o.NickName ? o.Nickname : "NOTE") + "\n\n" + o.Description, opts);
-    var tr = this._tts_transform_to_node(o.Transform);
-    text.node.position = tr.pos;
-    text.node.rotationQuaternion = tr.rot;
-    text.node.scaling = new BABYLON.Vector3(-o.Transform.scaleX, o.Transform.scaleZ, o.Transform.scaleZ);
-    text.uuid = o.GUID;
-    text.node.name = o.Nickname;
+    pbr.albedoTexture = tx.texture;
 
-    return text;
+    po.node.material = pbr;
+    po.node.receiveShadows = true;
+
+    po.uuid = o.GUID;
+    po.node.name = o.Nickname;
+
+    return po;
   }
 
   static async getPDFPageSizeAsync(url, pageNum) {
