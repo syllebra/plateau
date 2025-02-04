@@ -771,15 +771,26 @@ var createScene = async function () {
   // txtObj.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(BABYLON.Tools.ToRadians(90), 0, 0);
   // txtObj.node.position.y += 0.01;
 
+  function loadingFinished() {
+    console.log("LOADING FINISHED...");
+    for (var m of scene.meshes) {
+      var po = PlateauObject.GetTopMost(m);
+      if (!po) continue;
+
+      console.log(po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);
+    }
+  }
+
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
-  TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3303737944.json"); // DSA B
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/2225234101.json"); // GS
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/820420328.json"); // GS+Ex
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DF
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3372818507.json"); // ED
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/263788054.json"); // CCS
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/270492259.json"); // Clue
-  //TTSImporter.importFile("https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/3340958295.json"); // DD2
+  var src = "https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/";
+  //TTSImporter.importFile(src + "3303737944.json", loadingFinished); // DSA B
+  TTSImporter.importFile(src + "2225234101.json", loadingFinished); // GS
+  //TTSImporter.importFile(src + "820420328.json", loadingFinished); // GS+Ex
+  //TTSImporter.importFile(src + "3340958295.json", loadingFinished); // DF
+  //TTSImporter.importFile(src + "3372818507.json", loadingFinished); // ED
+  //TTSImporter.importFile(src + "263788054.json", loadingFinished); // CCS
+  //TTSImporter.importFile(src + "270492259.json", loadingFinished); // Clue
+  //TTSImporter.importFile(src + "3340958295.json", loadingFinished); // DD2
 
   Pointer.load();
 

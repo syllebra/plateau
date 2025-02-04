@@ -22,13 +22,15 @@ class TTSImporter {
 
   static cacheSubDir = "";
 
-  static importFile(url) {
+  static importFile(url, callback) {
     var json = null;
     fetch(url)
       .then((response) => response.text())
       .then((data) => {
         TTSImporter.cacheSubDir = getPageName(url);
-        TTSImporter.import(JSON.parse(data));
+        TTSImporter.import(JSON.parse(data)).then(() => {
+          if (callback) callback();
+        });
         //console.log(json);
       })
       .catch((error) => console.error(error));
@@ -733,7 +735,7 @@ class TTSImporter {
     return bag;
   }
 
-  static importTexture(url, flip = false, onLoadCallback = null, onErrorCallback = null) {
+  static _importTexture(url, flip = false, onLoadCallback = null, onErrorCallback = null) {
     if (!TTSImporter.textures.has(url)) {
       var tex = null;
       tex = new BABYLON.Texture(url, scene, true, !flip, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, onErrorCallback);
@@ -752,7 +754,7 @@ class TTSImporter {
     //TODO: cache !!!
     var cached = await TTSImporter.cachedDownloadURL(url, "images");
     return new Promise((resolve, reject) => {
-      this.importTexture(cached, flip, (tex) => resolve(tex), reject);
+      this._importTexture(cached, flip, (tex) => resolve(tex), reject);
     });
   }
 
