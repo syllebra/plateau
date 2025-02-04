@@ -447,7 +447,6 @@ class MeshObjectUtils {
     }
     var container = await BABYLON.loadAssetContainerAsync(meshURL, scene);
     var mesh = container.meshes[1];
-    console.log(container);
     this.library.set(meshURL, mesh);
     mesh.setEnabled(false); // Hide for library
     if (clone) mesh = mesh.clone();

@@ -22,6 +22,8 @@ class TTSImporter {
 
   static cacheSubDir = "";
 
+  static failedObjects = [];
+
   static importFile(url, callback) {
     var json = null;
     fetch(url)
@@ -36,8 +38,10 @@ class TTSImporter {
       .catch((error) => console.error(error));
   }
   static async import(jsonObj) {
+    TTSImporter.failedObjects = [];
     console.log(jsonObj);
     console.log("LOADING...");
+
     // TTS SnapPoints > Plateau drop zones
     if (jsonObj.SnapPoints)
       for (var sp of jsonObj.SnapPoints) {
@@ -45,6 +49,17 @@ class TTSImporter {
       }
 
     console.log("OBJECTS:", jsonObj.ObjectStates.length);
+
+    // First import decks (which can be inside cards of contained objects)
+    async function _recImportDecks(o) {
+      //console.log(o);
+      if (o.CustomDeck)
+        await TTSImporter.importCustomDecks(o.CustomDeck).catch((err) => console.warn("Error when loading deck ", o));
+      if (o.ContainedObjects) for (var oc of o.ContainedObjects) _recImportDecks(oc);
+    }
+    for (var o of jsonObj.ObjectStates) await _recImportDecks(o);
+
+    console.log("Loaded Deck Atlases:", CardAtlas.all);
 
     const promises = [];
     for (var o of jsonObj.ObjectStates) {
@@ -54,31 +69,43 @@ class TTSImporter {
     }
 
     let progress = 0;
-    promises.forEach((p) =>
-      p
-        .then(() => {
+    promises.forEach(
+      (p) =>
+        p.then(() => {
           progress++;
           p.finished = true;
           console.log("PROGRESS:", (progress / promises.length) * 100 + "%");
-          if (progress > promises.length - 5)
-            for (var prom of promises) if (!prom.finished) console.log(prom.object, " not finished");
+
+          // // Debug for blocking objects
+          // if (progress > promises.length - 20) {
+          //   var tmp = new Set();
+          //   for (var of of TTSImporter.failedObjects) if (!tmp.has(of.GUID)) tmp.add(of.GUID);
+          //   for (var prom of promises)
+          //     if (!prom.finished)
+          //       console.log(prom.object, " not finished" + (tmp.has(prom.object.GUID) ? " - FAILED" : " pending"));
+          //   //console.log("FAILED:", TTSImporter.failedObjects);
+          // }
         })
-        .catch(console.error(p.object))
+      //.catch((reason) => console.error(reason, p.object))
     );
 
-    var results = await Promise.all(promises);
+    var results = await Promise.allSettled(promises);
+
     console.log("LOADING FINISHED !!!");
     console.log(TTSImporter.textures);
     console.log(TTSImporter.meshes);
     console.log(CardAtlas.all);
     var nb = 0;
-    for (var po of results) if (po) nb++;
-    console.log("LOADED Objects:", nb);
+    for (var r of results) if (r.status != "rejected" && r.value) nb++;
+    console.log("LOADED Objects:", nb, "/", jsonObj.ObjectStates.length);
 
     setTimeout(function () {
-      for (var objects of results) {
-        if (objects == null) continue;
-        for (var po of objects) {
+      for (var r of results) {
+        if (r.status == "rejected" || r.value == null) {
+          //console.log("Object non loaded:", )
+          continue;
+        }
+        for (var po of r.value) {
           if (po == null) continue;
 
           if (po.hasOwnProperty("stopAnimationMode")) po.stopAnimationMode();
@@ -146,88 +173,86 @@ class TTSImporter {
       if (!isIncluded) return null;
     }
 
-    function handleError(err, o) {
-      console.warn("Error while importing", o.Name, o.Nickname, o.GUID, err, o);
-      return null;
-    }
-    switch (o.Name) {
-      case "Custom_Model":
-        plateauObj = await TTSImporter.importCustomModel(o).catch((err) => handleError(err, o));
-        break;
-      case "Custom_Dice":
-        plateauObj = await TTSImporter.importCustomDice(o).catch((err) => handleError(err, o));
-        break;
-      case "Custom_Tile":
-        plateauObj = await TTSImporter.importCustomTile(o).catch((err) => handleError(err, o));
-        break;
-      case "Custom_Token":
-        //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
-        //if (o.Transform.posX < -60)
-        plateauObj = await TTSImporter.importCustomToken(o).catch((err) => handleError(err, o));
-        break;
-      case "Custom_Board":
-        plateauObj = await TTSImporter.importCustomBoard(o).catch((err) => handleError(err, o));
-        break;
-      case "backgammon_piece_white":
-        plateauObj = await TTSImporter.importBackgammonPiece(o).catch((err) => handleError(err, o));
-        break;
-      case "Custom_Token_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken).catch((err) =>
-          handleError(err, o)
-        );
-        break;
-      case "Custom_Model_Stack":
-        plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel).catch((err) =>
-          handleError(err, o)
-        );
-        break;
-      case "Card":
-        plateauObj = await TTSImporter.importCard(o).catch((err) => handleError(err, o));
-        break;
-      case "DeckCustom":
-      case "Deck":
-        plateauObj = await TTSImporter.importDeck(o).catch((err) => handleError(err, o));
-        break;
-      case "Bag":
-      case "Infinite_Bag":
-      case "Custom_Model_Bag":
-      case "Custom_Model_Infinite_Bag":
-        plateauObj = await TTSImporter.importBag(o).catch((err) => handleError(err, o));
-        break;
-      case "3DText":
-        plateauObj = await TTSImporter.import3DText(o).catch((err) => handleError(err, o));
-        break;
-      case "Notecard":
-        plateauObj = await TTSImporter.importNoteCard(o).catch((err) => handleError(err, o));
-        break;
-      case "PlayerPawn":
-        plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb").catch((err) =>
-          handleError(err, o)
-        );
-        break;
-      case "Custom_PDF":
-        plateauObj = await TTSImporter.importPDF(o).catch((err) => handleError(err, o));
-        break;
-      case "HandTrigger":
-      case "ScriptingTrigger":
-        var tr = TTSImporter._tts_transform_to_node(o.Transform);
-        plateauObj = new Zone(
-          tr.pos,
-          tr.rot,
-          tr.scale,
-          new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
-        );
-        break;
-      case "Figurine_Custom":
-        plateauObj = await TTSImporter.importCustomFigurine(o).catch((err) => handleError(err, o));
-        break;
-      default:
-        console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
-        break;
+    try {
+      switch (o.Name) {
+        case "Custom_Model":
+          plateauObj = await TTSImporter.importCustomModel(o);
+          break;
+        case "Custom_Dice":
+          plateauObj = await TTSImporter.importCustomDice(o);
+          break;
+        case "Custom_Tile":
+          plateauObj = await TTSImporter.importCustomTile(o);
+          break;
+        case "Custom_Token":
+          //if (o.Nickname.includes("Red") || o.Nickname.includes("Green"))
+          //if (o.Transform.posX < -60)
+          plateauObj = await TTSImporter.importCustomToken(o);
+          break;
+        case "Custom_Board":
+          plateauObj = await TTSImporter.importCustomBoard(o);
+          break;
+        case "backgammon_piece_white":
+          plateauObj = await TTSImporter.importBackgammonPiece(o);
+          break;
+        case "Custom_Token_Stack":
+          plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomToken);
+          break;
+        case "Custom_Model_Stack":
+          plateauObj = await TTSImporter.importSimpleStack(o, TTSImporter.importCustomModel);
+          break;
+        case "CardCustom":
+        case "Card":
+          plateauObj = await TTSImporter.importCard(o);
+          break;
+        case "DeckCustom":
+        case "Deck":
+          plateauObj = await TTSImporter.importDeck(o);
+          break;
+        case "Bag":
+        case "Infinite_Bag":
+        case "Custom_Model_Bag":
+        case "Custom_Model_Infinite_Bag":
+          plateauObj = await TTSImporter.importBag(o);
+          break;
+        case "3DText":
+          plateauObj = await TTSImporter.import3DText(o);
+          break;
+        case "Notecard":
+          plateauObj = await TTSImporter.importNoteCard(o);
+          break;
+        case "PlayerPawn":
+          plateauObj = await TTSImporter.importMeshedObject(o, "models/playerpawn_01.glb");
+          break;
+        case "Custom_PDF":
+          plateauObj = await TTSImporter.importPDF(o);
+          break;
+        case "HandTrigger":
+        case "ScriptingTrigger":
+          var tr = TTSImporter._tts_transform_to_node(o.Transform);
+          plateauObj = new Zone(
+            tr.pos,
+            tr.rot,
+            tr.scale,
+            new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
+          );
+          break;
+        case "Figurine_Custom":
+          plateauObj = await TTSImporter.importCustomFigurine(o);
+          break;
+        default:
+          console.warn(o.GUID + " => " + o.Name + " import is not implemented yet.");
+          break;
+      }
+    } catch (err) {
+      console.warn(err, o.Nickname, " - ", o);
+      TTSImporter.failedObjects.push(o);
+      //return null;
     }
 
     if (!plateauObj) {
-      console.warn(o.Nickname, " - ", o.GUID, "returned null");
+      console.warn(o.Nickname, " - ", o.GUID, "returned null", o);
+      TTSImporter.failedObjects.push(o);
       return null;
     }
 
@@ -627,7 +652,10 @@ class TTSImporter {
       if (cd.FaceURL && cd.FaceURL != "") {
         var nb = cd.NumWidth * cd.NumHeight - 1;
 
-        var texture = await TTSImporter.importTextureAsync(cd.FaceURL, true);
+        var texture = await TTSImporter.importTextureAsync(cd.FaceURL, true).catch((err) =>
+          console.error("Unable to load Deck Texture", o)
+        );
+        if (!texture) console.error("Unable to load Deck Texture", o);
         // Back texture is last by default
         var deckAtlas = new CardAtlas(deckName, texture, cd.NumWidth, cd.NumHeight, nb, nb);
       }
@@ -637,7 +665,7 @@ class TTSImporter {
   static async importCard(o, force_tr = null) {
     if (o.CustomDeck) await TTSImporter.importCustomDecks(o.CustomDeck);
 
-    var deckName = String(o.CardID).substring(0, 2);
+    var deckName = String(o.CardID).substring(0, String(o.CardID).length - 2);
 
     var atlas = CardAtlas.all.get(deckName);
 
@@ -773,21 +801,35 @@ class TTSImporter {
       var tex = null;
       tex = new BABYLON.Texture(url, scene, true, !flip, BABYLON.Texture.TRILINEAR_SAMPLINGMODE, null, onErrorCallback);
       TTSImporter.textures.set(url, tex);
+      tex.onLoadObservable.add(() => {
+        tex.loaded = true;
+      });
       if (onLoadCallback) tex.onLoadObservable.add(() => onLoadCallback(tex));
     } else {
       if (onLoadCallback) {
         var tex = TTSImporter.textures.get(url);
-        tex.onLoadObservable.add(() => onLoadCallback(tex));
+        if (tex.loaded) onLoadCallback(tex);
+        else tex.onLoadObservable.add(() => onLoadCallback(tex));
       }
     }
     return TTSImporter.textures.get(url);
   }
 
   static async importTextureAsync(url, flip = false) {
-    //TODO: cache !!!
-    var cached = await TTSImporter.cachedDownloadURL(url, "images");
+    var cached = await TTSImporter.cachedDownloadURL(url, "images").catch((err) => {
+      console.error("Unable to cache ", url);
+      throw new Error(err);
+    });
     return new Promise((resolve, reject) => {
-      this._importTexture(cached, flip, (tex) => resolve(tex), reject);
+      this._importTexture(
+        cached,
+        flip,
+        (tex) => resolve(tex),
+        (m, e) => {
+          console.error("Unable to load ", url);
+          reject(m);
+        }
+      );
     });
   }
 
@@ -941,26 +983,21 @@ class TTSImporter {
   }
 
   static async cachedDownloadURL(url, category, default_ext = ".jpg") {
-    // const url = 'https://example.com/image.jpg'; // Replace with your image URL
-    // const category = 'images';
-    try {
-      var subdir = TTSImporter.cacheSubDir;
-      const response = await fetch("/api/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, subdir, category, default_ext }),
-      });
-      const data = await response.json();
-      //console.log(url, "=> ", data);
-      if (response.ok) {
-        return data.localUrl;
-      } else {
-        console.warn("Unable to cache ", url);
-        return url;
-      }
-    } catch (error) {
-      console.error("Error:", error);
+    var subdir = TTSImporter.cacheSubDir;
+    const response = await fetch("/api/download", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, subdir, category, default_ext }),
+    }).catch((error) => {
+      throw new Error("Unable to cache ", url, error);
+    });
+    const data = await response.json();
+    //console.log(url, "=> ", data);
+    if (response.ok) {
+      return data.localUrl;
+    } else {
+      //console.warn("Unable to cache ", url);
+      throw new Error("Unable to cache ", url);
     }
-    return url;
   }
 }
