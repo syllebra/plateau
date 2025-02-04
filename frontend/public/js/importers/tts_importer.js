@@ -229,6 +229,7 @@ class TTSImporter {
           break;
         case "HandTrigger":
         case "ScriptingTrigger":
+        case "RandomizeTrigger":
           var tr = TTSImporter._tts_transform_to_node(o.Transform);
           plateauObj = new Zone(
             tr.pos,
