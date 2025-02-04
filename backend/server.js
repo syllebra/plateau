@@ -70,7 +70,7 @@ app.post("/api/download", async (req, res) => {
     res.json({ localUrl });
   } catch (error) {
     console.error("Error downloading resource:", error);
-    res.status(500).json({ error: "Failed to download resource" });
+    return res.status(500).json({ error: "Failed to download resource" });
   }
 });
 

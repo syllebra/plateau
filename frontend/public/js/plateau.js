@@ -773,19 +773,37 @@ var createScene = async function () {
 
   function loadingFinished() {
     console.log("LOADING FINISHED...");
+    var uuids = new Set();
     for (var m of scene.meshes) {
+      if (m.dropZone) continue;
       var po = PlateauObject.GetTopMost(m);
       if (!po) continue;
+      if (!po.uuid || po.uuid == "") {
+        console.warn("Wrong UUID :", po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);
+        continue;
+      }
 
-      console.log(po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);
+      if (uuids.has(po.uuid)) {
+        console.warn(
+          "Duplicate UUID :",
+          po.uuid,
+          " > ",
+          po.node.id,
+          po.fullTitle,
+          po.fullAdditional,
+          po.fullDescription
+        );
+        continue;
+      }
+      uuids.add(po.uuid);
     }
   }
 
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
   var src = "https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/";
   //TTSImporter.importFile(src + "3303737944.json", loadingFinished); // DSA B
-  TTSImporter.importFile(src + "2225234101.json", loadingFinished); // GS
-  //TTSImporter.importFile(src + "820420328.json", loadingFinished); // GS+Ex
+  //TTSImporter.importFile(src + "2225234101.json", loadingFinished); // GS
+  TTSImporter.importFile(src + "820420328.json", loadingFinished); // GS+Ex
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished); // DF
   //TTSImporter.importFile(src + "3372818507.json", loadingFinished); // ED
   //TTSImporter.importFile(src + "263788054.json", loadingFinished); // CCS

@@ -48,8 +48,23 @@ class TTSImporter {
 
     const promises = [];
     for (var o of jsonObj.ObjectStates) {
-      promises.push(TTSImporter.importObject(o));
+      var prom = TTSImporter.importObject(o);
+      prom.object = o;
+      promises.push(prom);
     }
+
+    let progress = 0;
+    promises.forEach((p) =>
+      p
+        .then(() => {
+          progress++;
+          p.finished = true;
+          console.log("PROGRESS:", (progress / promises.length) * 100 + "%");
+          if (progress > promises.length - 5)
+            for (var prom of promises) if (!prom.finished) console.log(prom.object, " not finished");
+        })
+        .catch(console.error(p.object))
+    );
 
     var results = await Promise.all(promises);
     console.log("LOADING FINISHED !!!");
@@ -133,6 +148,7 @@ class TTSImporter {
 
     function handleError(err, o) {
       console.warn("Error while importing", o.Name, o.Nickname, o.GUID, err, o);
+      return null;
     }
     switch (o.Name) {
       case "Custom_Model":
@@ -210,13 +226,17 @@ class TTSImporter {
         break;
     }
 
-    if (!plateauObj) return null;
+    if (!plateauObj) {
+      console.warn(o.Nickname, " - ", o.GUID, "returned null");
+      return null;
+    }
 
     var objects = plateauObj instanceof Array ? plateauObj : [plateauObj];
 
     for (var po of objects) {
       if (po.hasOwnProperty("startAnimationMode")) po.startAnimationMode(); // Block physics while loading
       TTSImporter.genericImports(po, o);
+      //console.log("Created ", po.uuid);
     }
     return objects;
   }
@@ -553,6 +573,7 @@ class TTSImporter {
       var clonedObj = obj.clone();
       clonedObj.node.position.y += dy;
       dy += dec;
+      clonedObj.uuid = o.GUID + "-" + i.pad(4);
       objects.push(clonedObj);
     }
     return objects;
@@ -717,6 +738,8 @@ class TTSImporter {
       for (var oc of o.ContainedObjects) {
         promises.push(TTSImporter.importObject(oc));
       }
+      console.log("Populating bag", o.Nickname, o.GUID, " with ", promises.length, " objects.");
+
       var collection = await Promise.all(promises);
       //console.log(collection);
       for (var coll of collection)
@@ -726,6 +749,16 @@ class TTSImporter {
               bag.addObject(obj);
             }
         }
+      console.log(
+        "Finished populating bag",
+        o.Nickname,
+        o.GUID,
+        " with ",
+        bag.objects.length,
+        "/",
+        promises.length,
+        " objects."
+      );
     }
 
     bag.infinite = o.Name.includes("Infinite");
@@ -923,10 +956,10 @@ class TTSImporter {
         return data.localUrl;
       } else {
         console.warn("Unable to cache ", url);
+        return url;
       }
     } catch (error) {
       console.error("Error:", error);
-      document.getElementById("result").textContent = "Failed to download image";
     }
     return url;
   }
