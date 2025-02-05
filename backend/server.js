@@ -59,8 +59,10 @@ app.post("/api/download", async (req, res) => {
       const localUrl = `/cache/${subdir}/${category}/${fileName}`;
       return res.json({ localUrl });
     }
-    if(no_download)
-      return res.json({"/textures/default.jpg"});
+    if(no_download) {
+      const localUrl = default_ext == ".obj" ? "/models/pyramid.obj" : "/textures/default.jpg";
+      return res.json({ localUrl });
+    }
 
     // Download the resource
     console.log("Downloading ", url, "...");
