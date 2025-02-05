@@ -60,7 +60,7 @@ app.post("/api/download", async (req, res) => {
       return res.json({ localUrl });
     }
     if(no_download)
-      return "/textures/default.jpg";
+      return res.json({"/textures/default.jpg"});
 
     // Download the resource
     console.log("Downloading ", url, "...");
