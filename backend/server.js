@@ -7,6 +7,8 @@ const crypto = require("crypto");
 const app = express();
 const PORT = 3000;
 
+let no_download = true;
+
 // Serve static files from the frontend's "public" directory
 const frontendPublicDir = path.join(__dirname, "..", "frontend", "public");
 app.use(express.static(frontendPublicDir));
@@ -57,6 +59,8 @@ app.post("/api/download", async (req, res) => {
       const localUrl = `/cache/${subdir}/${category}/${fileName}`;
       return res.json({ localUrl });
     }
+    if(no_download)
+      return "/textures/default.jpg";
 
     // Download the resource
     console.log("Downloading ", url, "...");
