@@ -780,7 +780,7 @@ var createScene = async function () {
     var uuids = new Set();
     for (var m of scene.meshes) {
       if (m.dropZone) continue;
-      var po = PlateauObject.GetTopMost(m);
+      var po = m.plateauObj;
       if (!po) continue;
       if (!po.uuid || po.uuid == "") {
         console.warn("Wrong UUID :", po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);

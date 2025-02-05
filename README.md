@@ -26,7 +26,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] System to retrieve fallen objects
 - [ ] Contextual menu
 - [ ] File save/restore system
-- [ ] external http textures
+- [x] external http textures (usings CORS extension on browser or backend)
 - [x] Object dropping onto another events system
 - [ ] Long/Short click system and associated events
 - [ ] Multiple touches interactions
@@ -34,7 +34,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Measure tools
 - [x] 3D pointer while interacting
 - [x] Soft Shadows
-- [ ] Loading Screen
+- [x] Loading Overlay
 - [x] PDF Viewer
   - [x] Keyboard interactions
   - [x] 3D Display

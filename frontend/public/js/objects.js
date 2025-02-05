@@ -80,6 +80,7 @@ class PlateauObject {
     ret.updateBoundingInfos();
 
     ret.uuid = UUID.generate();
+    ret.clonedFrom = this.uuid;
     return ret;
   }
 

@@ -704,13 +704,17 @@ class TTSImporter {
     var tr = this._tts_transform_to_node(o.Transform);
 
     var cards = [];
-    if (o.ContainedObjects)
+    if (o.ContainedObjects) {
       for (var oc of o.ContainedObjects) {
         var c = await TTSImporter.importCard(oc, tr);
         c.startAnimationMode(); // Block physics while loading
         TTSImporter.genericImports(c, oc);
+        //if (!oc.GUID || oc.GUID == "")
+        c.uuid = o.GUID + "-" + cards.length.pad(6);
+        //c.uuid = o.GUID + "-" + oc.CardID;
         cards.push(c);
       }
+    }
 
     var name = o.Nickname;
 
