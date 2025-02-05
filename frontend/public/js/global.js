@@ -104,3 +104,11 @@ Number.prototype.pad = function (size) {
   }
   return s;
 };
+
+// window.addEventListener("unhandledrejection", (event) => {
+//   console.warn(`UNHANDLED PROMISE REJECTION: ${event.reason}`);
+// });
+
+window.onunhandledrejection = (event) => {
+  console.warn(`UNHANDLED PROMISE REJECTION: ${event.reason}`);
+};

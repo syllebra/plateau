@@ -24,8 +24,11 @@ class TTSImporter {
 
   static failedObjects = [];
 
-  static importFile(url, callback) {
+  static progressCallback = null;
+
+  static importFile(url, callback, progressCB) {
     var json = null;
+    TTSImporter.progressCallback = progressCB;
     fetch(url)
       .then((response) => response.text())
       .then((data) => {
@@ -74,8 +77,7 @@ class TTSImporter {
         p.then(() => {
           progress++;
           p.finished = true;
-          console.log("PROGRESS:", (progress / promises.length) * 100 + "%");
-
+          if (TTSImporter.progressCallback) TTSImporter.progressCallback(progress, promises.length);
           // // Debug for blocking objects
           // if (progress > promises.length - 20) {
           //   var tmp = new Set();

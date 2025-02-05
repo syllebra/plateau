@@ -213,14 +213,16 @@ class FrostedTooltip {
     this.card.style.top = `${top}px`;
 
     // Add visible class for animations
-    if(this.appearTimeout <0)
-      this.appearTimeout = setTimeout(() => {this.card.classList.add("visible");}, 1000);
+    if (this.appearTimeout < 0)
+      this.appearTimeout = setTimeout(() => {
+        this.card.classList.add("visible");
+      }, 1000);
   }
 
   hideTooltip() {
     // Remove visible class to trigger disappearance animations
     this.card.classList.remove("visible");
-    if(this.appearTimeout >= 0) {
+    if (this.appearTimeout >= 0) {
       clearTimeout(this.appearTimeout);
       this.appearTimeout = -1;
     }
@@ -246,3 +248,167 @@ g_tooltip = new FrostedTooltip("tooltip-card", document.body, {
   title: "Hello Tooltip!",
   description: "This is a frosted card tooltip with subtle animations for title and description.",
 });
+const LoadingOverlay = {
+  // Configuration options
+  config: {
+    blockable: true, // Whether the overlay is fully blockable
+    debug: false, // Whether to display debug information
+    animationDuration: 2, // Duration of the animation in seconds
+    gradientColors: ["rgba(0, 255, 255, 0.3)", "rgba(28, 28, 28, 0.3)", "rgba(46, 46, 46, 0.3)"], // Gradient colors with increased opacity
+    frostEffect: true, // Whether to apply a frost/transparency effect
+    debugInfo: "Loading...", // Default debug information
+    progress: 0, // Current progress (0 to 100)
+    pulseDuration: 5, // Duration of the transparency pulse animation in seconds
+  },
+
+  // Initialize the overlay
+  init: function (options) {
+    // Merge user options with default config
+    Object.assign(this.config, options);
+
+    // Create the overlay element
+    this.overlay = document.createElement("div");
+    this.overlay.style.position = "fixed";
+    this.overlay.style.top = "0";
+    this.overlay.style.left = "0";
+    this.overlay.style.width = "100%";
+    this.overlay.style.height = "100%";
+    this.overlay.style.display = "flex";
+    this.overlay.style.flexDirection = "column";
+    this.overlay.style.justifyContent = "center";
+    this.overlay.style.alignItems = "center";
+    this.overlay.style.zIndex = "1000";
+    this.overlay.style.background = this._createGradient();
+    this.overlay.style.backdropFilter = this.config.frostEffect ? "blur(10px)" : "none";
+    this.overlay.style.opacity = "0";
+    this.overlay.style.transition = `opacity ${this.config.animationDuration}s ease-in-out`;
+    this.overlay.style.pointerEvents = this.config.blockable ? "auto" : "none";
+    this.overlay.style.overflow = "hidden";
+
+    // Create a container for animated transparency layers
+    this.overlay.innerHTML = `
+            <div class="pulse-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 255, 255, 0.2); animation: pulse-1 ${this.config.pulseDuration}s infinite ease-in-out;"></div>
+            <div class="pulse-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(28, 28, 28, 0.2); animation: pulse-2 ${this.config.pulseDuration}s infinite ease-in-out;"></div>
+            <div class="pulse-layer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(46, 46, 46, 0.2); animation: pulse-3 ${this.config.pulseDuration}s infinite ease-in-out;"></div>
+        `;
+
+    // Create the loading spinner
+    this.spinner = document.createElement("div");
+    this.spinner.style.border = "4px solid rgba(255, 255, 255, 0.3)";
+    this.spinner.style.borderTop = "4px solid #00FFFF";
+    this.spinner.style.borderRadius = "50%";
+    this.spinner.style.width = "50px";
+    this.spinner.style.height = "50px";
+    this.spinner.style.animation = "spin 1s linear infinite";
+    this.spinner.style.zIndex = "1"; // Ensure spinner is above the pulse layers
+
+    // Create the progress indicator
+    this.progressContainer = document.createElement("div");
+    this.progressContainer.style.width = "200px";
+    this.progressContainer.style.height = "10px";
+    this.progressContainer.style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+    this.progressContainer.style.borderRadius = "5px";
+    this.progressContainer.style.marginTop = "20px";
+    this.progressContainer.style.overflow = "hidden";
+    this.progressContainer.style.zIndex = "1"; // Ensure progress bar is above the pulse layers
+
+    this.progressBar = document.createElement("div");
+    this.progressBar.style.width = `${this.config.progress}%`;
+    this.progressBar.style.height = "100%";
+    this.progressBar.style.backgroundColor = "#00FFFF";
+    this.progressBar.style.transition = "width 0.3s ease-in-out";
+
+    this.progressContainer.appendChild(this.progressBar);
+
+    // Create the debug info container
+    this.debugInfo = document.createElement("div");
+    this.debugInfo.style.position = "absolute";
+    this.debugInfo.style.bottom = "20px";
+    this.debugInfo.style.left = "20px";
+    this.debugInfo.style.color = "#00FFFF";
+    this.debugInfo.style.fontFamily = "Arial, sans-serif";
+    this.debugInfo.style.fontSize = "14px";
+    this.debugInfo.style.opacity = "0.8";
+    this.debugInfo.style.zIndex = "1"; // Ensure debug info is above the pulse layers
+    this.debugInfo.textContent = this.config.debugInfo;
+
+    // Append spinner, progress bar, and debug info to the overlay
+    this.overlay.appendChild(this.spinner);
+    this.overlay.appendChild(this.progressContainer);
+    if (this.config.debug) {
+      this.overlay.appendChild(this.debugInfo);
+    }
+
+    // Append the overlay to the body
+    document.body.appendChild(this.overlay);
+
+    // Fade in the overlay
+    setTimeout(() => {
+      this.overlay.style.opacity = "1";
+    }, 10);
+
+    // Add animation keyframes for the spinner and pulse effects
+    this._addKeyframes();
+  },
+
+  // Create the gradient background
+  _createGradient: function () {
+    const gradient = `linear-gradient(135deg, ${this.config.gradientColors.join(", ")})`;
+    return gradient;
+  },
+
+  // Add CSS keyframes for the spinner and pulse animations
+  _addKeyframes: function () {
+    const styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            @keyframes pulse-1 {
+                0% { opacity: 0.2; }
+                50% { opacity: 0.1; }
+                100% { opacity: 0.2; }
+            }
+            @keyframes pulse-2 {
+                0% { opacity: 0.2; }
+                50% { opacity: 0.3; }
+                100% { opacity: 0.2; }
+            }
+            @keyframes pulse-3 {
+                0% { opacity: 0.2; }
+                50% { opacity: 0.4; }
+                100% { opacity: 0.2; }
+            }
+        `;
+    document.head.appendChild(styleSheet);
+  },
+
+  // Update debug information
+  updateDebugInfo: function (info) {
+    if (this.config.debug) {
+      this.debugInfo.textContent = info;
+    }
+  },
+
+  // Update progress
+  updateProgress: function (progress) {
+    this.config.progress = Math.min(Math.max(progress, 0), 100); // Clamp progress between 0 and 100
+    this.progressBar.style.width = `${this.config.progress}%`;
+  },
+
+  // Remove the overlay
+  remove: function () {
+    this.overlay.style.opacity = "0";
+    setTimeout(() => {
+      document.body.removeChild(this.overlay);
+    }, this.config.animationDuration * 1000);
+  },
+
+  // Block or unblock the overlay
+  setBlockable: function (blockable) {
+    this.config.blockable = blockable;
+    this.overlay.style.pointerEvents = blockable ? "auto" : "none";
+  },
+};

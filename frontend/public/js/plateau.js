@@ -772,6 +772,10 @@ var createScene = async function () {
   // txtObj.node.position.y += 0.01;
 
   function loadingFinished() {
+    setTimeout(() => {
+      LoadingOverlay.remove();
+    }, 1000);
+
     console.log("LOADING FINISHED...");
     var uuids = new Set();
     for (var m of scene.meshes) {
@@ -798,17 +802,44 @@ var createScene = async function () {
       uuids.add(po.uuid);
     }
   }
+  // Example usage:
+  LoadingOverlay.init({
+    blockable: true,
+    debug: true,
+    debugInfo: "Loading assets...",
+    gradientColors: ["rgba(0, 255, 255, 0.4)", "rgba(28, 28, 28, 0.4)", "rgba(46, 46, 46, 0.4)"],
+    frostEffect: true,
+    progress: 0,
+    pulseDuration: 5,
+  });
+  function progressCB(progress, total) {
+    LoadingOverlay.updateProgress((progress / total) * 100);
+    LoadingOverlay.updateDebugInfo(`Loading assets... ${progress}/${total}`);
+  }
+  // // Simulate progress updates
+  // let progress = 0;
+  // const interval = setInterval(() => {
+  //   progress += 10;
+  //   LoadingOverlay.updateProgress(progress);
+  //
+  //   if (progress >= 100) {
+  //     clearInterval(interval);
+  //     setTimeout(() => {
+  //       LoadingOverlay.remove();
+  //     }, 1000);
+  //   }
+  // }, 500);
 
   //var zone = new Zone(new BABYLON.Vector3(-1, 0, 0));
   var src = "https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/";
   //TTSImporter.importFile(src + "3303737944.json", loadingFinished); // DSA B
-  //TTSImporter.importFile(src + "2225234101.json", loadingFinished); // GS
-  TTSImporter.importFile(src + "820420328.json", loadingFinished); // GS+Ex
-  //TTSImporter.importFile(src + "3340958295.json", loadingFinished); // DF
-  //TTSImporter.importFile(src + "3372818507.json", loadingFinished); // ED
-  //TTSImporter.importFile(src + "263788054.json", loadingFinished); // CCS
-  //TTSImporter.importFile(src + "270492259.json", loadingFinished); // Clue
-  //TTSImporter.importFile(src + "3340958295.json", loadingFinished); // DD2
+  //TTSImporter.importFile(src + "2225234101.json", loadingFinished, progressCB); // GS
+  TTSImporter.importFile(src + "820420328.json", loadingFinished, progressCB); // GS+Ex
+  //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DF
+  //TTSImporter.importFile(src + "3372818507.json", loadingFinished, progressCB); // ED
+  //TTSImporter.importFile(src + "263788054.json", loadingFinished, progressCB); // CCS
+  //TTSImporter.importFile(src + "270492259.json", loadingFinished, progressCB); // Clue
+  //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
 
   Pointer.load();
 
