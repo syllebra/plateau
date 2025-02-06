@@ -145,19 +145,17 @@ function preparePipeline(scene, camera) {
   //     lensEffect.setAperture(c.radius*0.06);
   // })
 
-  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/environment.dds", scene);
-  //BABYLON.CubeTexture
-  //scene.environmentTexture =BABYLON.CubeTexture.CreateFromPrefilteredData("https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg", scene)
-  //   scene.environmentTexture = new BABYLON.PhotoDome(
-  //     "testdome",
-  //     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
-  //     {
-  //         resolution: 32,
-  //         size: 1000
-  //     },
-  //     scene
-  // );
-  // Skybox
+
+//   scene.environmentTexture = new BABYLON.EquiRectangularCubeTexture(
+//     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
+//     scene, 256,false, false
+// );
+  //scene.environmentTexture = new BABYLON.HDRCubeTexture("textures/envs/little_paris_eiffel_tower_2k.hdr", scene, 1024, true, false, false, true);
+  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/environment.dds", scene);
+  //scene.environmentTexture = new BABYLON.CubeTexture("textures/envs/dummy_cubemap.dds", scene)
+  //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/cubemap_uncompressed_dx10.dds", scene);
+
+  // // Skybox
   var hdrSkybox = BABYLON.Mesh.CreateBox("hdrSkyBox", 1000.0, scene);
   var hdrSkyboxMaterial = new BABYLON.PBRMaterial("skyBox", scene);
   hdrSkyboxMaterial.backFaceCulling = false;
@@ -236,7 +234,7 @@ var createScene = async function () {
   // }
   dirLight.intensity = 2;
   shadowGen = new BABYLON.ShadowGenerator(1024, dirLight);
-  shadowGen.bias = 0.001;
+  shadowGen.bias = 0.015;
   shadowGen.usePercentageCloserFiltering = true;
   //shadowGen.useBlurCloseExponentialShadowMap = true;
   //shadowGen.usePoissonSampling = true;
@@ -663,7 +661,8 @@ var createScene = async function () {
   SelectionHandler.init(scene);
   SelectionHandler.hl.addExcludedMesh(ground);
 
-  SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
+  if(scene.getNodeById("hdrSkyBox"))
+    SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
