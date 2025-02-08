@@ -162,7 +162,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only = new Set(["Note", "Figurine"]); //,"Card","Deck"]);//, "Custom_Token"]);
+    var only = new Set(["Custom_Model", "Figurine"]); //,"Card","Deck"]);//, "Custom_Token"]);
     only = null;
     if (only) {
       var isIncluded = false;
@@ -990,6 +990,10 @@ class TTSImporter {
   }
 
   static async cachedDownloadURL(url, category, default_ext = ".jpg") {
+
+    var isLocal = (new URL(document.baseURI).origin === new URL(url, document.baseURI).origin);
+    if (isLocal) return url;
+
     var subdir = TTSImporter.cacheSubDir;
     const response = await fetch("/api/download", {
       method: "POST",
