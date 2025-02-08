@@ -388,7 +388,7 @@ var createScene = async function () {
   function updateDraggedNodeHeight(obj) {
     var target_height =
       gLiftHeight +
-      getSceneHeight(scene, obj.node.position, 0.1, obj.node) +
+      getSceneHeight(scene, obj.node.position, 0, obj.node) +
       obj.node.getBoundingInfo().boundingBox.extendSizeWorld.y;
 
     obj.node.position.y = target_height;
@@ -833,13 +833,14 @@ var createScene = async function () {
   var src = "https://raw.githubusercontent.com/syllebra/plateau_content/refs/heads/main/";
   //TTSImporter.importFile(src + "3303737944.json", loadingFinished); // DSA B
   //TTSImporter.importFile(src + "2225234101.json", loadingFinished, progressCB); // GS
-  TTSImporter.importFile(src + "820420328.json", loadingFinished, progressCB); // GS+Ex
+  //TTSImporter.importFile(src + "820420328.json", loadingFinished, progressCB); // GS+Ex
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DF
   //TTSImporter.importFile(src + "3372818507.json", loadingFinished, progressCB); // ED
   //TTSImporter.importFile(src + "263788054.json", loadingFinished, progressCB); // CCS
   //TTSImporter.importFile(src + "270492259.json", loadingFinished, progressCB); // Clue
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
 
+  TTSImporter.importFile("/dev/TS_Save_3.json", loadingFinished, progressCB); // GS+Ex
   Pointer.load();
 
   return scene;
