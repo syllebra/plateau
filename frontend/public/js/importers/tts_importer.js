@@ -973,7 +973,7 @@ class TTSImporter {
     h *= tr.scale.z / 2.54;
 
     var thickness = (0.5 * tr.scale.y) / 2.54;
-    var po = new PdfObject(url, o.CustomPDF.PDFPage + 1, w, h, thickness);
+    var po = new PdfObject(cached, o.CustomPDF.PDFPage + 1, w, h, thickness);
     po.startAnimationMode();
 
     po.node.position = tr.pos;
