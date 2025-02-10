@@ -19,5 +19,14 @@ class Zone {
     this.node.position = pos;
     this.node.rotationQuaternion = rot;
     this.node.scaling = scale;
+
+    this._uuid = UUID.generate();
+  }
+  
+  get uuid() { return this._uuid; }
+  set uuid(val) { 
+    var old = this.uuid;
+    this._uuid=val;
+    PlateauManager.changeObjectUUID(this, old);
   }
 }

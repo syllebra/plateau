@@ -151,7 +151,9 @@ function preparePipeline(scene, camera) {
 //     scene, 256,false, false
 // );
   //scene.environmentTexture = new BABYLON.HDRCubeTexture("textures/envs/little_paris_eiffel_tower_2k.hdr", scene, 1024, true, false, false, true);
-  scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/environment.dds", scene);
+  //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/environment.dds", scene);
+  scene.environmentTexture = new BABYLON.HDRCubeTexture("dev/ComfyUI_temp_qplmu_00008_.hdr", scene, 1024, true, false, false, true);
+  
   //scene.environmentTexture = new BABYLON.CubeTexture("textures/envs/dummy_cubemap.dds", scene)
   //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/cubemap_uncompressed_dx10.dds", scene);
 
@@ -640,7 +642,7 @@ var createScene = async function () {
           SelectionHandler.updateHover(po);
           if (po) {
             g_tooltip.setTitle(po.fullTitle);
-            g_tooltip.setDescription(po.fullDescription);
+            g_tooltip.setDescription(po.fullDescription.replace("\n","<br>"));
             g_tooltip.setUUID(po.fullAdditional);
             g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
           } else {
@@ -776,30 +778,39 @@ var createScene = async function () {
     }, 1000);
 
     console.log("LOADING FINISHED...");
-    var uuids = new Set();
-    for (var m of scene.meshes) {
-      if (m.dropZone) continue;
-      var po = m.plateauObj;
-      if (!po) continue;
-      if (!po.uuid || po.uuid == "") {
-        console.warn("Wrong UUID :", po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);
-        continue;
-      }
+    // var uuids = new Set();
+    // for (var m of scene.meshes) {
+    //   if (m.dropZone) continue;
+    //   var po = m.plateauObj;
+    //   if (!po) continue;
+    //   if (!po.uuid || po.uuid == "") {
+    //     console.warn("Wrong UUID :", po.uuid, " > ", po.node.id, po.fullTitle, po.fullAdditional, po.fullDescription);
+    //     continue;
+    //   }
 
-      if (uuids.has(po.uuid)) {
-        console.warn(
-          "Duplicate UUID :",
-          po.uuid,
-          " > ",
-          po.node.id,
-          po.fullTitle,
-          po.fullAdditional,
-          po.fullDescription
-        );
-        continue;
-      }
-      uuids.add(po.uuid);
-    }
+    //   if (uuids.has(po.uuid)) {
+    //     console.warn(
+    //       "Duplicate UUID :",
+    //       po.uuid,
+    //       " > ",
+    //       po.node.id,
+    //       po.fullTitle,
+    //       po.fullAdditional,
+    //       po.fullDescription
+    //     );
+    //     continue;
+    //   }
+    //   uuids.add(po.uuid);
+    // }
+
+    loadScript("dev/GS.js"). catch((err) => console.error(err))
+    .then((sc) => {
+      console.log("Script loaded:",sc);
+
+      setup_constants();
+      create_normal_deck(new BABYLON.Vector3(1.42,0,-2.6));
+    });
+
   }
   // Example usage:
   LoadingOverlay.init({
@@ -839,6 +850,7 @@ var createScene = async function () {
   //TTSImporter.importFile(src + "263788054.json", loadingFinished, progressCB); // CCS
   //TTSImporter.importFile(src + "270492259.json", loadingFinished, progressCB); // Clue
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
+  
 
   TTSImporter.importFile("/dev/TS_Save_3.json", loadingFinished, progressCB); // GS+Ex
   Pointer.load();

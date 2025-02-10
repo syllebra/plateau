@@ -48,11 +48,18 @@ class PlateauObject {
 
     this.canReceive = false;
 
-    this.uuid = UUID.generate();
+    this._uuid = UUID.generate();
     //this.node.showBoundingBox = true;
 
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
+  }
+
+  get uuid() { return this._uuid; }
+  set uuid(val) { 
+    var old = this.uuid;
+    this._uuid=val;
+    PlateauManager.changeObjectUUID(this, old);
   }
 
   get fullTitle() {
@@ -65,6 +72,13 @@ class PlateauObject {
 
   get fullAdditional() {
     return this.uuid + " - <<i>" + this.constructor.name + "</i>>";
+  }
+
+  setName(name) {
+    this.node.id = this.node.name = name;
+  }
+  setDescription(desc) {
+    this.description = desc;
   }
 
   clone(name = null) {
@@ -367,6 +381,15 @@ class PlateauObject {
   onRelease() {}
 
   onKeyDown(key) {
+    switch (key) {
+      case "l":
+      case "L":
+        this.locked = !this.locked;
+        return true;
+        break;
+      default:
+        break;
+    }
     return false;
   }
 
@@ -460,4 +483,25 @@ class MeshObjectUtils {
     mesh.scaling.copyFrom(scale);
     return new PlateauObject(mesh, null, { friction: 0.6, restitution: 0.3 }, null, 1);
   }
+}
+
+
+class PlateauManager {
+  static Objects = new Map(); // UUID to PlateauObject
+  
+  static getObject(uuid) {
+    return this.Objects.has(uuid) ? this.Objects.get(uuid) : null;
+  }
+  static addObject(po) {
+    if( PlateauManager.Objects.has(po.uuid))
+      throw new Error("Doubling UUID!");
+    PlateauManager.Objects.set(po.uuid, po);
+  }
+
+  static changeObjectUUID(po, lastuuid) {
+    if( PlateauManager.Objects.has(lastuuid))
+      PlateauManager.Objects.delete(lastuuid);
+    PlateauManager.addObject(po);
+  }
+
 }

@@ -196,6 +196,7 @@ class Deck extends PlateauObject {
 
     card.deck = this;
     card.flippedInDeck = flip;
+    card.locked = false;
 
     position = position >= 0 ? position : this.cards.length;
     this.cards.splice(position, 0, card);
