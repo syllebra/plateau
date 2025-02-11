@@ -594,12 +594,14 @@ class TTSImporter {
     var dy = 0;
     var obj = await f(o);
     this.genericImports(obj, o);
+    obj.uuid = o.GUID;
     var objects = [obj];
     var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y * 2;
     for (var i = 1; i < number; i++) {
       // if(obj == null)
       //   continue;
       var clonedObj = obj.clone();
+      clonedObj.node.position = obj.node.position.clone();
       clonedObj.node.position.y += dy;
       dy += dec;
       clonedObj.uuid = o.GUID + "-" + i.pad(4);
