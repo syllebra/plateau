@@ -81,7 +81,7 @@ class PlateauObject {
     this.description = desc;
   }
 
-  clone(name = null) {
+  clone(name = null, uuid = null) {
     // Avoid recursion
     var tmp = this.node.plateauObj;
     delete this.node.plateauObj;
@@ -93,7 +93,8 @@ class PlateauObject {
     ret.body = this.body.clone(ret.node);
     ret.updateBoundingInfos();
 
-    ret.uuid = UUID.generate();
+    ret._uuid = UUID.generate();
+    ret.uuid = uuid ? uuid : ret._uuid; // Implicitely record this object using new uuid
     ret.clonedFrom = this.uuid;
     return ret;
   }
@@ -514,6 +515,16 @@ class PlateauManager {
     if( PlateauManager.Objects.has(lastuuid))
       PlateauManager.Objects.delete(lastuuid);
     PlateauManager.addObject(po);
+  }
+
+  static getObjectFromName(partial_name) {
+    var ret = [];
+    this.Objects.forEach((v,k,m) => {
+      //console.log(k ,"=>", v);
+      if(v.fullTitle.includes(partial_name))
+        ret.push(v);
+    })
+    return ret;
   }
 
 }

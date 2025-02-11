@@ -354,6 +354,7 @@ var createScene = async function () {
             break;
           case "t":
           case "T":
+            //create_hell_deck(new BABYLON.Vector3(2.48518202226,0,3.20742907408));
             do_setup();
 
           break;            
@@ -815,7 +816,9 @@ var createScene = async function () {
 
       setup_constants();
       create_hell_deck(new BABYLON.Vector3(2.48518202226,0,3.20742907408));
-      do_setup()
+      //do_setup()
+
+      PlateauManager.getObjectFromName("Power Token");
     });
 
   }
