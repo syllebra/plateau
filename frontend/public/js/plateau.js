@@ -352,6 +352,11 @@ var createScene = async function () {
             for (var o of objects) if (!o.locked) o.flip();
 
             break;
+          case "t":
+          case "T":
+            do_setup();
+
+          break;            
         }
         var consumed = false;
         if (pickedObject) consumed = pickedObject.onKeyDown(kbInfo.event.key);
@@ -503,6 +508,7 @@ var createScene = async function () {
           };
         }
         pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
+        console.log(pickedObject.node.name," dropped on ", dz.node.position, dz.node.rotationQuaternion);
       }
       DropZone.HideAll();
 
@@ -808,7 +814,8 @@ var createScene = async function () {
       console.log("Script loaded:",sc);
 
       setup_constants();
-      create_normal_deck(new BABYLON.Vector3(1.42,0,-2.6));
+      create_hell_deck(new BABYLON.Vector3(2.48518202226,0,3.20742907408));
+      do_setup()
     });
 
   }

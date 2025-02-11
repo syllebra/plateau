@@ -387,6 +387,18 @@ class PlateauObject {
         this.locked = !this.locked;
         return true;
         break;
+      case "u":
+      case "U":
+        console.log(this.uuid, this.node.position, this.node.rotationQuaternion);
+        navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
+          if (result.state === "granted" || result.state === "prompt") {
+            navigator.clipboard.writeText(this.uuid);
+            /* write to the clipboard now */
+          }
+        });
+        
+        return true;
+        break;
       default:
         break;
     }

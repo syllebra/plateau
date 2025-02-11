@@ -593,6 +593,7 @@ class TTSImporter {
     var number = o.Number;
     var dy = 0;
     var obj = await f(o);
+    this.genericImports(obj, o);
     var objects = [obj];
     var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y * 2;
     for (var i = 1; i < number; i++) {
