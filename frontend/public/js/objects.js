@@ -299,8 +299,8 @@ class PlateauObject {
   animatePosition(pos, nbf, finishedCB = null) {
     if (this.positionAnimation) {
       let toMove = this.positionAnimation.animatables[0].target;
-      toMove.toMoveAnimStart.copyFrom(toMove.position);
-      toMove.toMoveAnimTarget.copyFrom(pos);
+      toMove.toMoveAnimStart=toMove.position.clone();
+      toMove.toMoveAnimTarget = pos.clone();
       toMove.positionAnimationFinishedCB = finishedCB;
       this.positionAnimation.animations[0].currentValue = 0;
       this.positionAnimation.animations[0].duration = nbf;
@@ -423,32 +423,24 @@ class PlateauObject {
   dropOn(destNode, animateRotation = true, finishedCB = null) {
     this.startAnimationMode();
     this.setEnabled(true, false);
-    // var tr = XTransform.FromNodeWorld(destNode);
-    // tr.applyToNodeWorld(this.node);
-    // return;
-
     if (animateRotation) this.animateRotation(destNode.absoluteRotationQuaternion, 280);
     var dstPos = destNode.absolutePosition.clone();
 
     var bb = this.getBoundingInfos().boundingBox;
     dstPos.y -= bb.minimum.y * this.node.scaling.y;
 
+    var animated = this;
     this.animatePosition(dstPos, 300, () => {
       if (finishedCB) finishedCB();
       var po = PlateauObject.GetTopMost(destNode);
       if (po && po.accept(this)) po.received(this);
-      if(!po) {
-        this.setEnabled(true, true);
-        this.stopAnimationMode();
-      }
-  
+      animated.stopAnimationMode();
+      animated.setEnabled(true, true);
     });
   }
 
   received(po) {
     console.log(this.node.name + " received " + po.node.name);
-    this.setEnabled(true, true);
-    this.stopAnimationMode();
   }
 
   updateZones() {}

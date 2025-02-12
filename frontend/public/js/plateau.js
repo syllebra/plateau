@@ -356,11 +356,15 @@ var createScene = async function () {
           case "T":
             //create_hell_deck(new BABYLON.Vector3(2.48518202226,0,3.20742907408));
             do_setup();
-            // var obj = PlateauManager.getObject("efbc88");
-            // obj.startAnimationMode();
-            // obj.node.position.copyFrom(BABYLON.Vector3.Zero());
+            break;
+          case "r":
+          case "R":
+            var obj = PlateauManager.getObject("efbc88");
+            obj.startAnimationMode();
+            obj.node.position.copyFrom(BABYLON.Vector3.Zero());
+            window.setTimeout(() => obj.stopAnimationMode(), 1000);
 
-          break;            
+            break;
         }
         var consumed = false;
         if (pickedObject) consumed = pickedObject.onKeyDown(kbInfo.event.key);

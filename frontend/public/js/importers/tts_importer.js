@@ -143,7 +143,7 @@ class TTSImporter {
     if (rot) {
       rot = BABYLON.Quaternion.FromEulerAngles(
         BABYLON.Tools.ToRadians(rot.x),
-        BABYLON.Tools.ToRadians(-rot.y + 180),
+        BABYLON.Tools.ToRadians(-rot.y),// + 180),
         BABYLON.Tools.ToRadians(rot.z)
       );
     }
@@ -155,7 +155,7 @@ class TTSImporter {
       pos,
       rot
     );
-    dz.forceOrientation = rot == null;
+    dz.forceOrientation = rot != null;
     return dz;
   }
 
