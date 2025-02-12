@@ -20,6 +20,8 @@ class Zone {
     this.node.rotationQuaternion = rot;
     this.node.scaling = scale;
 
+    this.node.setEnabled(false);
+
     this._uuid = UUID.generate();
   }
   

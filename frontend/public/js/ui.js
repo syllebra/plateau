@@ -99,6 +99,16 @@ class FastUI {
       }
     });
 
+    // Display Zones button
+    const zonesCheckbox = this.addToggle("Display zones");
+    zonesCheckbox.isChecked = false;
+    zonesCheckbox.onIsCheckedChangedObservable.add((value) => {
+        PlateauManager.Objects.forEach((v,k,m) => {
+          if(v instanceof Zone)
+            v.node.setEnabled(value);
+        })
+    });
+
     this.addText(scene, (bodiesCounter) => {
       const n = hk.numBodies;
       bodiesCounter.text = `bodies: ${n}`;
