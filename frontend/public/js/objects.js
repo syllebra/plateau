@@ -437,6 +437,11 @@ class PlateauObject {
       if (finishedCB) finishedCB();
       var po = PlateauObject.GetTopMost(destNode);
       if (po && po.accept(this)) po.received(this);
+      if(!po) {
+        this.setEnabled(true, true);
+        this.stopAnimationMode();
+      }
+  
     });
   }
 

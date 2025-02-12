@@ -163,7 +163,7 @@ class TTSImporter {
     var plateauObj = null;
 
     var only = new Set(["Token", "Model", "Stack"]); //,"Card","Deck"]);//, "Custom_Token"]);
-    only = null;
+    //only = null;
     if (only) {
       var isIncluded = false;
       for (var included of only) {
@@ -596,12 +596,15 @@ class TTSImporter {
     this.genericImports(obj, o);
     var objects = [obj];
     var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y * 2;
+    console.log(o,dec)
     for (var i = 1; i < number; i++) {
       // if(obj == null)
       //   continue;
       var clonedObj = obj.clone(null, o.GUID + "-" + i.pad(4));
+      clonedObj.startAnimationMode();
       clonedObj.node.position = obj.node.position.clone();
       clonedObj.node.position.y += dy;
+      console.log(clonedObj,dy)
       dy += dec;
       objects.push(clonedObj);
     }
