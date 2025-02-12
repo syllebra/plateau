@@ -54,6 +54,7 @@ class DropZone {
     for (var z of this.all) {
       if (z.node) z.node.material = z == dz ? this.hoveredMaterial : this.defaultMaterial;
     }
+    return dz;
   }
 
   static HideAll() {
@@ -116,33 +117,21 @@ class DropZone {
     return this.FromNode(plane);
   }
 
-  // static GetHovered(position, obj = null) {
-  //   var ray = new BABYLON.Ray(position, new BABYLON.Vector3(0, -10000, 0));
-
-  //   var pi = scene.pickWithRay(
-  //     ray,
-  //     (mesh, i) => mesh.dropZone && mesh.dropZone.isEnabled() && !Pointer.isPointerPart(mesh) && mesh.dropZone.accept(obj)
-  //   );
-  //   if (!pi.hit) return null;
-  //   return pi.pickedMesh.dropZone;
-  // }
-
   static GetHovered(position, obj = null) {
     const threshold = 0.3 * 0.3;
     var d2min = 10000000;
     var picked = null;
     var pos = position.clone();
-    
+
     // TODO: optimization for big arrays of drop zones?
     DropZone.all.forEach((dz) => {
       if (true && dz.accept(obj)) {
         var d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
         if (d2 < d2min) {
           d2min = d2;
-          pos.y =  dz.node.position.y;
+          pos.y = dz.node.position.y;
           d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
-          if (d2 < threshold)
-            picked = dz;
+          if (d2 < threshold) picked = dz;
         }
       }
     });

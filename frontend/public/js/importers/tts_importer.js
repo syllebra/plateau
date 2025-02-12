@@ -143,7 +143,7 @@ class TTSImporter {
     if (rot) {
       rot = BABYLON.Quaternion.FromEulerAngles(
         BABYLON.Tools.ToRadians(rot.x),
-        BABYLON.Tools.ToRadians(-rot.y),// + 180),
+        BABYLON.Tools.ToRadians(-rot.y), // + 180),
         BABYLON.Tools.ToRadians(rot.z)
       );
     }
@@ -163,7 +163,7 @@ class TTSImporter {
     var plateauObj = null;
 
     var only = new Set(["Model"]); //,"Card","Deck"]);//, "Custom_Token"]);
-    only = null;
+    //only = null;
     if (only) {
       var isIncluded = false;
       for (var included of only) {
@@ -239,6 +239,7 @@ class TTSImporter {
             tr.scale,
             new BABYLON.Color3(o.ColorDiffuse.r, o.ColorDiffuse.g, o.ColorDiffuse.b)
           );
+          plateauObj.uuid = o.GUID;
           break;
         case "Figurine_Custom":
           plateauObj = await TTSImporter.importCustomFigurine(o);
@@ -992,8 +993,7 @@ class TTSImporter {
   }
 
   static async cachedDownloadURL(url, category, default_ext = ".jpg") {
-
-    var isLocal = (new URL(document.baseURI).origin === new URL(url, document.baseURI).origin);
+    var isLocal = new URL(document.baseURI).origin === new URL(url, document.baseURI).origin;
     if (isLocal) return url;
 
     var subdir = TTSImporter.cacheSubDir;

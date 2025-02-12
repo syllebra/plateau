@@ -518,7 +518,7 @@ class PlateauManager {
     var ret = [];
     this.Objects.forEach((v,k,m) => {
       //console.log(k ,"=>", v);
-      if(v.fullTitle.includes(partial_name))
+      if(v.fullTitle?.includes(partial_name))
         ret.push(v);
     })
     return ret;

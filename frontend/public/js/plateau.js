@@ -145,15 +145,22 @@ function preparePipeline(scene, camera) {
   //     lensEffect.setAperture(c.radius*0.06);
   // })
 
-
-//   scene.environmentTexture = new BABYLON.EquiRectangularCubeTexture(
-//     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
-//     scene, 256,false, false
-// );
+  //   scene.environmentTexture = new BABYLON.EquiRectangularCubeTexture(
+  //     "https://emergentlandscapes.files.wordpress.com/2012/05/the-witcher-pano_-8.jpg",
+  //     scene, 256,false, false
+  // );
   //scene.environmentTexture = new BABYLON.HDRCubeTexture("textures/envs/little_paris_eiffel_tower_2k.hdr", scene, 1024, true, false, false, true);
   //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/environment.dds", scene);
-  scene.environmentTexture = new BABYLON.HDRCubeTexture("dev/ComfyUI_temp_qplmu_00008_.hdr", scene, 1024, true, false, false, true);
-  
+  scene.environmentTexture = new BABYLON.HDRCubeTexture(
+    "dev/ComfyUI_temp_qplmu_00008_.hdr",
+    scene,
+    1024,
+    true,
+    false,
+    false,
+    true
+  );
+
   //scene.environmentTexture = new BABYLON.CubeTexture("textures/envs/dummy_cubemap.dds", scene)
   //scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("textures/envs/cubemap_uncompressed_dx10.dds", scene);
 
@@ -323,6 +330,7 @@ var createScene = async function () {
   }
 
   var pickedObject = null;
+  var pickedObjectGhost = null;
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
   var box_selection = false;
@@ -515,12 +523,18 @@ var createScene = async function () {
             plateauParent.objectDroppedOnZone(objectToDrop, dz);
           };
         }
-        pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
-        console.log(pickedObject.node.name," dropped on ", dz.node.position, dz.node.rotationQuaternion);
+        if (!controlKeyDown) {
+          pickedObject.dropOn(dz.node, dz.forceOrientation, cb);
+          console.log(pickedObject.node.name, " dropped on ", dz.node.position, dz.node.rotationQuaternion);
+        }
       }
       DropZone.HideAll();
 
       pickedObject = null;
+      if (pickedObjectGhost) {
+        pickedObjectGhost.dispose(true, true);
+        pickedObjectGhost = null;
+      }
       Pointer.hide();
     }
   }
@@ -620,6 +634,16 @@ var createScene = async function () {
             } else if (!controlKeyDown) SelectionHandler.removePlateauObject(po);
           }
         } else if (pickedObject) {
+          if (!pickedObjectGhost) {
+            pickedObject.node.plateauObj = null; // just for tyhe copying time
+            pickedObjectGhost = pickedObject.node.clone(pickedObject.node.name + " Ghost", null, true, false);
+            pickedObject.node.plateauObj = pickedObject; // just for tyhe copying time
+            pickedObjectGhost.plateauObj = null;
+            pickedObjectGhost.material = pickedObject.node.material.clone("ghost");
+            pickedObjectGhost.material.alpha = 0.3;
+            pickedObjectGhost.setEnabled(false);
+            //pickedObjectGhost.material = new PBRMaterial("hollow")
+          }
           var base_hit = pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true));
           if (base_hit.hit) {
             let dx =
@@ -647,8 +671,18 @@ var createScene = async function () {
               showDropZoneInRadius,
               (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
             );
-            DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+            var dropZ = DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
             PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+            if (pickedObjectGhost) {
+              if (dropZ) {
+                var pos = dropZ.node.position.clone();
+                pos.y += pickedObject.getBoundingInfos().boundingBox.extendSizeWorld.y;
+                pickedObjectGhost.position.copyFrom(pos);
+                if (dropZ.forceOrientation)
+                  pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.rotationQuaternion);
+              }
+              pickedObjectGhost.setEnabled(dropZ != null && !controlKeyDown);
+            }
           }
         } else {
           var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
@@ -656,7 +690,7 @@ var createScene = async function () {
           SelectionHandler.updateHover(po);
           if (po) {
             g_tooltip.setTitle(po.fullTitle);
-            g_tooltip.setDescription(po.fullDescription.replace("\n","<br>"));
+            g_tooltip.setDescription(po.fullDescription.replace("\n", "<br>"));
             g_tooltip.setUUID(po.fullAdditional);
             g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
           } else {
@@ -677,8 +711,7 @@ var createScene = async function () {
   SelectionHandler.init(scene);
   SelectionHandler.hl.addExcludedMesh(ground);
 
-  if(scene.getNodeById("hdrSkyBox"))
-    SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
+  if (scene.getNodeById("hdrSkyBox")) SelectionHandler.hl.addExcludedMesh(scene.getNodeById("hdrSkyBox"));
 
   //////////////////////////////////* TEST ZONE */////////////////////////////////////
 
@@ -817,17 +850,17 @@ var createScene = async function () {
     //   uuids.add(po.uuid);
     // }
 
-    loadScript("dev/GS.js"). catch((err) => console.error(err))
-    .then((sc) => {
-      console.log("Script loaded:",sc);
+    loadScript("dev/GS.js")
+      .catch((err) => console.error(err))
+      .then((sc) => {
+        console.log("Script loaded:", sc);
 
-      setup_constants();
-      create_hell_deck(new BABYLON.Vector3(2.48518202226,0,3.20742907408));
-      //do_setup()
+        setup_constants();
+        create_hell_deck(new BABYLON.Vector3(2.48518202226, 0, 3.20742907408));
+        //do_setup()
 
-      PlateauManager.getObjectFromName("Power Token");
-    });
-
+        PlateauManager.getObjectFromName("Power Token");
+      });
   }
   // Example usage:
   LoadingOverlay.init({
@@ -867,7 +900,6 @@ var createScene = async function () {
   //TTSImporter.importFile(src + "263788054.json", loadingFinished, progressCB); // CCS
   //TTSImporter.importFile(src + "270492259.json", loadingFinished, progressCB); // Clue
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
-  
 
   TTSImporter.importFile("/dev/TS_Save_3.json", loadingFinished, progressCB); // GS+Ex
   Pointer.load();
