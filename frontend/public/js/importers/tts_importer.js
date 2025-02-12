@@ -162,7 +162,7 @@ class TTSImporter {
   static async importObject(o) {
     var plateauObj = null;
 
-    var only = new Set(["Token", "Model", "Stack"]); //,"Card","Deck"]);//, "Custom_Token"]);
+    var only = new Set(["Model"]); //,"Card","Deck"]);//, "Custom_Token"]);
     only = null;
     if (only) {
       var isIncluded = false;
