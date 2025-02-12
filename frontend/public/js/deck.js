@@ -5,7 +5,7 @@ class CardAtlas {
   rows = 1;
   nb = 54;
   back = 55;
-  texture= null;
+  texture = null;
 
   static all = new Map();
 
@@ -22,8 +22,8 @@ class CardAtlas {
     this.rows = rows;
     this.nb = nb;
     this.back = back;
-    
-    if(typeof texture === 'string' || texture instanceof String)
+
+    if (typeof texture === "string" || texture instanceof String)
       texture = new BABYLON.Texture(texture, scene, true, false);
 
     //const texture = new BABYLON.Texture(texturePath, scene, true, false);
@@ -67,7 +67,7 @@ class Card extends PlateauObject {
     var tmp = back_uv.x;
     back_uv.x = back_uv.z;
     back_uv.z = tmp;
-    planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), back_uv );
+    planarUVProjectXZ(box, uvFromAtlas(num, atlas.cols, atlas.rows), back_uv);
 
     box.material = atlas.material; //scene.getMaterialByName("default_material");
 
@@ -127,7 +127,7 @@ class Deck extends PlateauObject {
   }
 
   get fullTitle() {
-    return super.fullTitle + " - "+this.cards.length;
+    return super.fullTitle + " - " + this.cards.length;
   }
 
   clone() {
@@ -174,8 +174,10 @@ class Deck extends PlateauObject {
     this.topDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, this.node);
     //deck.topDropZone.node.id = deck.topDropZone.node.name = deck.id+"_topZone"
     this.topDropZone.acceptedClasses.add(Card);
+    this.topDropZone.angleCheck = false;
     this.bottomDropZone = DropZone.CreateRectangularZone(sz.x * 2.0, sz.z * 2.0, 0.01, this.node);
     this.bottomDropZone.acceptedClasses.add(Card);
+    this.bottomDropZone.angleCheck = false;
     //deck.topDrobottomDropZonepZone.node.id = deck.bottomDropZone.node.name = deck.id+"_bottomZone"
     this._updateCardsPhysics();
   }

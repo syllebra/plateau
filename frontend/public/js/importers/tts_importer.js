@@ -163,7 +163,7 @@ class TTSImporter {
     var plateauObj = null;
 
     var only = new Set(["Model"]); //,"Card","Deck"]);//, "Custom_Token"]);
-    //only = null;
+    only = null;
     if (only) {
       var isIncluded = false;
       for (var included of only) {

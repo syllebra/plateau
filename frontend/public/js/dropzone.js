@@ -68,6 +68,7 @@ class DropZone {
   acceptedClasses = new Set();
   forceOrientation = false;
   node = null;
+  angleCheck = true;
 
   constructor() {
     DropZone.all.add(this);
@@ -125,13 +126,17 @@ class DropZone {
 
     // TODO: optimization for big arrays of drop zones?
     DropZone.all.forEach((dz) => {
-      if (true && dz.accept(obj)) {
-        var d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
-        if (d2 < d2min) {
-          d2min = d2;
-          pos.y = dz.node.position.y;
-          d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
-          if (d2 < threshold) picked = dz;
+      if (dz.accept(obj)) {
+        var dirToCam = scene.activeCamera.position.subtract(dz.node.absolutePosition);
+        dirToCam.normalize();
+        if (!dz.angleCheck || angleDegreesBetweenTwoUnitVectors(dz.node.up, dirToCam) < 90) {
+          var d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
+          if (d2 < d2min) {
+            d2min = d2;
+            pos.y = dz.node.position.y;
+            d2 = BABYLON.Vector3.DistanceSquared(pos, dz.node.absolutePosition);
+            if (d2 < threshold) picked = dz;
+          }
         }
       }
     });
