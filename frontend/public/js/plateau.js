@@ -639,7 +639,7 @@ var createScene = async function () {
             pickedObjectGhost = pickedObject.node.clone(pickedObject.node.name + " Ghost", null, true, false);
             pickedObject.node.plateauObj = pickedObject; // just for tyhe copying time
             pickedObjectGhost.plateauObj = null;
-            pickedObjectGhost.material = pickedObject.node.material.clone("ghost");
+            pickedObjectGhost.material = pickedObject.node.material.clone("ghost", true);
             pickedObjectGhost.material.alpha = 0.3;
             pickedObjectGhost.setEnabled(false);
             //pickedObjectGhost.material = new PBRMaterial("hollow")
@@ -675,11 +675,11 @@ var createScene = async function () {
             PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
             if (pickedObjectGhost) {
               if (dropZ) {
-                var pos = dropZ.node.position.clone();
+                var pos = dropZ.node.absolutePosition.clone();
                 pos.y += pickedObject.getBoundingInfos().boundingBox.extendSizeWorld.y;
                 pickedObjectGhost.position.copyFrom(pos);
                 if (dropZ.forceOrientation)
-                  pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.rotationQuaternion);
+                  pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.absoluteRotationQuaternion);
               }
               pickedObjectGhost.setEnabled(dropZ != null && !controlKeyDown);
             }
