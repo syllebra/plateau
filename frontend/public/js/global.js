@@ -1,10 +1,11 @@
 let canvas, engine, pathTracingScene;
-let camera;
+let camera, isolateCamera;
 let scene, shadowGen;
 let gizmoManager;
 
 let controlKeyDown = false;
 let shiftKeyDown = false;
+let altKeyDown = false;
 
 let rotationIncrement = 45;
 let showDropZoneInRadius = 100.1;
@@ -115,11 +116,11 @@ window.onunhandledrejection = (event) => {
 
 function loadScript(src) {
   return new Promise(function (resolve, reject) {
-      var s;
-      s = document.createElement('script');
-      s.src = src;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
+    var s;
+    s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
   });
 }

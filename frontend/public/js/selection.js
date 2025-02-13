@@ -95,6 +95,7 @@ class SelectionHandler {
     this.hl = new BABYLON.HighlightLayer("highlight_layer", scene, {
       //mainTextureRatio:1.0,
       //alphaBlendingMode: 2,
+      camera: scene.activeCamera,
       isStroke: false,
       innerGlow: false,
       outerGlow: true,
@@ -173,9 +174,11 @@ class SelectionHandler {
   }
 
   static _updateHover(obj, enter = true, color = new BABYLON.Color3(1, 0.6, 0.0)) {
+    IsolateViewHandler.updateHover(obj, enter);
     if (!obj) return;
-    if (enter) SelectionHandler.addPlateauObject(obj, color, true);
-    else {
+    if (enter) {
+      SelectionHandler.addPlateauObject(obj, color, true);
+    } else {
       if (SelectionHandler.isSelected(obj)) SelectionHandler.addPlateauObject(obj);
       else SelectionHandler.removePlateauObject(obj);
     }
@@ -189,6 +192,51 @@ class SelectionHandler {
       this.hoveredObject = obj;
       var color = obj && obj.locked ? new BABYLON.Color3(0.4, 0.4, 0.4) : color;
       this._updateHover(obj, true, color);
+    }
+  }
+}
+
+class IsolateViewHandler {
+  static updateHover(obj, enter = true) {
+    if (!obj) return;
+    if (enter) {
+      obj.node.layerMask = 0xffffffff;
+      isolateCamera.position = obj.node.absolutePosition.add(obj.node.up.multiplyByFloats(3, 3, 3));
+      isolateCamera.setTarget(obj.node.absolutePosition);
+      isolateCamera.upVector = obj.node.forward.clone(); //.multiplyByFloats(-1, -1, -1);
+
+      var es = obj.getBoundingInfos().boundingBox.extendSize.clone();
+      es.x *= obj.node.scaling.x;
+      es.z *= obj.node.scaling.z;
+
+      if (es.x > es.z) {
+        var zoom = Math.max(es.x, 1);
+        isolateCamera.orthoLeft = -zoom;
+        isolateCamera.orthoRight = zoom;
+        // needed to calculate orthoTop and orthoBottom without distortion
+        const ratio = canvas.height / canvas.width;
+        isolateCamera.orthoTop = isolateCamera.orthoRight * ratio;
+        isolateCamera.orthoBottom = isolateCamera.orthoLeft * ratio;
+      } else {
+        var zoom = Math.max(es.z, 1);
+        isolateCamera.orthoTop = zoom;
+        isolateCamera.orthoBottom = -zoom;
+        // needed to calculate orthoTop and orthoBottom without distortion
+        const ratio = canvas.height / canvas.width;
+        isolateCamera.orthoRight = isolateCamera.orthoTop / ratio;
+        isolateCamera.orthoLeft = isolateCamera.orthoBottom / ratio;
+      }
+
+      // var px = 0.5;
+      // var py = 0.5;
+      // const ratioObj = es.z / es.x;
+      // var s = Math.max(es.x, es.z) * 0.4;
+      // var sx = es.x > es.z ? s * ratioObj : s / ratioObj;
+      // var sy = es.z > es.x ? s * ratioObj : s / ratioObj;
+      // sy /= ratio;
+      // isolateCamera.viewport = new BABYLON.Viewport(px - sx, py - sy, sx * 2, sy * 2);
+    } else {
+      obj.node.layerMask = 0x0fffffff;
     }
   }
 }

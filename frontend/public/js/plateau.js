@@ -68,12 +68,12 @@ var BoxWorld = function (scene, position, size, viewer, shadowGen) {
   return ground;
 };
 
-function preparePipeline(scene, camera) {
+function preparePipeline(scene, cameras) {
   var defaultPipeline = new BABYLON.DefaultRenderingPipeline(
     "defaultPipeline", // The name of the pipeline
     true, // Do you want the pipeline to use HDR texture?
     scene, // The scene instance
-    [camera] // The list of cameras to be attached to
+    cameras // The list of cameras to be attached to
   );
 
   // var defaultPipeline = new StandardRenderingPipeline(
@@ -184,6 +184,23 @@ function preparePipeline(scene, camera) {
   //   true, // Whether or not to use the geometry buffer renderer (default: false, use the pre-pass renderer)
   //   BABYLON.Constants.TEXTURETYPE_UNSIGNED_BYTE // The texture type used by the SSR effect (default: TEXTURETYPE_UNSIGNED_BYTE)
   // );
+
+  // Prevent the pipeline to force a camera background
+  const getLastPostProcess = (pipeline) => {
+    const effectKeys = Object.keys(pipeline._renderEffects);
+    if (effectKeys.length === 0) {
+      return null;
+    }
+
+    const postProcesses = pipeline._renderEffects[effectKeys[effectKeys.length - 1]].getPostProcesses();
+    if (!postProcesses) {
+      return null;
+    }
+    return postProcesses[postProcesses.length - 1];
+  };
+
+  getLastPostProcess(defaultPipeline).alphaMode = BABYLON.Constants.ALPHA_COMBINE;
+  getLastPostProcess(defaultPipeline).forceAutoClearInAlphaMode = true;
 }
 
 var createScene = async function () {
@@ -195,8 +212,30 @@ var createScene = async function () {
   gizmoManager.positionGizmoEnabled = true;
   gizmoManager.attachableMeshes = [];
 
+  // Isolate zoomed camera
+  isolateCamera = new BABYLON.UniversalCamera("isolateCamera", new BABYLON.Vector3(0, 1, 3), scene);
+  //isolateCamera.setPosition(new BABYLON.Vector3(0,-1000,3));
+  isolateCamera.setTarget(BABYLON.Vector3.Zero());
+  //isolateCamera.target=viewBox;
+  //isolateCamera.attachControl(canvas,true);
+  //isolateCamera.viewport = new BABYLON.Viewport(0.67, 0.65, 0.25, 0.25);
+  // isolateCamera.lowerRadiusLimit=3;
+  // isolateCamera.upperRadiusLimit=3;
+  isolateCamera.layerMask = 0xf0000000;
+
+  // ORTHO setup
+  isolateCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+  // isolateCamera.orthoLeft = -10;
+  // isolateCamera.orthoRight = 10;
+  // // needed to calculate orthoTop and orthoBottom without distortion
+  // const ratio = canvas.height / canvas.width;
+  // isolateCamera.orthoTop = isolateCamera.orthoRight * ratio;
+  // isolateCamera.orthoBottom = isolateCamera.orthoLeft * ratio;
+
+  isolateCamera.setEnabled(false);
+
   //This creates and positions a free camera (non-mesh)
-  camera = new BABYLON.UniversalCamera("camera1", new BABYLON.Vector3(0, 1, 3), scene);
+  camera = new BABYLON.UniversalCamera("mainCamera", new BABYLON.Vector3(0, 1, 3), scene);
 
   // This targets the camera to scene origin
   camera.setTarget(BABYLON.Vector3.Zero());
@@ -213,7 +252,17 @@ var createScene = async function () {
   camera.checkCollisions = true;
   camera.lowerRadiusLimit = 0.001;
 
-  preparePipeline(scene, camera);
+  preparePipeline(scene, [isolateCamera, camera]);
+
+  scene.activeCameras.push(camera);
+  scene.activeCameras.push(isolateCamera);
+
+  scene.activeCameras = [camera];
+
+  scene.activeCamera = camera;
+
+  scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+  scene.autoClear = false;
 
   // // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
   // var light = new BABYLON.HemisphericLight(
@@ -345,13 +394,18 @@ var createScene = async function () {
   scene.onKeyboardObservable.add((kbInfo) => {
     switch (kbInfo.type) {
       case BABYLON.KeyboardEventTypes.KEYDOWN:
-        //        console.log("Key down",kbInfo.event.key)
+        console.log("Key down", kbInfo.event.key);
         switch (kbInfo.event.key) {
           case "Control":
             controlKeyDown = true;
             break;
           case "Shift":
             shiftKeyDown = true;
+            scene.activeCameras = [camera, isolateCamera];
+            break;
+          case "Alt":
+          case "AltGraph":
+            altKeyDown = true;
             break;
           case "f":
           case "F":
@@ -388,6 +442,11 @@ var createScene = async function () {
             break;
           case "Shift":
             shiftKeyDown = false;
+            scene.activeCameras = [camera];
+            break;
+          case "Alt":
+          case "AltGraph":
+            altKeyDown = false;
             break;
           case "I":
           case "i":
@@ -538,7 +597,7 @@ var createScene = async function () {
       Pointer.hide();
     }
   }
-
+  scene.cameraToUseForPointers = camera;
   scene.pointerDownPredicate = (m) => m == ground || PlateauObject.GetTopMost(m) != null;
   scene.onPointerObservable.add((pointerInfo) => {
     if (gestureOn || gestureHandler.touches.size > 1) return;
@@ -610,6 +669,8 @@ var createScene = async function () {
         stopCurrentInteraction();
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
+        console.log(pointerInfo.event);
+        console.log(canvas);
         if (mousePanning) {
           const delta = 0.01; // Amount of change in movement
           let x = delta * pointerInfo.event.movementX;
@@ -902,6 +963,8 @@ var createScene = async function () {
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
 
   TTSImporter.importFile("/dev/TS_Save_3.json", loadingFinished, progressCB); // GS+Ex
+
+  //loadingFinished();
   Pointer.load();
 
   return scene;

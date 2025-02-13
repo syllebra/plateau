@@ -53,12 +53,16 @@ class PlateauObject {
 
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
+
+    //this.node.layerMask = 0x00000001;
   }
 
-  get uuid() { return this._uuid; }
-  set uuid(val) { 
+  get uuid() {
+    return this._uuid;
+  }
+  set uuid(val) {
     var old = this.uuid;
-    this._uuid=val;
+    this._uuid = val;
     PlateauManager.changeObjectUUID(this, old);
   }
 
@@ -299,7 +303,7 @@ class PlateauObject {
   animatePosition(pos, nbf, finishedCB = null) {
     if (this.positionAnimation) {
       let toMove = this.positionAnimation.animatables[0].target;
-      toMove.toMoveAnimStart=toMove.position.clone();
+      toMove.toMoveAnimStart = toMove.position.clone();
       toMove.toMoveAnimTarget = pos.clone();
       toMove.positionAnimationFinishedCB = finishedCB;
       this.positionAnimation.animations[0].currentValue = 0;
@@ -397,7 +401,7 @@ class PlateauObject {
             /* write to the clipboard now */
           }
         });
-        
+
         return true;
         break;
       default:
@@ -495,33 +499,28 @@ class MeshObjectUtils {
   }
 }
 
-
 class PlateauManager {
   static Objects = new Map(); // UUID to PlateauObject
-  
+
   static getObject(uuid) {
     return this.Objects.has(uuid) ? this.Objects.get(uuid) : null;
   }
   static addObject(po) {
-    if( PlateauManager.Objects.has(po.uuid))
-      throw new Error("Doubling UUID!");
+    if (PlateauManager.Objects.has(po.uuid)) throw new Error("Doubling UUID!");
     PlateauManager.Objects.set(po.uuid, po);
   }
 
   static changeObjectUUID(po, lastuuid) {
-    if( PlateauManager.Objects.has(lastuuid))
-      PlateauManager.Objects.delete(lastuuid);
+    if (PlateauManager.Objects.has(lastuuid)) PlateauManager.Objects.delete(lastuuid);
     PlateauManager.addObject(po);
   }
 
   static getObjectFromName(partial_name) {
     var ret = [];
-    this.Objects.forEach((v,k,m) => {
+    this.Objects.forEach((v, k, m) => {
       //console.log(k ,"=>", v);
-      if(v.fullTitle?.includes(partial_name))
-        ret.push(v);
-    })
+      if (v.fullTitle?.includes(partial_name)) ret.push(v);
+    });
     return ret;
   }
-
 }
