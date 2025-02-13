@@ -10,6 +10,9 @@ let altKeyDown = false;
 let rotationIncrement = 45;
 let showDropZoneInRadius = 100.1;
 
+let viewportMouseX = 0;
+let viewportMouseY = 0;
+
 gLiftHeight = 0.3;
 
 let preloadFunctions = [];

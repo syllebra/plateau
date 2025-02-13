@@ -43,7 +43,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] Screen display option
 - [x] Close Isolate view (shift)
   - [ ] Orientation object dependant
-  - [ ] Mouse centered if possible
+  - [x] Mouse centered
 
 ## Backend
 

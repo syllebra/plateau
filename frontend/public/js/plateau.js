@@ -394,7 +394,7 @@ var createScene = async function () {
   scene.onKeyboardObservable.add((kbInfo) => {
     switch (kbInfo.type) {
       case BABYLON.KeyboardEventTypes.KEYDOWN:
-        console.log("Key down", kbInfo.event.key);
+        //console.log("Key down", kbInfo.event.key);
         switch (kbInfo.event.key) {
           case "Control":
             controlKeyDown = true;
@@ -600,6 +600,9 @@ var createScene = async function () {
   scene.cameraToUseForPointers = camera;
   scene.pointerDownPredicate = (m) => m == ground || PlateauObject.GetTopMost(m) != null;
   scene.onPointerObservable.add((pointerInfo) => {
+    viewportMouseX = pointerInfo.event.pageX / canvas.width;
+    viewportMouseY = pointerInfo.event.pageY / canvas.height;
+
     if (gestureOn || gestureHandler.touches.size > 1) return;
     switch (pointerInfo.type) {
       case BABYLON.PointerEventTypes.POINTERDOWN:
@@ -669,8 +672,7 @@ var createScene = async function () {
         stopCurrentInteraction();
         break;
       case BABYLON.PointerEventTypes.POINTERMOVE:
-        console.log(pointerInfo.event);
-        console.log(canvas);
+        IsolateViewHandler.updateViewport();
         if (mousePanning) {
           const delta = 0.01; // Amount of change in movement
           let x = delta * pointerInfo.event.movementX;
