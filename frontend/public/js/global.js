@@ -13,7 +13,7 @@ let showDropZoneInRadius = 100.1;
 let viewportMouseX = 0;
 let viewportMouseY = 0;
 
-gLiftHeight = 0.3;
+gLiftHeight = 0.15;
 
 let preloadFunctions = [];
 

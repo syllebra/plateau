@@ -42,7 +42,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
   - [ ] 3D Buttons
   - [ ] Screen display option
 - [x] Close Isolate view (shift)
-  - [ ] Orientation object dependant
+  - [x] Orientation object dependant
   - [x] Mouse centered
 
 ## Backend
@@ -72,7 +72,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Custom Tokens
   - [x] Attached Snap Points
   - [ ] Multiple States ?
-  - [ ] Multiple Textures
+  - [x] Multiple Textures
 - [x] Custom Tokens Stacks (simple)
 - [x] Custom Boards
   - [ ] Borders

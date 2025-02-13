@@ -17,6 +17,8 @@ class TTSImporter {
   static UNIT_MULTIPLIER = TTSImporter.UNIT_CONVERTER * TTSImporter.IMPORT_SCALE;
   static FAR_POSITION = new BABYLON.Vector3(1000, 1000, 1000);
   static POS_OFFSET = new BABYLON.Vector3(0.0, -0.955 * TTSImporter.UNIT_MULTIPLIER, 0.0); // new BABYLON.Vector3(0.0, 0.0, 0.0);
+  static STACK_POSITION_RANDOMNESS = 0.01;
+  static STACK_ROTATION_RANDOMNESS = 2;
   static textures = new Map();
   static meshes = new Map();
 
@@ -592,11 +594,11 @@ class TTSImporter {
   static async importSimpleStack(o, f) {
     // Simple stack implementation
     var number = o.Number;
-    var dy = 0;
     var obj = await f(o);
     this.genericImports(obj, o);
     var objects = [obj];
     var dec = obj.getBoundingInfos().boundingBox.extendSizeWorld.y * 2;
+    var dy = dec;
     for (var i = 1; i < number; i++) {
       // if(obj == null)
       //   continue;
@@ -604,6 +606,14 @@ class TTSImporter {
       clonedObj.startAnimationMode();
       clonedObj.node.position = obj.node.position.clone();
       clonedObj.node.position.y += dy;
+
+      clonedObj.node.position.x += (Math.random() - 0.5) * TTSImporter.STACK_POSITION_RANDOMNESS;
+      clonedObj.node.position.z += (Math.random() - 0.5) * TTSImporter.STACK_POSITION_RANDOMNESS;
+      var rnda = BABYLON.Tools.ToRadians(TTSImporter.STACK_ROTATION_RANDOMNESS * (Math.random() - 0.5));
+      clonedObj.node.rotationQuaternion = clonedObj.node.rotationQuaternion.multiply(
+        BABYLON.Quaternion.FromEulerAngles(0, rnda, 0)
+      );
+
       dy += dec;
       objects.push(clonedObj);
     }

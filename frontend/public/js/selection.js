@@ -201,9 +201,23 @@ class IsolateViewHandler {
   static updateViewport() {
     if (!IsolateViewHandler.pointedObj) return;
     var obj = this.pointedObj;
-    isolateCamera.position = obj.node.absolutePosition.add(obj.node.up.multiplyByFloats(3, 3, 3));
+
+    // Pick the upside most direction over:
+    //var testDirs = [obj.node.up,obj.node.up.multiplyByFloats(-1,-1,-1),obj.node.forward,obj.node.forward.multiplyByFloats(-1,-1,-1)]
+    var mult = 1;
+    if (obj.autoUpSide) {
+      var a1 = angleDegreesBetweenTwoUnitVectors(obj.preferedFrontVector, BABYLON.Vector3.Up());
+      var a2 = angleDegreesBetweenTwoUnitVectors(
+        obj.preferedFrontVector.multiplyByFloats(-1, -1, -1),
+        BABYLON.Vector3.Up()
+      );
+    }
+    mult = a1 < a2 ? 1 : -1;
+    isolateCamera.position = obj.node.absolutePosition.add(
+      obj.preferedFrontVector.multiplyByFloats(3 * mult, 3 * mult, 3 * mult)
+    );
     isolateCamera.setTarget(obj.node.absolutePosition);
-    isolateCamera.upVector = obj.node.forward.clone(); //.multiplyByFloats(-1, -1, -1);
+    isolateCamera.upVector = obj.preferedUpVector.clone(); //.multiplyByFloats(-1, -1, -1);
 
     var es = obj.getBoundingInfos().boundingBox.extendSize.clone();
     es.x *= obj.node.scaling.x;

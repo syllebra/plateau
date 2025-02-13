@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const app = express();
 const PORT = 3000;
 
-let no_download = true;
+let no_download = false;
 
 // Serve static files from the frontend's "public" directory
 const frontendPublicDir = path.join(__dirname, "..", "frontend", "public");

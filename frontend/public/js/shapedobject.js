@@ -58,7 +58,7 @@ class ShapedObject extends PlateauObject {
     flipNormals(bottom);
 
     planarUVProjectXZ(topBevel, topUVs);
-    planarUVProjectXZ(bottom, bottomUVs,bottomUVs, true);
+    planarUVProjectXZ(bottom, bottomUVs, bottomUVs, true);
 
     const newMesh = BABYLON.Mesh.MergeMeshes(
       [topBevel, bottom],
@@ -76,7 +76,7 @@ class ShapedObject extends PlateauObject {
       colliderBuild, // mesh from which to produce the convex hull
       scene // scene of the shape
     );
-    colliderBuild.dispose()
+    colliderBuild.dispose();
 
     super(newMesh, collider, { friction: 0.6, restitution: 0.3 }, position, 1); // TODO: simpler collider
     this.updateBoundingInfos();
@@ -86,6 +86,14 @@ class ShapedObject extends PlateauObject {
 
     // this.straightenAtPickup = false;
     // this.isFlippable = false;
+    this.autoUpSide = true;
+  }
+
+  get preferedFrontVector() {
+    return this.node.up;
+  }
+  get preferedUpVector() {
+    return this.node.forward;
   }
 
   setMaterial(topMat, bottomMat = null) {
@@ -139,7 +147,7 @@ class ShapedObject extends PlateauObject {
     bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRoundedRectangleShape(w - bevelRad * 2, h - bevelRad * 2, cRad, cN);
-    var physShape = createRoundedRectangleShape(w, h, cRad, Math.ceil(cN/3));
+    var physShape = createRoundedRectangleShape(w, h, cRad, Math.ceil(cN / 3));
     return new ShapedObject(position, topShape, physShape, thickness, bevelRad, bevelN, topUVs, bottomUVs);
   }
 
@@ -154,7 +162,7 @@ class ShapedObject extends PlateauObject {
     bottomUVs = new BABYLON.Vector4(1, 0, 0, 1)
   ) {
     var topShape = createRegularShape(radius - bevelRad, cN);
-    var phys = createRegularShape(radius, Math.ceil(cN/3));
+    var phys = createRegularShape(radius, Math.ceil(cN / 3));
     return new ShapedObject(position, topShape, phys, thickness, bevelRad, bevelN, topUVs, bottomUVs);
   }
 }

@@ -81,6 +81,23 @@ class FastUI {
     return bodiesCounter;
   }
 
+  addSlider(scene, modifyValue) {
+    var slider = new BABYLON.GUI.Slider("pickheight");
+    slider.minimum = 0.02;
+    slider.maximum = 1;
+    slider.value = gLiftHeight;
+    slider.height = "20px";
+    slider.width = "250px";
+    slider.color = "#003399";
+    slider.background = "grey";
+    slider.left = "20px";
+    slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    slider.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    if (modifyValue) slider.onValueChangedObservable.add(modifyValue);
+    this.panel.addControl(slider);
+    return slider;
+  }
+
   setup(scene, hk, viewer) {
     // Debug physics button
     const viewerCheckbox = this.addToggle("Debug Viewer");
@@ -103,10 +120,9 @@ class FastUI {
     const zonesCheckbox = this.addToggle("Display zones");
     zonesCheckbox.isChecked = false;
     zonesCheckbox.onIsCheckedChangedObservable.add((value) => {
-        PlateauManager.Objects.forEach((v,k,m) => {
-          if(v instanceof Zone)
-            v.node.setEnabled(value);
-        })
+      PlateauManager.Objects.forEach((v, k, m) => {
+        if (v instanceof Zone) v.node.setEnabled(value);
+      });
     });
 
     this.addText(scene, (bodiesCounter) => {
@@ -127,6 +143,8 @@ class FastUI {
       const pt = sceneInstrumentation.physicsTimeCounter.lastSecAverage;
       c.text = `physics time: ${pt.toFixed(2)} ms`;
     });
+
+    this.addSlider(scene, (v) => (gLiftHeight = v));
   }
 }
 

@@ -703,7 +703,7 @@ var createScene = async function () {
             pickedObject.node.plateauObj = pickedObject; // just for tyhe copying time
             pickedObjectGhost.plateauObj = null;
             pickedObjectGhost.material = pickedObject.node.material.clone("ghost", true);
-            pickedObjectGhost.material.alpha = 0.3;
+            pickedObjectGhost.material.alpha = 0.6;
             pickedObjectGhost.setEnabled(false);
             //pickedObjectGhost.material = new PBRMaterial("hollow")
           }
@@ -745,6 +745,7 @@ var createScene = async function () {
                   pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.absoluteRotationQuaternion);
               }
               pickedObjectGhost.setEnabled(dropZ != null && !controlKeyDown);
+              Pointer.setVisible(dropZ == null || controlKeyDown);
             }
           }
         } else {
@@ -918,8 +919,9 @@ var createScene = async function () {
       .then((sc) => {
         console.log("Script loaded:", sc);
 
-        setup_constants();
-        create_hell_deck(new BABYLON.Vector3(2.48518202226, 0, 3.20742907408));
+        onload();
+        //setup_constants();
+        //create_hell_deck(new BABYLON.Vector3(2.48518202226, 0, 3.20742907408));
         //do_setup()
 
         PlateauManager.getObjectFromName("Power Token");
@@ -965,7 +967,6 @@ var createScene = async function () {
   //TTSImporter.importFile(src + "3340958295.json", loadingFinished, progressCB); // DD2
 
   TTSImporter.importFile("/dev/TS_Save_3.json", loadingFinished, progressCB); // GS+Ex
-
   //loadingFinished();
   Pointer.load();
 

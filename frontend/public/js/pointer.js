@@ -49,6 +49,7 @@ class Pointer {
         container //BABYLON.SceneLoader.ImportMesh("", "models/", modelNameAndExtension, pathTracingScene, function (meshes)
       ) {
         Pointer.createFromMesh(container.meshes[1]);
+        Pointer.hide();
       }
     );
   }
@@ -69,12 +70,18 @@ class Pointer {
       SelectionHandler.hl.removeMesh(this.pointerClone);
     }
   }
+
+  static setVisible(b) {
+    if (b) Pointer.show();
+    else Pointer.hide();
+  }
+
   static move(pos, sphereDec = 0) {
     if (this.pointer) this.pointer.position.copyFrom(pos);
     if (this.pointerClone) this.pointerClone.position.copyFrom(pos);
     if (this.pointerSphere) {
       this.pointerSphere.position.copyFrom(pos);
-      this.pointerSphere.position.y += sphereDec +0.015;
+      this.pointerSphere.position.y += sphereDec + 0.015;
     }
   }
 }

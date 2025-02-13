@@ -71,4 +71,11 @@ class Dice extends PlateauObject {
     this.straightenAtPickup = false;
     this.isFlippable = false;
   }
+
+  get preferedFrontVector() {
+    return BABYLON.Vector3.Down();
+  }
+  get preferedUpVector() {
+    return BABYLON.Vector3.Forward();
+  }
 }

@@ -76,6 +76,7 @@ class Card extends PlateauObject {
     this.atlas = atlas;
     this.num = num;
     this.back = numBack;
+    this.autoUpSide = true;
 
     if (position) box.position.copyFrom(position);
 
@@ -87,6 +88,13 @@ class Card extends PlateauObject {
   // _updateAutoCollider() {
   //   return null;
   // }
+
+  get preferedFrontVector() {
+    return this.node.up;
+  }
+  get preferedUpVector() {
+    return this.node.forward;
+  }
 
   onPickup() {
     if (this.straightenAtPickup) {
@@ -124,10 +132,18 @@ class Deck extends PlateauObject {
 
     super(node);
     this.canReceive = false;
+    this.autoUpSide = true;
   }
 
   get fullTitle() {
     return super.fullTitle + " - " + this.cards.length;
+  }
+
+  get preferedFrontVector() {
+    return this.node.up;
+  }
+  get preferedUpVector() {
+    return this.node.forward;
   }
 
   clone() {
@@ -137,6 +153,15 @@ class Deck extends PlateauObject {
     return ret;
   }
 
+  dispose(disposeCards = true) {
+    if (disposeCards) {
+      this.cards.forEach((c) => c.dispose());
+    } else {
+      var N = this.cards.length;
+      for (var i = 0; i < N; i++) this.popCard();
+    }
+    super.dispose();
+  }
   updateZones() {
     this.checkDropZonesUpdate();
   }
@@ -228,6 +253,8 @@ class Deck extends PlateauObject {
       card = picked;
       this.cards.splice(id, 1);
     }
+
+    if (card == null) return null;
 
     var world_H_card = XTransform.FromNodeWorld(card.node);
     card.deck = null;

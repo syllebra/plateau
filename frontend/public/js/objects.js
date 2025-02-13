@@ -54,7 +54,17 @@ class PlateauObject {
     gizmoManager.attachableMeshes.push(this.node);
     gizmoManager.attachToMesh(this.node);
 
+    this.autoUpSide = false;
     //this.node.layerMask = 0x00000001;
+  }
+
+  get preferedFrontVector() {
+    var es = this.getBoundingInfos().boundingBox.extendSize;
+    return es.y < es.z ? this.node.up : this.node.forward;
+  }
+  get preferedUpVector() {
+    var es = this.getBoundingInfos().boundingBox.extendSize;
+    return es.y < es.z ? this.node.forward : this.node.up;
   }
 
   get uuid() {
@@ -104,6 +114,7 @@ class PlateauObject {
   }
 
   dispose() {
+    PlateauManager.removeObject(this);
     if (this.body) {
       this.body.dispose();
       this.body = null;
@@ -404,6 +415,9 @@ class PlateauObject {
 
         return true;
         break;
+      case "Delete":
+        this.dispose(!shiftKeyDown);
+        break;
       default:
         break;
     }
@@ -508,6 +522,13 @@ class PlateauManager {
   static addObject(po) {
     if (PlateauManager.Objects.has(po.uuid)) throw new Error("Doubling UUID!");
     PlateauManager.Objects.set(po.uuid, po);
+  }
+
+  static removeObject(po) {
+    if (PlateauManager.Objects.has(po.uuid));
+    PlateauManager.Objects.delete(po.uuid);
+
+    if (SelectionHandler.hoveredObject == po) SelectionHandler.updateHover(null);
   }
 
   static changeObjectUUID(po, lastuuid) {
