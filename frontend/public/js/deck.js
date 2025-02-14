@@ -148,6 +148,19 @@ class Deck extends PlateauObject {
     return this.node.forward;
   }
 
+  get state() {
+    var obj = super.state;
+
+    var cards_uuid = [];
+    this.cards.forEach((c) => cards_uuid.push(c.uuid));
+    obj.cards = cards_uuid;
+    return obj;
+  }
+
+  set state(v) {
+    super.state = v;
+  }
+
   clone() {
     var ret = super.clone();
     ret.topDropZone = this.topDropZone.clone(ret);
@@ -188,6 +201,20 @@ class Deck extends PlateauObject {
     }
     deck.setupDropZones();
     if (position) deck.node.position.copyFrom(position);
+    return deck;
+  }
+
+  static RecreateFromState(s, uuid) {
+    console.log("Recreating from state:", s);
+    var cards = [];
+    s.cards.forEach((cuuid) => {
+      var c = PlateauManager.getObject(cuuid);
+      if (!c) console.error("Unable to find card ", cuuid);
+      else cards.push(c);
+    });
+    var deck = this.BuildFromCards("Ghosts", cards);
+    deck.uuid = uuid;
+    deck.state = s;
     return deck;
   }
 

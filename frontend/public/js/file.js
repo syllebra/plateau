@@ -1,14 +1,7 @@
 function exportStateJSON(fileName) {
   data = {};
   PlateauManager.Objects.forEach((v, k, m) => {
-    var pos = v.node.absolutePosition;
-    var rot = v.node.absoluteRotationQuaternion;
-    var parent = v.node.parent?.plateauObj?.uuid;
-    data[k] = {
-      pos: { x: pos.x, y: pos.y, z: pos.z },
-      rotation: { x: rot.x, y: rot.y, z: rot.z, w: rot.w },
-      parent: parent,
-    };
+    data[k] = v.state;
   });
   console.log(data);
   //   // Convert Object to JSON
@@ -48,6 +41,8 @@ var importStateJSON = function () {
       reader.onload = function () {
         var data = JSON.parse(reader.result);
         console.log(data);
+
+        if (beforeImport) beforeImport();
         var toSet = [];
         //data.forEach((v, k, m) => {
         for (var k in data) {
@@ -55,20 +50,27 @@ var importStateJSON = function () {
             // do stuff
             var v = data[k];
             var po = PlateauManager.getObject(k);
-            if (!po) console.warn("Unable to find:", k);
-            else {
-              if (po.startAnimationMode) po.startAnimationMode();
-              if (po.node) {
-                po.node.position = new BABYLON.Vector3(v.pos.x, v.pos.y, v.pos.z);
-                po.node.rotationQuaternion = new BABYLON.Quaternion(
-                  v.rotation.x,
-                  v.rotation.y,
-                  v.rotation.z,
-                  v.rotation.w
-                );
+            if (!po) {
+              if (v.clonedFrom) {
+                var origin = PlateauManager.getObject(v.clonedFrom);
+                if (!origin) console.warn("Unable to clone:", k, " from ", v.clonedFrom);
+                else {
+                  po = origin.clone();
+                  po.uuid = k;
+                  po.state = v;
+                }
+              } else {
+                // Trying to recreate from type...
+                var cls = getClass(v.type);
+                console.warn("Unable to find:", k);
+                if (cls?.RecreateFromState) {
+                  po = cls.RecreateFromState(v, k);
+                }
               }
-              toSet.push(po);
+            } else {
+              po.state = v;
             }
+            if (po) toSet.push(po);
           }
         }
 

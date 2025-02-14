@@ -88,6 +88,32 @@ class PlateauObject {
     return this.uuid + " - <<i>" + this.constructor.name + "</i>>";
   }
 
+  get state() {
+    var pos = this.node.position;
+    var rot = this.node.rotationQuaternion;
+    var parent = this.node.parent?.plateauObj?.uuid;
+    var ret = {
+      type: this.constructor.name,
+      pos: { x: pos.x, y: pos.y, z: pos.z },
+      rotation: { x: rot.x, y: rot.y, z: rot.z, w: rot.w },
+      parent: parent,
+    };
+
+    if (this.clonedFrom) ret.clonedFrom = this.clonedFrom;
+    return ret;
+  }
+
+  set state(v) {
+    this.startAnimationMode();
+    var par = PlateauManager.getObject(v.parent);
+    if (this.node) {
+      if (par != this.node.parent) this.node.parent = par;
+
+      this.node.position = new BABYLON.Vector3(v.pos.x, v.pos.y, v.pos.z);
+      this.node.rotationQuaternion = new BABYLON.Quaternion(v.rotation.x, v.rotation.y, v.rotation.z, v.rotation.w);
+    }
+  }
+
   setName(name) {
     this.node.id = this.node.name = name;
   }

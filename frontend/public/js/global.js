@@ -127,3 +127,18 @@ function loadScript(src) {
     document.head.appendChild(s);
   });
 }
+
+var _cls_ = {}; // serves as a cache, speed up later lookups
+function getClass(name) {
+  if (!_cls_[name]) {
+    // cache is not ready, fill it up
+    if (name.match(/^[a-zA-Z0-9_]+$/)) {
+      // proceed only if the name is a single word string
+      _cls_[name] = eval(name);
+    } else {
+      // arbitrary code is detected
+      throw new Error("Who let the dogs out?");
+    }
+  }
+  return _cls_[name];
+}
