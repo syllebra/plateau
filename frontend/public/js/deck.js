@@ -133,6 +133,8 @@ class Deck extends PlateauObject {
     super(node);
     this.canReceive = false;
     this.autoUpSide = true;
+
+    this.uuid = this._uuid; // To recordon the list
   }
 
   get fullTitle() {

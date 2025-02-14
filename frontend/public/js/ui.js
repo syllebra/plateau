@@ -115,7 +115,6 @@ class FastUI {
         viewer = null;
       }
     });
-
     // Display Zones button
     const zonesCheckbox = this.addToggle("Display zones");
     zonesCheckbox.isChecked = false;
@@ -145,6 +144,13 @@ class FastUI {
     });
 
     this.addSlider(scene, (v) => (gLiftHeight = v));
+
+    this.addBtn("Export State", () => {
+      exportStateJSON("State.json");
+    });
+    this.addBtn("Import State", () => {
+      importStateJSON("State.json");
+    });
   }
 }
 
