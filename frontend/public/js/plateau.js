@@ -924,7 +924,7 @@ var createScene = async function () {
         //create_hell_deck(new BABYLON.Vector3(2.48518202226, 0, 3.20742907408));
         //do_setup()
 
-        PlateauManager.getObjectFromName("Power Token");
+        PlateauManager.getObjectsFromName("Power Token");
       });
   }
   // Example usage:

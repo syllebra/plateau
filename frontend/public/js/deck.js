@@ -154,6 +154,7 @@ class Deck extends PlateauObject {
     var cards_uuid = [];
     this.cards.forEach((c) => cards_uuid.push(c.uuid));
     obj.cards = cards_uuid;
+    obj.name = this.node?.name;
     return obj;
   }
 
@@ -169,12 +170,14 @@ class Deck extends PlateauObject {
   }
 
   dispose(disposeCards = true) {
+    console.log("Disposing:", this.cards.length);
     if (disposeCards) {
       this.cards.forEach((c) => c.dispose());
     } else {
       var N = this.cards.length;
       for (var i = 0; i < N; i++) this.popCard();
     }
+    console.log("Disposed:", this.cards.length);
     super.dispose();
   }
   updateZones() {
@@ -212,7 +215,7 @@ class Deck extends PlateauObject {
       if (!c) console.error("Unable to find card ", cuuid);
       else cards.push(c);
     });
-    var deck = this.BuildFromCards("Ghosts", cards);
+    var deck = this.BuildFromCards(s.name ? s.name : "Deck", cards);
     deck.uuid = uuid;
     deck.state = s;
     return deck;
@@ -287,7 +290,7 @@ class Deck extends PlateauObject {
 
     var world_H_card = XTransform.FromNodeWorld(card.node);
     card.deck = null;
-    card.node.parent = null;
+    card.node.setParent(null);
     world_H_card.applyToNodeWorld(card.node);
     card._updateAutoCollider();
     this._updateCardsPhysics();

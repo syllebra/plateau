@@ -73,6 +73,7 @@ var importStateJSON = function () {
             if (po) toSet.push(po);
           }
         }
+        if (afterImport) afterImport();
 
         window.setTimeout(() => {
           toSet.forEach((po) => {
@@ -80,7 +81,6 @@ var importStateJSON = function () {
           });
         }, 2000);
       };
-
       reader.readAsText(file);
     } else {
       alert("File not supported, .txt or .json files only");

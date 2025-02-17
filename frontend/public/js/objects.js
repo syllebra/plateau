@@ -107,7 +107,10 @@ class PlateauObject {
     this.startAnimationMode();
     var par = PlateauManager.getObject(v.parent);
     if (this.node) {
-      if (par != this.node.parent) this.node.parent = par;
+      if (par != this.node.parent) {
+        //console.log("Changing parent for ", this.node.name, "from ", this.node.parent?.name, " to ", par?.node?.name);
+        this.node.setParent(par?.node);
+      }
 
       this.node.position = new BABYLON.Vector3(v.pos.x, v.pos.y, v.pos.z);
       this.node.rotationQuaternion = new BABYLON.Quaternion(v.rotation.x, v.rotation.y, v.rotation.z, v.rotation.w);
@@ -562,7 +565,7 @@ class PlateauManager {
     PlateauManager.addObject(po);
   }
 
-  static getObjectFromName(partial_name) {
+  static getObjectsFromName(partial_name) {
     var ret = [];
     this.Objects.forEach((v, k, m) => {
       //console.log(k ,"=>", v);
