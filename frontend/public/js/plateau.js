@@ -373,6 +373,9 @@ var createScene = async function () {
       }
     }
 
+    var plHit = rayPlaneIntersection(ray, pickedPlane);
+    if (plHit.hit) max_height = Math.max(max_height, plHit.pickedPoint.y);
+
     Pointer.move(new BABYLON.Vector3(position.x, 0, position.z), max_height);
 
     return max_height;
@@ -380,6 +383,7 @@ var createScene = async function () {
 
   var pickedObject = null;
   var pickedObjectGhost = null;
+  var pickedPlane = BABYLON.Plane.FromPositionAndNormal(BABYLON.Vector3.Zero(), BABYLON.Vector3.Up());
   var picked_ground_pos = new BABYLON.Vector3();
   var picked_ray_hit_ground = new BABYLON.Vector3();
   var box_selection = false;
@@ -597,6 +601,103 @@ var createScene = async function () {
       Pointer.hide();
     }
   }
+
+  scene.onPointerMove = function (event, pickInfo, type) {
+    if (gestureOn || gestureHandler.touches.size > 1) return;
+    switch (type) {
+      case BABYLON.PointerEventTypes.POINTERMOVE:
+        IsolateViewHandler.updateViewport();
+        if (mousePanning) {
+          const delta = 0.01; // Amount of change in movement
+          let x = delta * event.movementX;
+          let y = -delta * event.movementY;
+          panCamera(x, y);
+        }
+
+        MouseSpeed.update(event);
+        if (box_selection) {
+          SelectionHandler.selbox.setSecondPoint(rayPlaneIntersection(pickInfo.ray, pickedPlane).pickedPoint);
+          var sel_bb = SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
+
+          for (var m of scene.meshes) {
+            var po = PlateauObject.GetTopMost(m);
+            if (!po) continue;
+            var m_bb = po.getBoundingInfos().boundingBox;
+
+            if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb, true)) {
+              SelectionHandler.addPlateauObject(po);
+            } else if (!controlKeyDown) SelectionHandler.removePlateauObject(po);
+          }
+        } else if (pickedObject) {
+          if (!pickedObjectGhost) {
+            pickedObject.node.plateauObj = null; // just for tyhe copying time
+            pickedObjectGhost = pickedObject.node.clone(pickedObject.node.name + " Ghost", null, true, false);
+            pickedObject.node.plateauObj = pickedObject; // just for tyhe copying time
+            pickedObjectGhost.plateauObj = null;
+            pickedObjectGhost.material = pickedObject.node.material.clone("ghost", true);
+            pickedObjectGhost.material.alpha = 0.6;
+            pickedObjectGhost.setEnabled(false);
+            //pickedObjectGhost.material = new PBRMaterial("hollow")
+          }
+          var base_hit = rayPlaneIntersection(pickInfo.ray, pickedPlane);
+          if (base_hit.hit) {
+            let dx =
+              picked_ground_pos.x + base_hit.pickedPoint.x - picked_ray_hit_ground.x - pickedObject.node.position.x;
+            let dz =
+              picked_ground_pos.z + base_hit.pickedPoint.z - picked_ray_hit_ground.z - pickedObject.node.position.z;
+
+            var objects = SelectionHandler.getPlateauObjects();
+            if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
+            for (var o of objects) {
+              if (o.locked) continue;
+              o.node.position.x += dx;
+              o.node.position.z += dz;
+              updateDraggedNodeHeight(o);
+            }
+            updateDraggedNodeHeight(pickedObject);
+
+            var elapsed = performance.now() - last_base_hit_time;
+            dir_speed.x = (base_hit.pickedPoint.x - last_base_hit.x) / elapsed;
+            dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
+            last_base_hit.copyFrom(base_hit.pickedPoint);
+            last_base_hit_time = performance.now();
+            DropZone.ShowInRadius(
+              pickedObject.node.absolutePosition,
+              showDropZoneInRadius,
+              (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
+            );
+            var dropZ = DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+            PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
+            if (pickedObjectGhost) {
+              if (dropZ) {
+                var pos = dropZ.node.absolutePosition.clone();
+                pos.y += pickedObject.getBoundingInfos().boundingBox.extendSizeWorld.y;
+                pickedObjectGhost.position.copyFrom(pos);
+                if (dropZ.forceOrientation)
+                  pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.absoluteRotationQuaternion);
+              }
+              pickedObjectGhost.setEnabled(dropZ != null && !controlKeyDown);
+              Pointer.setVisible(dropZ == null || controlKeyDown);
+            }
+          }
+        } else {
+          var pi = scene.pickWithRay(pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
+          var po = PlateauObject.GetTopMost(pi.pickedMesh);
+          SelectionHandler.updateHover(po);
+          if (po) {
+            g_tooltip.setTitle(po.fullTitle);
+            g_tooltip.setDescription(po.fullDescription.replace("\n", "<br>"));
+            g_tooltip.setUUID(po.fullAdditional);
+            g_tooltip.showTooltip(event.pageX, event.pageY);
+          } else {
+            g_tooltip.hideTooltip();
+            camera.inputs.attachInput(camera.inputs.attached.keyboard);
+          }
+        }
+        break;
+    }
+  };
+
   scene.cameraToUseForPointers = camera;
   scene.pointerDownPredicate = (m) => m == ground || PlateauObject.GetTopMost(m) != null;
   scene.onPointerObservable.add((pointerInfo) => {
@@ -641,9 +742,7 @@ var createScene = async function () {
           Pointer.show();
 
           picked_ground_pos.copyFrom(pickedObject.node.position);
-          picked_ray_hit_ground.copyFrom(
-            pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
-          );
+          picked_ray_hit_ground.copyFrom(rayPlaneIntersection(pointerInfo.pickInfo.ray, pickedPlane).pickedPoint);
 
           DropZone.ShowInRadius(
             picked_ground_pos,
@@ -671,98 +770,7 @@ var createScene = async function () {
 
         stopCurrentInteraction();
         break;
-      case BABYLON.PointerEventTypes.POINTERMOVE:
-        IsolateViewHandler.updateViewport();
-        if (mousePanning) {
-          const delta = 0.01; // Amount of change in movement
-          let x = delta * pointerInfo.event.movementX;
-          let y = -delta * pointerInfo.event.movementY;
-          panCamera(x, y);
-        }
 
-        MouseSpeed.update(pointerInfo.event);
-        if (box_selection) {
-          SelectionHandler.selbox.setSecondPoint(
-            pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true)).pickedPoint
-          );
-          var sel_bb = SelectionHandler.selbox.box.getBoundingInfo().boundingBox;
-
-          for (var m of scene.meshes) {
-            var po = PlateauObject.GetTopMost(m);
-            if (!po) continue;
-            var m_bb = po.getBoundingInfos().boundingBox;
-
-            if (BABYLON.BoundingBox.Intersects(sel_bb, m_bb, true)) {
-              SelectionHandler.addPlateauObject(po);
-            } else if (!controlKeyDown) SelectionHandler.removePlateauObject(po);
-          }
-        } else if (pickedObject) {
-          if (!pickedObjectGhost) {
-            pickedObject.node.plateauObj = null; // just for tyhe copying time
-            pickedObjectGhost = pickedObject.node.clone(pickedObject.node.name + " Ghost", null, true, false);
-            pickedObject.node.plateauObj = pickedObject; // just for tyhe copying time
-            pickedObjectGhost.plateauObj = null;
-            pickedObjectGhost.material = pickedObject.node.material.clone("ghost", true);
-            pickedObjectGhost.material.alpha = 0.6;
-            pickedObjectGhost.setEnabled(false);
-            //pickedObjectGhost.material = new PBRMaterial("hollow")
-          }
-          var base_hit = pointerInfo.pickInfo.ray.intersectsMesh(ground, (onlyBoundingInfo = true));
-          if (base_hit.hit) {
-            let dx =
-              picked_ground_pos.x + base_hit.pickedPoint.x - picked_ray_hit_ground.x - pickedObject.node.position.x;
-            let dz =
-              picked_ground_pos.z + base_hit.pickedPoint.z - picked_ray_hit_ground.z - pickedObject.node.position.z;
-
-            var objects = SelectionHandler.getPlateauObjects();
-            if (!SelectionHandler.isSelected(pickedObject)) objects.push(pickedObject);
-            for (var o of objects) {
-              if (o.locked) continue;
-              o.node.position.x += dx;
-              o.node.position.z += dz;
-              updateDraggedNodeHeight(o);
-            }
-            updateDraggedNodeHeight(pickedObject);
-
-            var elapsed = performance.now() - last_base_hit_time;
-            dir_speed.x = (base_hit.pickedPoint.x - last_base_hit.x) / elapsed;
-            dir_speed.z = (base_hit.pickedPoint.z - last_base_hit.z) / elapsed;
-            last_base_hit.copyFrom(base_hit.pickedPoint);
-            last_base_hit_time = performance.now();
-            DropZone.ShowInRadius(
-              pickedObject.node.absolutePosition,
-              showDropZoneInRadius,
-              (m) => PlateauObject.GetTopMost(m.node) != pickedObject && m.accept(pickedObject)
-            );
-            var dropZ = DropZone.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
-            PlateauObject.CheckCurrentDrop(pickedObject.node.absolutePosition, pickedObject);
-            if (pickedObjectGhost) {
-              if (dropZ) {
-                var pos = dropZ.node.absolutePosition.clone();
-                pos.y += pickedObject.getBoundingInfos().boundingBox.extendSizeWorld.y;
-                pickedObjectGhost.position.copyFrom(pos);
-                if (dropZ.forceOrientation)
-                  pickedObjectGhost.rotationQuaternion.copyFrom(dropZ.node.absoluteRotationQuaternion);
-              }
-              pickedObjectGhost.setEnabled(dropZ != null && !controlKeyDown);
-              Pointer.setVisible(dropZ == null || controlKeyDown);
-            }
-          }
-        } else {
-          var pi = scene.pickWithRay(pointerInfo.pickInfo.ray, (m) => PlateauObject.GetTopMost(m) != null);
-          var po = PlateauObject.GetTopMost(pi.pickedMesh);
-          SelectionHandler.updateHover(po);
-          if (po) {
-            g_tooltip.setTitle(po.fullTitle);
-            g_tooltip.setDescription(po.fullDescription.replace("\n", "<br>"));
-            g_tooltip.setUUID(po.fullAdditional);
-            g_tooltip.showTooltip(pointerInfo.event.pageX, pointerInfo.event.pageY);
-          } else {
-            g_tooltip.hideTooltip();
-            camera.inputs.attachInput(camera.inputs.attached.keyboard);
-          }
-        }
-        break;
       case BABYLON.PointerEventTypes.POINTERWHEEL:
         if (pickedObject) {
           const angle = pointerInfo.event.deltaY > 0 ? rotationIncrement : -rotationIncrement;

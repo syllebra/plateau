@@ -132,12 +132,10 @@ function planarUVProjectXZ(
   mesh.setVerticesData(BABYLON.VertexBuffer.UVKind, uvs);
 }
 
-
 function flipNormals(mesh) {
   var norms = mesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
 
-  for (let i = 0; i < norms.length; i++)
-    norms[i] *= -1.0;
+  for (let i = 0; i < norms.length; i++) norms[i] *= -1.0;
 
   mesh.setVerticesData(BABYLON.VertexBuffer.NormalKind, norms);
 }
@@ -172,4 +170,13 @@ function extrudeShape(shape, thickness, center = false, capOpt = BABYLON.Mesh.CA
 function createCardShape(w = 0.572, h = 0.889, thickness = 0.004, cRad = 0.05, cN = 4) {
   var shape = createRoundedRectangleShape(w, h, cRad, cN);
   return extrudeShape(shape, thickness, true);
+}
+
+function rayPlaneIntersection(ray, plane) {
+  var distance = ray.intersectsPlane(plane);
+  if (distance == null) return { hit: false, pickedPoint: null, distance: null };
+  var pi = ray.direction.multiplyByFloats(distance, distance, distance);
+  pi.addInPlace(ray.origin);
+
+  return { hit: true, pickedPoint: pi, distance: distance };
 }
