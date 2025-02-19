@@ -701,7 +701,7 @@ var createScene = async function () {
   };
 
   scene.cameraToUseForPointers = camera;
-  scene.pointerDownPredicate = (m) => m == ground || PlateauObject.GetTopMost(m) != null;
+  scene.pointerDownPredicate = (m) => (m == ground || PlateauObject.GetTopMost(m) != null) && !m.dropZone;
   scene.onPointerObservable.add((pointerInfo) => {
     viewportMouseX = pointerInfo.event.pageX / canvas.width;
     viewportMouseY = pointerInfo.event.pageY / canvas.height;
