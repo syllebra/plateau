@@ -560,18 +560,20 @@ var createScene = async function () {
           continue;
         }
 
-        var pos = new BABYLON.Vector3();
-        pos.copyFrom(o.node.absolutePosition);
-        pos.y += 0.03; // slightly up to induce some moment (angular velocity)
         o.stopAnimationMode();
         o.onRelease();
 
         if (o.body) {
+          var cm = o.body.getMassProperties().centerOfMass.clone();
+          var world_H_obj = XTransform.FromNodeWorld(o.node);
+          var world_H_com = world_H_obj.multiply(new XTransform(cm));
           var power = o.body.getMassProperties().mass * 1.5 * MouseSpeed.value;
           var forceVector = new BABYLON.Vector3();
           forceVector.copyFrom(dir_speed);
           forceVector.x *= power;
           forceVector.z *= power;
+          var pos = world_H_com.position.clone();
+          pos.y += 0.03; // slightly up to induce some moment (angular velocity)
           o.body.applyForce(forceVector, pos);
         }
       }
