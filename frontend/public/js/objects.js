@@ -423,7 +423,13 @@ class PlateauObject {
     }
   }
 
-  onRelease() {}
+  onRelease() {
+    console.log(this.node.name, " released.");
+  }
+
+  onThrow() {
+    console.log(this.node.name, " thrown.");
+  }
 
   onKeyDown(key) {
     switch (key) {

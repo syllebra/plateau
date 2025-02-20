@@ -13,6 +13,10 @@ let showDropZoneInRadius = 100.1;
 let viewportMouseX = 0;
 let viewportMouseY = 0;
 
+let gMouseThrowSensibility = 80;
+
+let randomizeDiceOrientationOnThrow = true;
+
 gLiftHeight = 0.15;
 
 let preloadFunctions = [];

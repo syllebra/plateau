@@ -61,9 +61,11 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Custom Models Stacks
 - [/] Custom Dices
   - [x] D6
+  - [ ] Dx
   - [x] Texture
   - [ ] Custom Mesh ?
   - [ ] Face orientations
+  - [x] Randomize when thrown
 - [x] Custom Tiles
   - [x] Rectangle
   - [x] Hexagon
@@ -77,7 +79,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] Custom Boards
   - [ ] Borders
 - [x] Backgammon pieces (white)
-- [x] Cards
+- [/] Cards
   - [ ] Back image not the last of the deck
   - [x] Rounded rectangular cards
   - [ ] Hexagonal Cards
@@ -106,6 +108,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [ ] Deck deletion on emptying ?
 - [ ] Deck creation on cards gathering ?
 - [ ] Draw Top or down cards
+- [ ] Options system
 
 # Bugs
 

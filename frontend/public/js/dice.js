@@ -78,4 +78,16 @@ class Dice extends PlateauObject {
   get preferedUpVector() {
     return BABYLON.Vector3.Forward();
   }
+
+  onThrow() {
+    if (randomizeDiceOrientationOnThrow) {
+      console.log("Randomized");
+      this.node.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2
+      );
+    }
+    super.onThrow();
+  }
 }
