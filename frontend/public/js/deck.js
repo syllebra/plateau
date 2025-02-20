@@ -77,6 +77,8 @@ class Card extends PlateauObject {
     this.num = num;
     this.back = numBack;
     this.autoUpSide = true;
+    this.canReceive = true;
+    this.acceptedClasses.add(Card);
 
     if (position) box.position.copyFrom(position);
 
@@ -106,6 +108,11 @@ class Card extends PlateauObject {
       this.orientUpTo(dstUp);
     }
     console.log("picked up ", this.node.name);
+  }
+
+  received(po) {
+    console.log("Dropping a card on another: creating a deck...");
+    Deck.BuildFromCards("Deck", [this, po], this.node.position);
   }
 }
 
@@ -170,14 +177,12 @@ class Deck extends PlateauObject {
   }
 
   dispose(disposeCards = true) {
-    console.log("Disposing:", this.cards.length);
     if (disposeCards) {
       this.cards.forEach((c) => c.dispose());
     } else {
       var N = this.cards.length;
       for (var i = 0; i < N; i++) this.popCard();
     }
-    console.log("Disposed:", this.cards.length);
     super.dispose();
   }
   updateZones() {
@@ -197,13 +202,13 @@ class Deck extends PlateauObject {
   }
 
   static BuildFromCards(name, cards, position) {
-    var deck = new Deck(name, null);
+    var deck = new Deck(name, position);
 
     for (var c of cards) {
       deck.addCard(c);
     }
     deck.setupDropZones();
-    if (position) deck.node.position.copyFrom(position);
+    // if (position) deck.node.position.copyFrom(position);
     return deck;
   }
 
@@ -256,6 +261,7 @@ class Deck extends PlateauObject {
     card.deck = this;
     card.flippedInDeck = flip;
     card.locked = false;
+    card.canReceive = false;
 
     position = position >= 0 ? position : this.cards.length;
     this.cards.splice(position, 0, card);
@@ -297,6 +303,8 @@ class Deck extends PlateauObject {
     card.setEnabled(true, true);
     card.stopAnimationMode();
     card.pickable = true;
+    card.canReceive = true;
+    if (this.cards.length == 1) this.dispose(false);
     return card;
   }
 
