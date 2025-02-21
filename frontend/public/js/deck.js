@@ -112,6 +112,8 @@ class Card extends PlateauObject {
 
   received(po) {
     console.log("Dropping a card on another: creating a deck...");
+    this.flippedInDeck = angleDegreesBetweenTwoUnitVectors(this.node.up, BABYLON.Vector3.Up()) < 90;
+    po.flippedInDeck = angleDegreesBetweenTwoUnitVectors(po.node.up, BABYLON.Vector3.Up()) < 90;
     Deck.BuildFromCards("Deck", [this, po], this.node.position);
   }
 }
@@ -205,7 +207,7 @@ class Deck extends PlateauObject {
     var deck = new Deck(name, position);
 
     for (var c of cards) {
-      deck.addCard(c);
+      deck.addCard(c, c.flippedInDeck);
     }
     deck.setupDropZones();
     // if (position) deck.node.position.copyFrom(position);
@@ -304,6 +306,7 @@ class Deck extends PlateauObject {
     card.stopAnimationMode();
     card.pickable = true;
     card.canReceive = true;
+    card.flippedInDeck = false;
     if (this.cards.length == 1) this.dispose(false);
     return card;
   }
@@ -376,7 +379,7 @@ class Deck extends PlateauObject {
   objectDroppedOnZone(obj, zone) {
     if (obj instanceof Card)
       console.log("Card ", obj.node.id, " dropped on ", zone == this.topDropZone ? "top" : "bottom");
-    var flip = false;
+    var flip = angleDegreesBetweenTwoUnitVectors(this.node.up, obj.node.up) < 90;
     this.addCard(obj, flip, zone == this.bottomDropZone ? 0 : -1); // TODO: flip
     this._updateCardsPhysics();
   }
