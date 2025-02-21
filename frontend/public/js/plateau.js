@@ -566,15 +566,21 @@ var createScene = async function () {
           forceVector.copyFrom(throwDirection);
           forceVector.x *= power;
           forceVector.z *= power;
-          setTimeout(() => {
-            o.stopAnimationMode();
-            var cm = o.body.getMassProperties().centerOfMass.clone();
-            var world_H_obj = XTransform.FromNodeWorld(o.node);
-            var world_H_com = world_H_obj.multiply(new XTransform(cm));
-            var pos = world_H_com.position.clone();
-            pos.y += 0.03; // slightly up to induce some moment (angular velocity)
-            o.body.applyForce(forceVector, pos);
-          }, 50);
+          window.setTimeout(
+            function (params) {
+              var obj = params[0];
+              var forceVector = params[1];
+              obj.stopAnimationMode();
+              var cm = obj.body.getMassProperties().centerOfMass.clone();
+              var world_H_obj = XTransform.FromNodeWorld(obj.node);
+              var world_H_com = world_H_obj.multiply(new XTransform(cm));
+              var pos = world_H_com.position.clone();
+              pos.y += 0.03; // slightly up to induce some moment (angular velocity)
+              obj.body.applyForce(forceVector, pos);
+            },
+            50,
+            [o, forceVector]
+          );
         } else {
           o.onRelease();
           o.stopAnimationMode();

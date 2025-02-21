@@ -26,7 +26,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] PBR materials
 - [ ] System to retrieve fallen objects
 - [ ] Contextual menu
-- [ ] File save/restore system
+- [x] File save/restore system (experimental state saving/loading)
 - [x] external http textures (usings CORS extension on browser or backend)
 - [x] Object dropping onto another events system
 - [ ] Long/Short click system and associated events
@@ -105,8 +105,9 @@ A virtual tabletop (VTT) playground based on Babylon.js
 # Todo
 
 - [x] Refactoring animations
-- [ ] Deck deletion on emptying ?
-- [ ] Deck creation on cards gathering ?
+- [x] Deck deletion on last card
+- [x] Deck creation on cards gathering
+- [ ] Decks merging on Deck dropped on deck
 - [ ] Draw Top or down cards
 - [ ] Options system
 
