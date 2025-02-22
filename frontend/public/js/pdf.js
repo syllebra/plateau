@@ -3,6 +3,7 @@ class PdfObject extends ShapedObject {
   renderCanvas = [];
   pdf = null;
   currentPage = 0;
+  url = null;
 
   constructor(url, pageNumber = 1, planeWidth = 2.1, planeHeight = 2.97, thickness = 0.01) {
     // var url =
@@ -13,9 +14,11 @@ class PdfObject extends ShapedObject {
     var topShape = createRectangleShape(planeWidth, planeHeight);
     super(null, topShape, null, thickness, 0, 0);
 
+    this.url = url;
+
     var pdfObj = this;
-    var pbr = new BABYLON.PBRMaterial("default_material", scene);
-    pbr.albedoColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+    var pbr = new BABYLON.PBRMaterial("pdf", scene);
+    pbr.albedoColor = new BABYLON.Color3(1, 1, 1);
     pbr.metallic = 0.0;
     pbr.roughness = 0.6;
     pdfObj.node.material = pbr;
@@ -36,6 +39,57 @@ class PdfObject extends ShapedObject {
         console.error(reason);
       }
     );
+
+    this.buttonsNode = null;
+    this.createButtons();
+  }
+
+  createButtons() {
+    var bb = this.getBoundingInfos().boundingBox;
+    this.buttonsNode = new BABYLON.TransformNode("Buttons");
+    this.buttonsNode.setParent(this.node);
+    this.buttonsNode.position = BABYLON.Vector3.Zero();
+    this.buttonsNode.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(-Math.PI * 0.5, 0, 0);
+    this.buttonsNode.position.z = bb.minimum.z - 0.25;
+
+    // Create the 3D UI manager
+    var manager = scene.manager ? scene.manager : new BABYLON.GUI.GUI3DManager(scene);
+    var panel = new BABYLON.GUI.PlanePanel();
+    manager.addControl(panel);
+    var addButton = function (panel, text, onclick = null) {
+      var button = new BABYLON.GUI.HolographicButton("reset");
+      panel.addControl(button);
+
+      button.onPointerUpObservable.add(function () {
+        if (onclick) onclick();
+      });
+
+      var text1 = new BABYLON.GUI.TextBlock();
+      text1.fontFamily = "Amaranth";
+      text1.text = text;
+      text1.color = "white";
+      text1.fontSize = 45;
+      button.content = text1;
+      // button.mesh.material = button.mesh.material.clone();
+      button.mesh.material.albedoColor = BABYLON.Color3.Black();
+      button.mesh.material.alpha = 0.3;
+      return button;
+    };
+
+    var keepRef = this;
+
+    panel.linkToTransformNode(this.buttonsNode);
+    panel.columns = 3;
+    panel.position.x = 0;
+    panel.scaling = BABYLON.Vector3.One().multiplyByFloats(0.5, 0.5, 0.5);
+
+    var prev = addButton(panel, "<", () => keepRef.previousPage());
+    var next = addButton(panel, ">", () => keepRef.nextPage());
+    var open = addButton(panel, "Open", () => {
+      window.open(this.url, "_blank").focus();
+    });
+
+    this.buttonsNode.setEnabled(false);
   }
 
   get preferedFrontVector() {
@@ -45,18 +99,24 @@ class PdfObject extends ShapedObject {
     return this.node.forward;
   }
 
+  previousPage() {
+    this.loadPage(this.currentPage == 1 ? this.pdf.numPages : this.currentPage - 1);
+  }
+  nextPage() {
+    this.loadPage(this.currentPage == this.pdf.numPages ? 1 : this.currentPage + 1);
+  }
   onKeyDown(key) {
     var consumed = super.onKeyDown(key);
     switch (key) {
       case "PageDown":
       case "ArrowLeft":
       case "ArrowDown":
-        this.loadPage(this.currentPage == 1 ? this.pdf.numPages : this.currentPage - 1);
+        this.previousPage();
         break;
       case "PageUp":
       case "ArrowRight":
       case "ArrowUp":
-        this.loadPage(this.currentPage == this.pdf.numPages ? 1 : this.currentPage + 1);
+        this.nextPage();
         break;
       default:
         return consumed;
@@ -104,5 +164,12 @@ class PdfObject extends ShapedObject {
         pdfObj.node.material.albedoColor.r = 0.8;
       });
     });
+  }
+
+  onHoverEnter() {
+    this.buttonsNode.setEnabled(true);
+  }
+  onHoverLeave() {
+    this.buttonsNode.setEnabled(false);
   }
 }

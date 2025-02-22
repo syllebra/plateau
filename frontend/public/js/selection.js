@@ -113,7 +113,9 @@ class SelectionHandler {
     hl = hl ? hl : this.hl;
     //if (hl && !this._isMeshSelected(mesh) && !this._isMeshExcluded(mesh)) {
     if (hl) {
-      hl.addMesh(mesh, color);
+      try {
+        hl.addMesh(mesh, color);
+      } catch {}
 
       for (var c of mesh.getChildren()) this._addMeshesRecursive(c, hl, color);
     }
@@ -121,7 +123,9 @@ class SelectionHandler {
   static _removeMeshesRecursive(mesh, hl = null) {
     hl = hl ? hl : this.hl;
     if (hl && this._isMeshSelected(mesh)) {
-      hl.removeMesh(mesh);
+      try {
+        hl.removeMesh(mesh);
+      } catch {}
       for (var c of mesh.getChildren()) this._removeMeshesRecursive(c, hl);
     }
   }
@@ -189,7 +193,9 @@ class SelectionHandler {
   static updateHover(obj, color = new BABYLON.Color3(1, 0.6, 0.0)) {
     if (obj != this.hoveredObject) {
       if (this.hoveredObject) this._updateHover(this.hoveredObject, false);
+      if (this.hoveredObject && this.hoveredObject.onHoverLeave) this.hoveredObject.onHoverLeave();
       this.hoveredObject = obj;
+      if (this.hoveredObject && this.hoveredObject.onHoverEnter) this.hoveredObject.onHoverEnter();
       var color = obj && obj.locked ? new BABYLON.Color3(0.4, 0.4, 0.4) : color;
       this._updateHover(obj, true, color);
     }
