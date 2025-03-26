@@ -1,5 +1,7 @@
 # plateau
 
+![Title screen](title_01.png)
+
 A virtual tabletop (VTT) playground based on Babylon.js
 
 # Features
@@ -39,7 +41,7 @@ A virtual tabletop (VTT) playground based on Babylon.js
 - [x] PDF Viewer
   - [x] Keyboard interactions
   - [x] 3D Display
-  - [ ] 3D Buttons
+  - [x] 3D Buttons
   - [ ] Screen display option
 - [x] Close Isolate view (shift)
   - [x] Orientation object dependant
